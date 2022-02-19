@@ -39,8 +39,11 @@ function eval_application(f, a, env) {
 
 function eval_ast(ast, env) {
     if (ast instanceof NodeExprBody) {
-        const values = ast.subasts.map(t => eval_ast(t, env));
-        return values[values.length - 1];
+        let value = new Complex(0, 0);
+        for (const e of ast.subasts) {
+            value = eval_ast(e, env);
+        }
+        return value;
     }
     else if (ast instanceof NodeOperation) {
         // variable binding
