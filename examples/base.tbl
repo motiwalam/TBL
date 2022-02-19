@@ -10,5 +10,5 @@ encode: [n, b] $
 decode: [v, b] $ 
     0 = len @ [v] ? [
         0,
-        pop @ [v] + b*decode @ [v, b]
+        pop @ [v] + b*& @ [v, b]
     ]

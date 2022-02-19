@@ -222,6 +222,7 @@ const mul = [eval_expr(fix(`[a, b] $ a * b`))];
 const div = [eval_expr(fix(`[a, b] $ a / b`))];
 const add = [eval_expr(fix(`[a, b] $ a + b`))];
 const sub = [eval_expr(fix(`[a, b] $ a - b`))];
+const mod = [eval_expr(fix(`[a, b] $ a % b`))];
 const eq = [eval_expr(fix(`[a, b] $ a = b`))];
 const lt = [eval_expr(fix(`[a, b] $ a < b`))];
 const gt = [eval_expr(fix(`[a, b] $ a > b`))];
@@ -305,6 +306,7 @@ const STDLIB = Object.freeze({
     div,
     add, sum,
     sub,
+    mod,
     eq,
     lt,
     gt,
@@ -332,6 +334,7 @@ const STDLIB = Object.freeze({
     max, min, maxl, minl,
     repeat,
     encode, decode,
+    nwise,
     PI,
     'π': PI,
     E
