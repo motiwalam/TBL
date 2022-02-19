@@ -10,6 +10,7 @@ import {
     isimag_strict,
     iszero_fuzz,
 } from "./checks.mjs";
+import assert from "assert";
 import { ERRORS } from "./errors.mjs";
 
 
