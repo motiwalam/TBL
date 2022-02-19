@@ -230,7 +230,7 @@ const gte = [eval_expr(fix(`[a, b] $ a ≥ b`))];
 
 const sum = [eval_expr(fix(`l $ reduce @ [add, l]`))];
 const prod = [eval_expr(fix(`l $ reduce @ [mul, l]`))];
-const fact = [eval_expr(fix(`n $ prod @ [range @ [1, n]]`))]
+const fact = [eval_expr(fix(`n $ n > 1 ? [prod @ [range @ [2, n]], 1]`))]
 const and = [eval_expr(fix(`[a, b] $ a ? [b ? [1, 0], 0]`))];
 const or  = [eval_expr(fix(`[a, b] $ a ? [1, b ? [1, 0]]`))];
 const all = [eval_expr(fix(`l $ reduce @ [and, l]`))];
@@ -255,6 +255,18 @@ const accumulate = [eval_expr(fix(`
     )
 );
 `))];
+
+
+const nwise = [eval_expr(fix(`
+[l, n] $
+    map @ [
+        i $ map @ [
+            j $ get @ [l, i + j],
+            range @ [0, n-1]
+        ],
+        range @ [0, len @ [l] - n]
+    ]
+`))]
 
 const encode = [eval_expr(fix(`
 [n, b] $

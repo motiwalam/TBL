@@ -1,0 +1,18 @@
+fib: n $ (
+    a: [0];
+    b: [1];
+
+    map @ [
+        i $ (
+            c: pop @ [a];
+            d: pop @ [b];
+            push @ [a, d];
+            push @ [b, c + d];
+        ),
+        range @ [1, n]
+    ];
+
+    pop @ [b];
+);
+
+sum @ [filter @ [n $ (0 = n % 2), map @ [fib, range @ [1, 32]]]]

@@ -1,0 +1,17 @@
+cos: [x, n] $
+    sum @ [
+        map @ [
+            n $ neg @ 1 ^ n * x^(2*n) / fact @ [2 * n],
+            range @ [0, n]
+        ]
+    ]
+;
+
+sin: [x, n] $
+    sum @ [
+        map @ [
+            n $ neg @ 1 ^ n * x^(2*n + 1) / fact @ [2 * n + 1],
+            range @ [0, n]
+        ]
+    ]
+;

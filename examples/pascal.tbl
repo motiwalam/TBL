@@ -1,0 +1,23 @@
+-- surround a list with zeros;
+sz: l $ (
+    z: [0];
+    concat @ [z, concat @ [l, z]]
+);
+
+-- take consecutive pairs in a list;
+-- i.e [1, 2, 3, 4] -> [[1,2], [2,3], [3,4]];
+pw: l $ nwise @ [l, 2];
+
+-- given one row of pascal's triangle, generate the next;
+R: r $ (
+    map @ [
+        sum,
+        pw @ [sz @ [r]]
+    ]
+);
+
+-- accumulate the function R, n-times, with initial value [1], the first row of pascal's triangle;
+pascal: n $ (
+    (accumulate @ [R, n]) @ [[1]]
+);
+

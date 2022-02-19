@@ -1,0 +1,16 @@
+factorize: n $ (
+    factors: [];
+    a: 2;
+    n > 1 ! (
+        (0 = n % a) ? [
+            (
+                push @ [factors, a];
+                n: n / a;
+            ),
+            a: a + 1
+        ]
+    );
+    factors;
+);
+
+reduce @ [max, factorize @ 600851475143]

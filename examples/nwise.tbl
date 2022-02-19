@@ -1,0 +1,9 @@
+-- chunk a list into nwise tuples;
+nwise: [l, n] $
+    map @ [
+        i $ map @ [
+            j $ get @ [l, i + j],
+            range @ [0, n-1]
+        ],
+        range @ [0, len @ [l] - n]
+    ]

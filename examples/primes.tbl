@@ -1,0 +1,13 @@
+isp: n $
+    n ≤ 2 ? [
+        n = 2 ? [0, 1],
+        all @ [
+            map @ [
+                i $ (n % i),
+                range @ [2, n^0.5 + 1]
+            ]
+        ]
+    ]
+;
+
+primes: n $ filter @ [isp, range @ [1, n]];

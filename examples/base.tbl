@@ -1,0 +1,14 @@
+-- encode a number n in base b;
+encode: [n, b] $ 
+    n = 0 ? [
+        [],
+        concat @ [& @ [floor @ (n/b), b], [n % b]]
+    ]
+;
+
+-- decode a vector of digits represented in base b;
+decode: [v, b] $ 
+    0 = len @ [v] ? [
+        0,
+        pop @ [v] + b*decode @ [v, b]
+    ]
