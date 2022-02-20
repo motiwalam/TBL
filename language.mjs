@@ -13,6 +13,7 @@ const BIND = ':';
 const APPLICATION = '@';
 
 const WHILE = '!';
+const FOR = '#';
 
 const EXPONENTIATION = '^';
 const MULTIPLICATION = '*';
@@ -54,7 +55,8 @@ const PRECEDENCE = [
     [MULTIPLICATION, DIVISION],
     [MODULUS, ADDITION, SUBTRACTION],
     [EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
-    [CONDITIONAL, WHILE],
+    [CONDITIONAL],
+    [WHILE, FOR],
     [DEFINITION],
     [BIND],
 ]
@@ -94,7 +96,8 @@ const LANG = Object.freeze({
     GREATER_THAN,
     GREATER_THAN_EQ,
 
-    WHILE, 
+    WHILE,
+    FOR,
 
     OPERATORS,
     PRECEDENCE,

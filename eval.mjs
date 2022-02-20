@@ -117,6 +117,26 @@ function eval_ast(ast, env) {
             return value;
         }
 
+        if (ast.operator == LANG.FOR) {
+            let value = null;
+            const initializer = ast.left;
+            const body = ast.right;
+
+            assert(initializer instanceof NodeList, `Initializer must be a list`);
+            assert(initializer.subasts.length == 3, `Initializer must contain three statements`);
+
+            const [init, cond, update] = initializer.subasts;
+
+            value = eval_ast(init, env);
+            while (bool(eval_ast(cond, env))) {
+                value = eval_ast(body, env);
+                eval_ast(update, env);
+            }
+
+            if (value == null) return new Complex(0, 0);
+            return value;
+        }
+
         // operations that do not directly affect environment
         const f = {
             [LANG.EXPONENTIATION]: pow,
