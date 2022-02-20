@@ -18,34 +18,34 @@ Since `-` is taken as the binary subtraction operator, negative literals are don
 A literal is treated as real, unless suffixed by the letter `i`, in which case it is treated as an imaginary number.
 
 Some example numbers:
- * 0.13
- * 1.69
- * 1e5
- * 3i
- * 5 + 4i
- * ~40
- * ~9 + 6i
+ * `0.13`
+ * `1.69`
+ * `1e5`
+ * `3i`
+ * `5 + 4i`
+ * `~40`
+ * `~9 + 6i`
 
 Lists are denoted by `[` and `]`. Values inside of the list are separated by commas.
 Some example lists:
- * [1, 2, 3]
- * [[1,2], 3]
- * [1i, 3 + 4, [[[1,2],[3,4]]]]
- * [a $ 3\*a, 4, [7]] <- a list that contains a function, a number, and a list
+ * `[1, 2, 3]`
+ * `[[1,2], 3]`
+ * `[1i, 3 + 4, [[[1,2],[3,4]]]]`
+ * `[a $ 3\*a, 4, [7]]` <- a list that contains a function, a number, and a list
 
 
 ## List manipulation
 
 The following functions allow for working with lists:
- * get [list, index]
- * set [list, index, value]
- * push [list, value]
- * pop [list]
- * len [list]
- * map [function, list]
- * filter [function, list]
- * reduce [function, list]
- * concat [list1, list2]
+ * `get` [list, index]
+ * `set` [list, index, value]
+ * `push` [list, value]
+ * `pop` [list]
+ * `len` [list]
+ * `map` [function, list]
+ * `filter` [function, list]
+ * `reduce` [function, list]
+ * `concat` [list1, list2]
 
 ## Functions
 TBL supports functions and higher order functions.
