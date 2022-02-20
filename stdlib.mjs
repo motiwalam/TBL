@@ -288,7 +288,10 @@ const decode = [eval_expr(fix(`
 `))];
 
 const bin = [eval_expr(fix(`n $ encode @ [n, 2]`))];
+const fbin = [eval_expr(fix(`n $ decode @ [n, 2]`))];
+
 const hex = [eval_expr(fix(`n $ encode @ [n, 16]`))];
+const fhex = [eval_expr(fix(`n $ decode @ [n, 16]`))];
 
 const PI = [new Complex(Math.PI, 0)];
 const E = [new Complex(Math.E, 0)];
@@ -340,7 +343,9 @@ const STDLIB = Object.freeze({
     nwise,
     PI,
     'π': PI,
-    E
+    E,
+    bin, fbin,
+    hex, fhex,
 
 });
 

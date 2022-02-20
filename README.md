@@ -137,7 +137,9 @@ The standard library provides a number of functions:
  * random
  * neg (negate a number)
  * encode (encode a number in base b)
+   * `bin` and `hex` are functions that wrap `encode` with values for `b` of 2 and 16 respeciively
  * decode (decode a list of digits in base b)
+   * `fbin` and `fhex` are functions that wrap `decode` with values for `b` of 2 and 16 respectively
  * accumulate (apply a function n times and save intermediate results)
  * nwise (take consecute n-tuples from a list)
  * range (produce a list of numbers from start to end with a step)
