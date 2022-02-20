@@ -7,7 +7,7 @@ import {
     icomp,
     assert_complex,
     isreal_strict,
-    isimag_strict,
+    iszero_strict,
     iszero_fuzz,
 } from "./checks.mjs";
 import assert from "assert";
@@ -52,20 +52,24 @@ const lte_complex = (a, b) => fbool([lt_complex(a, b), eq_complex(a, b)].some(bo
 const gt_complex = (a, b) => fbool(!bool(lte_complex(a, b)));
 const gte_complex = (a, b) => fbool(!bool(lt_complex(a, b)));
 
-const pow_complex_real = (z, n) => {
-    const r = abs_complex(z);
-    const t = rad_complex(z);
-    const nr = Math.pow(r, n);
-    const nt = n * t;
+const pow_complex = (a, b) => {
+    if (iszero_strict(b)) return new Complex(1, 0);
+    if (iszero_strict(a)) {
+        if (b.imag != 0 || b.real < 0) throw `0 to the power of negative or complex power`;
+        return new Complex(0, 0);
+    }
 
-    return new Complex(nr * Math.cos(nt), nr * Math.sin(nt));
-}
+    const vabs = abs_complex(a);
+    let len    = Math.pow(vabs, b.real);
+    const at   = rad_complex(a);
+    let phase  = at * b.real;
+    if (!isreal_strict(b)) {
+        len /= Math.exp(at * b.imag);
+        phase += b.imag * Math.log(vabs);
+    }
 
-const pow_real_complex = (n, z) => {
-    const nr = new Complex(Math.pow(n, z.real), 0);
-    const ni = z.imag * Math.log(n);
-    const bz = new Complex(Math.cos(ni), Math.sin(ni));
-    return mul_complex(nr, bz);
+    return new Complex(len * Math.cos(phase), len * Math.sin(phase));
+    
 }
 
 function zip(...ls) {
@@ -76,12 +80,7 @@ function zip(...ls) {
 
 function pow(a, b) {
     let r = null;
-    if (icc(a, b)) {
-        if (iszero_fuzz(b)) r = new Complex(1, 0);
-        else if (isreal_fuzz(b)) r = pow_complex_real(a, b.real);
-        else if (isreal_fuzz(a)) r = pow_real_complex(a.real, b);
-        else    throw ERRORS.CC_RAISE(a, b);
-    }
+    icc(a, b) && (r = pow_complex(a, b));
     icl(a, b) && (r = b.map(e => pow(a, e)));
     ilc(a, b) && (r = b.map(e => pow(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => pow(e1, e2))));
