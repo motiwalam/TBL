@@ -17,17 +17,7 @@ import { ERRORS } from "./errors.mjs";
 const neg_complex = z => new Complex(-z.real, -z.imag);
 const con_complex = z => new Complex(z.real, -z.imag);
 const abs_complex = z => Math.sqrt(z.real * z.real + z.imag * z.imag);
-const rad_complex = z => {
-    if (isreal_strict(z)) {
-        return Math.PI * (z.real < 0 ? 1 : 0);
-    }
-
-    const atan = Math.atan(z.imag / z.real);
-    if (z.imag > 0 && z.real >= 0) return atan;
-    if (z.imag < 0 && z.real >= 0) return atan;
-    if (z.imag > 0 && z.real <= 0) return Math.PI + atan;
-    if (z.imag < 0 && z.real <= 0) return -Math.PI + atan;
-};
+const rad_complex = z => Math.atan2(z.imag, z.real);
 
 const add_complex = (a, b) => new Complex(a.real + b.real, a.imag + b.imag);
 const sub_complex = (a, b) => add_complex(a, neg_complex(b));
@@ -55,7 +45,7 @@ const gte_complex = (a, b) => fbool(!bool(lt_complex(a, b)));
 const pow_complex = (a, b) => {
     if (iszero_strict(b)) return new Complex(1, 0);
     if (iszero_strict(a)) {
-        if (b.imag != 0 || b.real < 0) throw `0 to the power of negative or complex power`;
+        if (b.imag != 0 || b.real < 0) throw `can not raise 0 to the power of negative or complex power`;
         return new Complex(0, 0);
     }
 
@@ -80,7 +70,12 @@ function zip(...ls) {
 
 function pow(a, b) {
     let r = null;
-    icc(a, b) && (r = pow_complex(a, b));
+    if (icc(a, b)) {
+        if (isreal_strict(a) && isreal_strict(b) && !(a.real <= 0 && Math.abs(b.real) < 1) && !(a.real == 0 && b.real < 0))
+            r = new Complex(Math.pow(a.real, b.real), 0);
+        else
+            r = pow_complex(a, b);
+    }
     icl(a, b) && (r = b.map(e => pow(a, e)));
     ilc(a, b) && (r = b.map(e => pow(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => pow(e1, e2))));
