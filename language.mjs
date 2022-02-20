@@ -27,14 +27,24 @@ const LESS_THAN_EQ = '≤';
 const GREATER_THAN = '>';
 const GREATER_THAN_EQ = '≥';
 
+const NEGATIVE = '~';
+const DECIMAL = '.';
 
-const NUMBER_START = /[0-9\.]/;
+const digit = '[0-9]';
+const decimal = `\\${DECIMAL}${digit}`
+const dd = `(${digit})|(${decimal})`;
+
+const NUMBER_START = new RegExp(
+    `^(${dd}|(${NEGATIVE}(${dd})))`
+);
 const IGNORE = /\s/g;
 
 const TINY = 1e-10;
 
-const SEPARATOR = ';';
+const LIST_SEPARATOR = ',';
+const STATEMENT_SEPARATOR = ';';
 const RECURSION = '&';
+const COMPLEX = 'i';
 
 const COMMENT = '--';
 
@@ -61,6 +71,8 @@ const LANG = Object.freeze({
     OPEN_GROUPS,
     CLOSE_GROUPS,
 
+    NEGATIVE,
+    DECIMAL,
     NUMBER_START,
     IGNORE,
 
@@ -89,7 +101,10 @@ const LANG = Object.freeze({
 
     TINY,
 
-    SEPARATOR,
+    STATEMENT_SEPARATOR,
+    LIST_SEPARATOR,
+
+    COMPLEX,
 
     RECURSION,
 

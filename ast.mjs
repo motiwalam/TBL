@@ -1,14 +1,55 @@
-import { splitOnMultipleUncontainedDelims, splitOnUncontainedDelim } from "./parse.mjs";
 import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation } from "./nodes.mjs";
 
 import { LANG } from "./language.mjs";
 import assert from "assert"
 
+function splitIndices(text, indices, includeidx = false) {
+    let pairs = [[0, indices[0]], ...indices.map((v, i) => [v + 1, indices[i+1]])];
+    if (includeidx) pairs = pairs.concat(indices.map(i => [i, i + 1])).sort(([a], [b]) => a - b)
+    const out = pairs.map(([i1, i2]) => text.slice(i1, i2));
+
+    return out;
+}
+
+function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim = false) {
+    const indices = [];
+    
+    let depths = 0;
+    for (const [i, c] of Object.entries(text)) {
+        ogs.includes(c) && depths++;
+        cgs.includes(c) && depths--;
+
+        delims.includes(c) && depths == 0 && indices.push(parseInt(i));
+    }
+
+    return splitIndices(text, indices, includedelim);
+}
+
+function splitOnUncontainedDelim(text, og, cg, delim, includedelim = false) {
+    return splitOnMultipleUncontainedDelims(text, [og], [cg], [delim], includedelim)
+}
+
+
+function parseNumber(t) {
+    let n;
+    if (t.startsWith(LANG.NEGATIVE)) {
+        n = -parseFloat(t.slice(1));
+    } else {
+        n = parseFloat(t);
+    }
+    
+    if (t.endsWith(LANG.COMPLEX)) {
+        return new NodeComplex(0, n);
+    } else {
+        return new NodeComplex(n, 0);
+    }
+
+}
 
 function make_ast(input) {
     input = input.replace(LANG.IGNORE, '');
 
-    const body = splitOnUncontainedDelim(input, LANG.EXPR_OPEN, LANG.EXPR_CLOSE, LANG.SEPARATOR)
+    const body = splitOnUncontainedDelim(input, LANG.EXPR_OPEN, LANG.EXPR_CLOSE, LANG.STATEMENT_SEPARATOR)
                  .filter(e => e && !e.startsWith(LANG.COMMENT));
 
     const asts = [];
@@ -36,23 +77,15 @@ function make_ast(input) {
                 if (e.slice(1, li).length == 0) {
                     values.push(new NodeList([]))
                 } else {
-                    const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [',']);
+                    const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [LANG.STATEMENT_SEPARATOR]);
     
                     values.push(new NodeList(subexprs.map(t => make_ast(t).subasts[0])))
     
                 }
             }
     
-            else if (LANG.NUMBER_START.test(e[0])) {
-                const n = parseFloat(e);
-    
-                let v;
-                if (e.endsWith('i'))
-                    v = new NodeComplex(0, n);
-                else
-                    v = new NodeComplex(n, 0);
-    
-                values.push(v);
+            else if (LANG.NUMBER_START.test(e)) {
+                values.push(parseNumber(e));
             }
     
             else if (!LANG.OPERATORS.includes(e[0])) {
