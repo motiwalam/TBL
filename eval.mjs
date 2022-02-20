@@ -64,10 +64,12 @@ function eval_ast(ast, env) {
         // function definition
         if (ast.operator == LANG.DEFINITION) {
             assert(ast.left instanceof NodeList || ast.left instanceof NodeIdentifier, `Invalid function head.`);
-            if (ast.left instanceof NodeList)
-                assert(ast.left.subasts.every(e => e instanceof NodeIdentifier), `All params need to be identifiers.`)
+            if (ast.left instanceof NodeList) {
+                assert(ast.left.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
+                        `All params need to be identifiers`);
+            }
             
-            const params = ast.left instanceof NodeList ? ast.left.subasts.map(e => e.name) : [ast.left.name];
+            const params = ast.left instanceof NodeList ? ast.left.subasts.map(e => e.subasts[0].name) : [ast.left.name];
             const body = ast.right;
             const closure = {};
             for (const [name, binding] of Object.entries(env)) {

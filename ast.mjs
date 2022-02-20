@@ -77,9 +77,9 @@ function make_ast(input) {
                 if (e.slice(1, li).length == 0) {
                     values.push(new NodeList([]))
                 } else {
-                    const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [LANG.STATEMENT_SEPARATOR]);
+                    const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [LANG.LIST_SEPARATOR]);
     
-                    values.push(new NodeList(subexprs.map(t => make_ast(t).subasts[0])))
+                    values.push(new NodeList(subexprs.map(t => make_ast(t))))
     
                 }
             }
