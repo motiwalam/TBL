@@ -202,7 +202,7 @@ const log2 = mathfun(Math.log2);
 const random = [new BuiltinFunction(function random(){return new Complex(Math.random(), 0)})];
 const abs = [new BuiltinFunction(function abs(params){return _abs(...get_n(params, 1));})]
 
-const neg = [eval_expr(fix(`x $ (x * (0-1))`))];
+const neg = [eval_expr(fix(`x $ (x * ~1)`))];
 
 const max = [eval_expr(fix(`[a, b] $ (a > b) ? [a, b])`))];
 const maxl = [eval_expr(fix(`l $ (reduce @ [max, l])`))];
@@ -286,6 +286,9 @@ const decode = [eval_expr(fix(`
     ]
 ;
 `))];
+
+const bin = [eval_expr(fix(`n $ encode @ [n, 2]`))];
+const hex = [eval_expr(fix(`n $ encode @ [n, 16]`))];
 
 const PI = [new Complex(Math.PI, 0)];
 const E = [new Complex(Math.E, 0)];

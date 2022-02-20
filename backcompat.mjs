@@ -2,6 +2,7 @@ import { LANG } from "./language.mjs";
 // a function that takes expressions in the language as it stands on 18/02/22
 // and returns the expression in the most current syntax
 
+// not perfect since it doesn't account for other elements like complex literals
 export const fix = input => input
                             .replace('(', LANG.EXPR_OPEN)
                             .replace(')', LANG.EXPR_CLOSE)
@@ -26,3 +27,5 @@ export const fix = input => input
                             .replace(';', LANG.SEPARATOR)
                             .replace('--', LANG.COMMENT)
                             .replace('&', LANG.RECURSION)
+                            .replace('~', LANG.NEGATIVE)
+                            
