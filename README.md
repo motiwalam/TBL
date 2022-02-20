@@ -93,63 +93,63 @@ The for loop operator, `#`, takes a list of three expressions on its left and a 
 ## Standard Library
 The standard library provides a number of functions:
  * all arithmetic operators are available as functions:
-   * pow
-   * mul
-   * div
-   * add
-   * sub
-   * mod
+   * `mul`
+   * `pow`
+   * `div`
+   * `add`
+   * `sub`
+   * `mod`
  * likewise for the comparison operators:
-   * eq
-   * lt
-   * lte
-   * gt
-   * gte
+   * `eq`
+   * `lt`
+   * `lte`
+   * `gt`
+   * `gte`
  * boolean operations:
-   * and
-   * or
-   * not
-   * bool (the boolean identity)
- * max
- * min
- * abs
- * dup (duplicate object)
- * im (get imaginary component)
- * re (get real component)
+   * `and`
+   * `or`
+   * `not`
+   * `bool` (the boolean identity)
+ * `max`
+ * `min`
+ * `abs`
+ * `dup` (duplicate object)
+ * `im` (get imaginary component)
+ * `re` (get real component)
  * math functions
-   * floor
-   * ceil
-   * sin
-   * cos
-   * tan
-   * asin
-   * acos
-   * atan
-   * sinh
-   * cosh
-   * tanh
-   * asinh
-   * acosh
-   * atanh
-   * log
-   * log10
-   * log2
- * random
- * neg (negate a number)
- * encode (encode a number in base b)
+   * `floor`
+   * `ceil`
+   * `sin`
+   * `cos`
+   * `tan`
+   * `asin`
+   * `acos`
+   * `atan`
+   * `sinh`
+   * `cosh`
+   * `tanh`
+   * `asinh`
+   * `acosh`
+   * `atanh`
+   * `log`
+   * `log10`
+   * `log2`
+ * `random`
+ * `neg` (negate a number)
+ * `encode` (encode a number in base b)
    * `bin` and `hex` are functions that wrap `encode` with values for `b` of 2 and 16 respeciively
- * decode (decode a list of digits in base b)
+ * `decode` (decode a list of digits in base b)
    * `fbin` and `fhex` are functions that wrap `decode` with values for `b` of 2 and 16 respectively
- * accumulate (apply a function n times and save intermediate results)
- * nwise (take consecute n-tuples from a list)
- * range (produce a list of numbers from start to end with a step)
+ * `accumulate` (apply a function n times and save intermediate results)
+ * `nwise` (take consecute n-tuples from a list)
+ * `range` (produce a list of numbers from start to end with a step)
  * reductions:
-   * sum: (reduce add)
-   * prod: (reduce multiply)
-   * all: (reduce and)
-   * any: (reduce or)
-   * maxl: (reduce max)
-   * minl: (reduce min)
+   * `sum`: (reduce add)
+   * `prod`: (reduce multiply)
+   * `all`: (reduce and)
+   * `any`: (reduce or)
+   * `maxl`: (reduce max)
+   * `minl`: (reduce min)
 
 
 ## Examples
