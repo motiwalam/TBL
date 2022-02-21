@@ -31,7 +31,7 @@ Some example lists:
  * `[1, 2, 3]`
  * `[[1,2], 3]`
  * `[1i, 3 + 4, [[[1,2],[3,4]]]]`
- * `[a $ 3\*a, 4, [7]]` <- a list that contains a function, a number, and a list
+ * `[a $ 3*a, 4, [7]]` <- a list that contains a function, a number, and a list
 
 
 ## List manipulation
