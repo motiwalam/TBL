@@ -1,16 +1,20 @@
+shift: [l, o] $ map @ [i $ get @ [l, i], range @ (o > 0 ? [[0, len @ [l] - 1 - o], [neg @ o, len @ [l] - 1]])]
 -- take a list of n initial values;
 -- return a function f(x) which is f(x - 1) + f(x - 2) ... + f(x - n);
 -- if x >= n, other wise return the x'th element from the list of initial;
 -- values;
 genfib: l $ (
     n $ (
-        in: dup @ [l];
-        [i: 0, i < n, i: i + 1] # (
-            t: accumulate @ [add, in];
-            set @ [t, 0, get @ [in, 1]];
-            in: t;
-        );
-        pop @ [in];
+        n < len @ [l] ? [
+            get @ [l, max @ [n, 0]],
+            (
+                in: dup @ [l];  
+                [i: 0, i < n - len @ [l] + 1, i: i + 1] # (
+                    in: concat @ [shift @ [in, ~1], [sum @ [in]]];
+                );
+                pop @ [in];
+            )
+        ]
     )
 );
 
