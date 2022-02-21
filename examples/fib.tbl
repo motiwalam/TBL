@@ -1,8 +1,8 @@
-shift: [l, o] $ map @ [i $ get @ [l, i], range @ (o > 0 ? [[0, len @ [l] - 1 - o], [neg @ o, len @ [l] - 1]])]
--- take a list of n initial values;
--- return a function f(x) which is f(x - 1) + f(x - 2) ... + f(x - n);
--- if x >= n, other wise return the x'th element from the list of initial;
--- values;
+shift: [l, o] $ map @ [i $ get @ [l, i], range @ (o > 0 ? [[0, len @ [l] - 1 - o], [neg @ o, len @ [l] - 1]])];
+-- take a list of n initial values
+-- return a function f(x) which is f(x - 1) + f(x - 2) ... + f(x - n)
+-- if x >= n, other wise return the x'th element from the list of initial
+-- values
 genfib: l $ (
     n $ (
         n < len @ [l] ? [
@@ -18,15 +18,15 @@ genfib: l $ (
     )
 );
 
--- the classical fibonacci sequence;
+-- the classical fibonacci sequence
 fib: genfib @ [[0, 1]];
 -- the lucas sequence;
 lucas: genfib @ [[2, 1]];
 
--- n-nacci numbers, that is where the first n-1 values are 0 and the n-th initial value is 1;
+-- n-nacci numbers, that is where the first n-1 values are 0 and the n-th initial value is 1
 nfib: n $ (genfib @ [concat @ [repeat @ [0, n-1], [1]]]);
 
--- tribonacci numbers;
+-- tribonacci numbers
 trib: nfib @ 3;
--- tetranacci numbers;
+-- tetranacci numbers
 tetra: nfib @ 4;
