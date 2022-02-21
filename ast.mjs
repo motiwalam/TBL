@@ -47,10 +47,15 @@ function parseNumber(t) {
 }
 
 function make_ast(input) {
+    // remove comments
+    input = input.split(LANG.COMMENT_SEPARATOR)
+                 .filter(e => e && !e.startsWith(LANG.COMMENT))
+                 .join(LANG.COMMENT_SEPARATOR);
+
     input = input.replace(LANG.IGNORE, '');
 
     const body = splitOnUncontainedDelim(input, LANG.EXPR_OPEN, LANG.EXPR_CLOSE, LANG.STATEMENT_SEPARATOR)
-                 .filter(e => e && !e.startsWith(LANG.COMMENT));
+                 .filter(e => e);
 
     const asts = [];
 

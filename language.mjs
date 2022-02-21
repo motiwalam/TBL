@@ -42,6 +42,7 @@ const IGNORE = /\s/g;
 
 const TINY = 1e-10;
 
+const COMMENT_SEPARATOR = '\n';
 const LIST_SEPARATOR = ',';
 const STATEMENT_SEPARATOR = ';';
 const RECURSION = '&';
@@ -104,6 +105,7 @@ const LANG = Object.freeze({
 
     TINY,
 
+    COMMENT_SEPARATOR,
     STATEMENT_SEPARATOR,
     LIST_SEPARATOR,
 
