@@ -7,6 +7,7 @@ import {
     icomp,
     assert_complex,
     isreal_strict,
+    isimag_strict,
     iszero_strict,
     iszero_fuzz,
 } from "./checks.mjs";
@@ -36,7 +37,11 @@ const fbool = b => b ? new Complex(1, 0) : new Complex(0, 0);
 
 const eq_complex = (a, b) => fbool(a.real == b.real && a.imag == b.imag);
 
-const lt_complex = (a, b) => fbool(abs_complex(a) < abs_complex(b));
+const lt_complex = (a, b) => {
+    if ([a, b].every(isreal_strict)) return fbool(a.real < b.real);
+    if ([a, b].every(isimag_strict)) return fbool(a.imag < b.imag);
+    return fbool(abs_complex(a) < abs_complex(b));
+};
 const lte_complex = (a, b) => fbool([lt_complex(a, b), eq_complex(a, b)].some(bool));
 
 const gt_complex = (a, b) => fbool(!bool(lte_complex(a, b)));
