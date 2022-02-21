@@ -9,15 +9,15 @@ sz: l $ (
 pw: l $ nwise @ [l, 2];
 
 -- given one row of pascal's triangle, generate the next;
-R: r $ (
+R: r $
     map @ [
         sum,
         pw @ [sz @ [r]]
     ]
-);
+;
 
--- accumulate the function R, n-times, with initial value [1], the first row of pascal's triangle;
-pascal: n $ (
-    (accumulate @ [R, n]) @ [[1]]
-);
+fpower: [f, n] $ (i $ accumulate @ [[f, g] $ g @ [f], repeat @ [f, n], i]);
+
+-- accumulate the composition of R, n-times, with initial value [1], the first row of pascal's triangle;
+pascal: n $ fpower @ [R, n] @ [[1]]
 

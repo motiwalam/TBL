@@ -76,6 +76,23 @@ class List {
         return this.values.reduce(f, i);
     }
 
+    accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.values[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new List(results);
+    }
+
     push(v) {
         return this.values.push(v);
     }

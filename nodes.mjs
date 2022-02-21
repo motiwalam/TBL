@@ -6,6 +6,10 @@ class NodeExprBody {
     constructor(subasts) {
         this.subasts = subasts;
     }
+
+    toString() {
+        return `{ ${this.subasts.map(e => e.toString()).join('; ')} }`
+    }
 }
 
 class NodeList {
@@ -16,6 +20,10 @@ class NodeList {
 
     eval(env) {
         return new List(this.subasts.map(t => eval_ast(t, env)))
+    }
+
+    toString() {
+        return `[ ${this.subasts.map(e => e.toString()).join(', ')} ]`
     }
 }
 
@@ -30,6 +38,10 @@ class NodeComplex {
 
     eval() {
         return new Complex(this.re, this.im);
+    }
+
+    toString() {
+        return `${this.re} + ${this.im}i`
     }
 }
 
@@ -46,6 +58,10 @@ class NodeIdentifier {
             return bindings[bindings.length - 1];
         } else throw `${this.name} is not defined`
     }
+
+    toString() {
+        return this.name;
+    }
 }
 
 class NodeOperation {
@@ -57,6 +73,10 @@ class NodeOperation {
         this.operator = operator;
         this.left = left;
         this.right = right;
+    }
+
+    toString() {
+        return `${this.left} ${this.operator} ${this.right}`
     }
 }
 

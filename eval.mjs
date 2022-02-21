@@ -1,6 +1,6 @@
 import { pow, mul, div, add, sub, bool, lt, lte, gt, gte, eq, mod } from "./ops.mjs";
 import { make_ast } from "./ast.mjs";
-import { BuiltinFunction, VFunction, List, Complex } from "./values.mjs";
+import { BuiltinFunction, VFunction, List, Complex, duplicate } from "./values.mjs";
 import { NodeOperation, NodeIdentifier, NodeList, NodeExprBody } from "./nodes.mjs";
 import { LANG } from "./language.mjs";
 import assert from "assert";
@@ -28,7 +28,7 @@ function eval_application(f, a, env) {
     
     const result = eval_ast(f.body, eval_env);
     
-    // // reset the environment
+    // // reset the environments
     // for (const name of f.params) {
     //     env[name].pop();
     //     if (env[name].length == 0) delete env[name]
@@ -48,17 +48,57 @@ function eval_ast(ast, env) {
     else if (ast instanceof NodeOperation) {
         // variable binding
         if (ast.operator == LANG.BIND) {
-            assert(ast.left instanceof NodeIdentifier, `Invalid assignment`);
-            const bindings = [...(env[ast.left.name] ?? [])];
-            bindings.pop();
-            const value = eval_ast(ast.right, env);
-            if (ivfun(value)) {
-                value.closure[ast.left.name] = [value];
-            }
-            bindings.push(value);
-            env[ast.left.name] = bindings;
+            const target = ast.left;
+            const value = ast.right;
+            
+            let targets, values, rv;
+            if (target instanceof NodeIdentifier ) {
+                rv = eval_ast(value, env);
+                targets = [target.name];
+                values = [rv];
+            } else if (target instanceof NodeList) {
+                
+                assert(target.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
+                      "Invalid assignment: list can only contain identifiers");
 
-            return value;
+                if (value instanceof NodeList) {
+                    assert(value.subasts.length == 1 || value.subasts.length == target.subasts.length, 
+                        `Expected ${target.subasts.length} values; received ${value.subasts.length}`);
+
+                    if (value.subasts.length == 1) {
+                        const v = eval_ast(value, env).get(0);
+                        rv = v;
+                        values = Array.from({length: target.subasts.length}, () => duplicate(v));
+                    } else {
+                        rv = eval_ast(value, env);
+                        values = rv.values;
+                    }
+                }
+
+                else {
+                    const v = eval_ast(value, env);
+                    rv = v;
+                    values = Array.from({length: target.subasts.length}, () => duplicate(v));
+                }
+
+                targets = target
+                .subasts.map(e => e.subasts[0].name);
+            } else throw `Invalid assignment to ${ast.left}`;
+
+            for (let i = 0; i < targets.length; i++) {
+                const name = targets[i];
+                const bindings = [...(env[name] ?? [])];
+                bindings.pop();
+                const v = values[i];
+                if (ivfun(v)){
+                    v.closure[name] = [v];
+                }
+                bindings.push(v);
+                env[name] = bindings;
+
+            }
+
+            return rv;
         }
 
         // function definition

@@ -121,6 +121,18 @@ const reduce = [new BuiltinFunction(function reduce(params, env) {
     return l.reduce((a, b) => eval_application(f, new List([a, b]), env), i);
 })];
 
+
+const accumulate = [new BuiltinFunction(function accumulate(params, env) {
+    const [f, l, i] = get_n(params, 3);
+
+    assert_func(f, ERRORS.FIRST_ARG_FUNC);
+    assert_list(l, ERRORS.SEC_ARG_LIST);
+
+    if (i != undefined) assert_value(i, 'initial argument must be a value');
+
+    return l.accum((a, b) => eval_application(f, new List([a, b]), env), i);
+})];
+
 const dup = [new BuiltinFunction(function dup(params) {
     const [v] = get_n(params, 1);
 
@@ -217,6 +229,7 @@ const repeat = [eval_expr(fix(`
 )
 `))];
 
+const apply = [eval_expr(fix(`[a, b] $ a @ b`))];
 const pow = [eval_expr(fix(`[a, b] $ a ^ b`))];
 const mul = [eval_expr(fix(`[a, b] $ a * b`))];
 const div = [eval_expr(fix(`[a, b] $ a / b`))];
@@ -238,24 +251,6 @@ const all = [eval_expr(fix(`l $ reduce @ [and, l, 0]`))];
 const any = [eval_expr(fix(`l $ reduce @ [or, l, 0]`))];
 const bool = [eval_expr(fix(`a $ a ? [1, 0]`))];
 const not = [eval_expr(fix(`a $ a ? [0, 1]`))];
-
-const accumulate = [eval_expr(fix(`
-[f, n] $ (
-    i $ (
-        r: [i];
-        o: map @ [
-            e $ (
-                push @ [
-                    r,
-                    f @ [pop @ [r]]
-                ]
-            ),
-            repeat @ [f, n]
-        ];
-        concat @ [[i], o];
-    )
-);
-`))];
 
 
 const nwise = [eval_expr(fix(`
@@ -307,6 +302,7 @@ const STDLIB = Object.freeze({
     dup,
     im, re,
     neg,
+    apply,
     pow,
     mul, prod, fact,
     div,
