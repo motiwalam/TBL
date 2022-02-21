@@ -82,19 +82,19 @@ The for loop operator, `#`, takes a list of three expressions on its left and a 
 ## Other operators
 
 ### Arithmetic
- * exponentiation: ^
- * multiplication: *
- * division: /
- * addition: +
- * subtraction: -
- * modulus: %
+ * exponentiation: `^`
+ * multiplication: `*`
+ * division: `/`
+ * addition: `+`
+ * subtraction: `-`
+ * modulus: `%`
 
 ### Comparisons
- * equal: =
- * less than: <
- * greater than: >
- * less than or equal to: ≤
- * greater than or equal to: ≥
+ * equal: `=`
+ * less than: `<`
+ * greater than: `>`
+ * less than or equal to: `≤`
+ * greater than or equal to: `≥`
 
 
 ## Standard Library
