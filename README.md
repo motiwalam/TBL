@@ -45,6 +45,7 @@ The following functions allow for working with lists:
  * `map` [function, list]
  * `filter` [function, list]
  * `reduce` [function, list]
+ * `accumulate` [function, list] (reduction with intermediate results)
  * `concat` [list1, list2]
 
 ## Functions
@@ -58,6 +59,12 @@ Functions are applied with the application operator, `@`. The function appears o
 
 ## Assignment
 A name can be associated with a value through the assignment operator, `:`.
+
+TBL also has multiple assignments. 
+
+If the left operand to `:` is a list and the right is a value or a singleton list, then each identifier in the left operand is assigned a duplicate of the right value.
+
+If the left operand `:` is a list and the right is a list of equal length, then each identifier in the left operand is assigned the corresponding value in the right operand.
 
 ## Conditions
 Anything other than the complex number 0 + 0i is treated as true.
@@ -110,6 +117,7 @@ The standard library provides a number of functions:
    * `or`
    * `not`
    * `bool` (the boolean identity)
+ * `apply` (the application operator as a function)
  * `max`
  * `min`
  * `abs`
@@ -140,7 +148,6 @@ The standard library provides a number of functions:
    * `bin` and `hex` are functions that wrap `encode` with values for `b` of 2 and 16 respeciively
  * `decode` (decode a list of digits in base b)
    * `fbin` and `fhex` are functions that wrap `decode` with values for `b` of 2 and 16 respectively
- * `accumulate` (apply a function n times and save intermediate results)
  * `nwise` (take consecute n-tuples from a list)
  * `range` (produce a list of numbers from start to end with a step)
  * reductions:
