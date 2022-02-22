@@ -163,6 +163,10 @@ The standard library provides a number of functions:
 Example programs can be found in the examples/ folder
 
 ## Running
+You can run TBL code client side in your browser [here](http://motiwala.ca/TBL).
+
+You can also run it locally:
+
 Inside of a Node shell in the root of this repository, run:
 ```js
 const { Calculator } = await import('./calc.mjs');
