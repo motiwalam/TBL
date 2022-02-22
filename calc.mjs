@@ -1,4 +1,5 @@
 import { eval_expr } from "./eval.mjs";
+import { BuiltinFunction } from "./values.mjs";
 import { STDLIB } from "./stdlib.mjs";
 
 export class Calculator {
@@ -8,5 +9,9 @@ export class Calculator {
 
     eval(expr) {
         return eval_expr(expr, this.env);
+    }
+
+    defineBuiltin(name, func) {
+        this.env[name] = [new BuiltinFunction(func)];
     }
 }
