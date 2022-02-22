@@ -11,3 +11,5 @@ isp: n $
 ;
 
 primes: n $ filter @ [isp, range @ [1, n]];
+
+primes @ 100;

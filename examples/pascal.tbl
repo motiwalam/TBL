@@ -19,5 +19,7 @@ R: r $
 fpower: [f, n] $ (i $ accumulate @ [[f, g] $ g @ [f], repeat @ [f, n], i]);
 
 -- accumulate the composition of R, n-times, with initial value [1], the first row of pascal's triangle
-pascal: n $ fpower @ [R, n] @ [[1]]
+pascal: n $ fpower @ [R, n] @ [[1]];
+
+pascal @ 10;
 

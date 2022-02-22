@@ -30,3 +30,6 @@ nfib: n $ (genfib @ [concat @ [repeat @ [0, n-1], [1]]]);
 trib: nfib @ 3;
 -- tetranacci numbers
 tetra: nfib @ 4;
+
+
+map @ [fib, range @ [1, 50]];
