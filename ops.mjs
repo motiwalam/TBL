@@ -137,8 +137,8 @@ function add(a, b) {
     ilc(a, b) && (r = a.map(e => add(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => add(e1, e2))));
     
-    ivstr(a) && (r = add_strings(a.value, b.toString));
-    ivstr(b) && (r = add_strings(a.toString(), b.value));
+    ivstr(a) && (r = add_strings(a.toString(), b.toString()));
+    ivstr(b) && (r = add_strings(a.toString(), b.toString()));
     iss(a, b) && (r = add_vstring(a, b));
 
     if (r !== null) return r;
