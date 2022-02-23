@@ -1,14 +1,14 @@
 # TBL
 A calculator language with lists and higher order functions written in pure javascript
 
-TBL is a programming language. The fundamental data types are complex numbers, lists, and functions.
+TBL is a programming language. The fundamental data types are complex numbers, lists, functions, and strings.
 
 Functions can take anything as an argument, including other functions. 
 
 Lists can contain anything, including functions and other lists.
 
 ## Literals
-The literal types are numbers (which are complex) and lists.
+The literal types are numbers (which are complex), lists, and strings.
 The literal syntax for numbers is quite simplistic. Any thing that matches the regular expression `^(([0-9])|(\.[0-9])|(~(([0-9])|(\.[0-9]))))` is passed into `parseFloat`. 
 
 This results in some funny behaviour where `134jfdfjdkjgkdfjgdkfgj` is just `134`.
@@ -33,6 +33,7 @@ Some example lists:
  * `[1i, 3 + 4, [[[1,2],[3,4]]]]`
  * `[a $ 3*a, 4, [7]]` <- a list that contains a function, a number, and a list
 
+Strings are denoted by `{` and `}`, Anything inside the curly brackets is treated as the contents of the string.
 
 ## List manipulation
 
@@ -48,6 +49,21 @@ The following functions allow for working with lists:
  * `accumulate` [function, list] (reduction with intermediate results)
  * `concat` [list1, list2]
 
+## String manipulation
+
+The following functions allow for working with strings:
+  * `get` [string, index]
+  * `set` [string, index, value]
+  * `push` [string, value]
+  * `pop` [string]
+  * `len` [string]
+  * `concat` [string1, string2]
+
+The `eval` function exists to evaluate a string as if it were an expression.
+
+The `+` operator concats two strings, and if one of the operands is not a string, it is coerced to one.
+
+The `*` operator, when applied to a left operand string and a right operand integer, can be used to repeat a string.
 ## Functions
 TBL supports functions and higher order functions.
 
