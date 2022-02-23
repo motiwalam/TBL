@@ -1,0 +1,32 @@
+-- assign values to names with 
+-- assignments are expressions, and their value is the result of the assignment
+
+-- assigning 4 to a
+a: 4;
+
+-- assigning [1, 2, 3] to b
+b: [1, 2, 3];
+
+-- assigning [4, 5, 6] to c and 3 * c to d
+d: 3 * (c: [4, 5, 6]);
+
+-- variables can be used in expressions
+
+-- 4 ^ [1, 2, 3];
+a^b;
+
+-- [4, 5, 6] / [1, 2, 3]
+c/b;
+
+-- you can assign multiple values at once by using a list of names on the left, and a list of values on the right
+
+-- assigning 1 to e, 2 to f, 3 to g
+[e, f, g]: [1, 2, 3];
+
+-- if the right value is a single value or a list of one element, that value is assigned to everything on the left
+
+-- assigning 100 to h, i, j
+[h, i, j]: 100;
+
+-- assigning the list [5, 3] to k, l, m
+[k, l, m]: [[5,3]];

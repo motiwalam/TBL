@@ -1,0 +1,13 @@
+-- you can create lists of numbers with square brackets
+
+-- this is a list of three numbers: 1, 2, 3
+[1, 2, 3];
+
+-- this is a list of one number: i
+[1i];
+
+-- this is a list of 2 numbers 3, 4 and another list;
+[3, 4, [1, 2, 3]];
+
+-- this is the identity matrix with side length 2
+[[1, 0], [0, 1]];

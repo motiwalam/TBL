@@ -1,0 +1,14 @@
+-- conditional evaluation is done with the '?' operator
+-- it takes an expression on its left and a list of two expressions on its right
+
+-- if the left expression is true, the first expression in the right is evaluated
+-- if the left expression is false, the second expression in the right is evaluated
+
+-- everything is true, except for the number 0
+
+-- a is 9
+a: 3 < 4 ? [9, 8];
+
+-- b is 8
+b: 3 > 4 ? [9, 8];
+

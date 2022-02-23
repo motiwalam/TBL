@@ -1,0 +1,30 @@
+-- arithmetic and comparison operations work between scalars and lists
+-- as well as between two lists of equal lengths
+
+-- multiplying everything in a list by 3
+3 * [1, 2, 3];
+
+-- the first five powers of 2
+2 ^ [0, 1, 2, 3, 4];
+
+-- the first three cubes
+[0, 1, 2] ^ 3;
+
+-- boolean mask of elements in the list that are greater than 2
+[1, 2, 3] > 2;
+
+-- this works deeply
+2 ^ [1, 2, [7, 3]];
+
+-- when applied between two lists of equal length, the operators apply between corresponding values
+-- the only exception is equality, which when applied between two lists returns 1 if every element 
+-- in the two lists are equal, and 0 otherwise
+
+-- x ^ x for x in [0, 1, 2, 3]
+[0, 1, 2, 3] ^ [0, 1, 2, 3];
+
+-- this is 1
+[1, 2, [5, 6, 7]] = [1, 2, [5, 6, 7]];
+
+-- this is 0
+[4, 3, 7] = [3, 4, 7];

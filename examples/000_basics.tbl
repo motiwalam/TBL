@@ -1,0 +1,24 @@
+-- basic arithmetic
+
+-- PEMDAS works just as you'd accept
+-- the arithmetic operators are: ^ * / + - %
+-- the modulus operator has the same precedence as + and -
+
+-- this evaluates to 8
+4 * 2;
+
+-- this evaluates to 8
+2 ^ 3;
+
+-- this evaluates to 8
+(1 + 1)^(7%4);
+
+-- this evaluates to 8
+16 / 2;
+
+-- since '-' is taken for subtraction, negative numbers are typed by prefixing with '~'
+
+-- this evaluates to 8
+9 + ~1;
+
+-- '~' is NOT negation, ~~8 is not 8, it is an identifier

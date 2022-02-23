@@ -1,0 +1,15 @@
+-- the arithmetic operators work with complex numbers too
+
+-- an imaginary number can be created by suffixing a number with i
+
+-- this is the number i
+1i;
+
+-- this is the number 3 + 4i
+3 + 4i;
+
+-- this is the number i
+~1 ^ 0.5;
+
+-- this is the number 2.462 + 2.64i
+(3 - 2i) * (3^7i);

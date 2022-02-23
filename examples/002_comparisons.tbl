@@ -1,0 +1,31 @@
+-- there are five comparison operators
+--  = < > ≤ ≥
+
+-- a comparison returns 1 when true and 0 when false
+
+-- these all evaluate to 1
+9 > 3;
+3 < 9;
+
+9 = 9;
+
+1i = 1i;
+1i > ~1i;
+
+~9 < 9;
+
+-- when strictly real or strictly imaginary numbers are compared, comparison is done on one axis
+-- i.e (0 + ai) < (0 + bi) is equivalent to a < b
+-- and (a + 0i) < (b + 0i) is equivalent to a < b
+
+-- when fully complex numbers are compared, comparison is done by absolute value (distance from origin)
+
+-- thus, these evaluate to 1
+
+(3 + 4i) > (0.5 + ~2i);
+9 > (1 + 1i);
+
+-- and these evaluate to 0
+
+(100 + 2i) < 1i;
+(10 - 3i) < (10 + 3i);
