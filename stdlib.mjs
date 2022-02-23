@@ -4,7 +4,8 @@ import {
     icomp, isreal_strict,
     assert_value, assert_func, assert_list,
     assert_isreal_strict,
-    assert_complex
+    assert_complex,
+    ilist, ivstr, assert_lors, ivalue,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -31,7 +32,7 @@ import assert from "assert";
 const get_n = (p, n) => Array.from({ length: n }, (_, i) => p.get(i));
 
 function assert_valid_index(l, i) {
-    assert_list(l, `Can not index non-lists`);
+    assert_lors(l, `Can not index non-lists`);
     assert_isreal_strict(i, `Can not index by ${i}`);
 
     const idx = i.real;
@@ -65,7 +66,7 @@ const set = [new BuiltinFunction(function set(params) {
 const push = [new BuiltinFunction(function push(params) {
     const [l, v] = get_n(params, 2);
 
-    assert_list(l, `Can not push on non lists`);
+    assert_lors(l, `Can not push on non lists`);
     assert_value(v, `Invalid value`);
 
     l.push(v);
@@ -76,7 +77,7 @@ const push = [new BuiltinFunction(function push(params) {
 const len = [new BuiltinFunction(function len(params) {
     const [l] = get_n(params, 1);
 
-    assert_list(l, `Can not get length of non list`);
+    assert_lors(l, `Can not get length of non list`);
 
     return new Complex(l.length, 0);
 })];
@@ -84,7 +85,7 @@ const len = [new BuiltinFunction(function len(params) {
 const pop = [new BuiltinFunction(function pop(params) {
     const [l] = get_n(params, 1);
 
-    assert_list(l, `Can not pop non lists`);
+    assert_lors(l, `Can not pop non lists`);
     assert(l.length > 0, `Can not pop empty list`)
 
     return l.pop();
@@ -144,8 +145,8 @@ const dup = [new BuiltinFunction(function dup(params) {
 const concat = [new BuiltinFunction(function concat(params) {
     const [l1, l2] = get_n(params, 2);
     
-    assert_list(l1, `can only concat lists`);
-    assert_list(l2, `can only concat lists`);
+    assert_lors(l1, `can only concat lists`);
+    assert_lors(l2, `can only concat lists`);
 
     return l1.concat(l2);
 })];
@@ -182,6 +183,14 @@ const re = [new BuiltinFunction(function re(params) {
     return new Complex(c.real, 0);
 })];
 
+const _eval = [new BuiltinFunction(function _eval(params, env) {
+    const [c] = get_n(params, 1);
+
+    assert_value(c, "can not evaluate non value");
+    if (ivstr(c)) return eval_expr(c.toString(), env);
+    else return c;
+})];
+_eval[0].name = "eval";
 
 const mathfun = f => {
     const bfun = new BuiltinFunction(function _(params) {
@@ -192,6 +201,7 @@ const mathfun = f => {
     bfun.name = f.name;
     return [bfun];
 }
+
 
 const floor = mathfun(Math.floor);
 const ceil  = mathfun(Math.ceil);
@@ -342,6 +352,7 @@ const STDLIB = Object.freeze({
     E,
     bin, fbin,
     hex, fhex,
+    eval: _eval,
 
 });
 

@@ -4,8 +4,11 @@ const EXPR_CLOSE = ')';
 const LIST_OPEN = '[';
 const LIST_CLOSE = ']';
 
-const OPEN_GROUPS = [EXPR_OPEN, LIST_OPEN];
-const CLOSE_GROUPS = [EXPR_CLOSE, LIST_CLOSE];
+const STRING_OPEN = '{';
+const STRING_CLOSE = '}';
+
+const OPEN_GROUPS = [EXPR_OPEN, LIST_OPEN, STRING_OPEN];
+const CLOSE_GROUPS = [EXPR_CLOSE, LIST_CLOSE, STRING_CLOSE];
 
 const CONDITIONAL = '?';
 const DEFINITION = '$';
@@ -70,6 +73,9 @@ const LANG = Object.freeze({
     
     LIST_OPEN,
     LIST_CLOSE,
+
+    STRING_OPEN,
+    STRING_CLOSE,
 
     OPEN_GROUPS,
     CLOSE_GROUPS,

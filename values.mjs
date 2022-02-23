@@ -76,6 +76,10 @@ class List {
         return this.values.reduce(f, i);
     }
 
+    every(f) {
+	return this.values.every(f);
+    }
+
     accum(f, i) {
         let acc = i;
         let start = 0;
@@ -105,7 +109,7 @@ class List {
         return new List(this.values.concat(l.values))
     }
 
-    get length() { return this.values.length }
+    get length() { return this.values.length; }
 
     get(i) {
         return this.values[i];
@@ -118,6 +122,45 @@ class List {
     toString() {
         return `[${this.values.map(e => e.toString()).join(', ')}]`;
     }
+}
+
+
+class VString {
+    value;
+
+    constructor(value) {
+        this.value = value;
+    }
+
+    get length() { return this.value.length; }
+
+    toString() {
+        return `${this.value}`;
+    }
+
+    get(i) {
+        return this.value[i];
+    }
+
+    set(idx, ch) {
+        this.value = Object.entries({...this.value}).map(([i,c]) => i == idx ? ch.toString() : c).join('')
+    }
+
+    push(v) {
+        this.value += v.toString();
+    }
+
+    pop() {
+        const r = new VString(this.value[this.length - 1]);
+        this.value = this.value.slice(0, -1);
+        return r;
+    }
+
+    concat(s) {
+        return new VString(this.value.concat(s.toString()));
+    }
+
+
 }
 
 function duplicate(v) {
@@ -140,5 +183,5 @@ function duplicate(v) {
 }
 
 export {
-    BuiltinFunction, VFunction, Complex, List, duplicate
+    BuiltinFunction, VFunction, Complex, List, VString, duplicate
 }

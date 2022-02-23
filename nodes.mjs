@@ -1,4 +1,4 @@
-import { List, Complex } from "./values.mjs";
+import { List, Complex, VString } from "./values.mjs";
 import { eval_ast } from "./eval.mjs";
 
 class NodeExprBody {
@@ -45,6 +45,22 @@ class NodeComplex {
     }
 }
 
+class NodeString {
+    text;
+
+    constructor(text) {
+        this.text = text;
+    }
+
+    eval() {
+        return new VString(this.text);
+    }
+
+    toString() {
+        return `"${this.text}"`;
+    }
+}
+
 class NodeIdentifier {
     name;
 
@@ -81,5 +97,5 @@ class NodeOperation {
 }
 
 export {
-    NodeExprBody, NodeList, NodeComplex, NodeIdentifier, NodeOperation
+    NodeExprBody, NodeList, NodeComplex, NodeIdentifier, NodeOperation, NodeString
 }

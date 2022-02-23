@@ -1,4 +1,4 @@
-import { List, Complex } from "./values.mjs";
+import { List, Complex, VString } from "./values.mjs";
 import {
     icc, icl, ilc, ill,
     assert_le,
@@ -10,6 +10,11 @@ import {
     isimag_strict,
     iszero_strict,
     iszero_fuzz,
+    iss,
+    ivstr,
+    isc,
+    assert_isreal_strict,
+    assert_integral,
 } from "./checks.mjs";
 import assert from "assert";
 import { ERRORS } from "./errors.mjs";
@@ -67,6 +72,9 @@ const pow_complex = (a, b) => {
     
 }
 
+const add_vstring = (a, b) => new VString(a.value + b.value);
+const add_strings = (a, b) => new VString(a + b);
+
 function zip(...ls) {
     assert(new Set(ls.map(l => l.length)).size == 1, `Can not zip lists of unequal lengths`);
     const values = Array.from({length: ls[0]?.length}, (_, i) => ls.map(l => l.get(i)));
@@ -82,7 +90,7 @@ function pow(a, b) {
             r = pow_complex(a, b);
     }
     icl(a, b) && (r = b.map(e => pow(a, e)));
-    ilc(a, b) && (r = b.map(e => pow(e, b)));
+    ilc(a, b) && (r = a.map(e => pow(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => pow(e1, e2))));
 
     if (r !== null) return r;
@@ -98,6 +106,12 @@ function mul(a, b) {
     ilc(a, b) && (r = a.map(e => mul(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => mul(e1, e2))));
 
+    if (isc(a, b)) {
+        assert_isreal_strict(b, "can not multiply string by complex number");
+        assert_integral(b.real, "can not multiply string by non-integer");
+
+        r = new VString(Array(b.real).fill(a.toString()).join(""));
+    }
     if (r !== null) return r;
 
     throw ERRORS.INVALID_ARG_MUL(a, b);
@@ -110,8 +124,9 @@ function div(a, b) {
     ilc(a, b) && (r = a.map(e => div(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => div(e1, e2))));
 
+    
     if (r !== null) return r;
-
+    
     throw ERRORS.INVALID_ARG_DIV(a, b);
 }
 
@@ -121,6 +136,10 @@ function add(a, b) {
     icl(a, b) && (r = b.map(e => add(a, e)));
     ilc(a, b) && (r = a.map(e => add(e, b)));
     ill(a, b) && (r = (zip(a, b).map(([e1, e2]) => add(e1, e2))));
+    
+    ivstr(a) && (r = add_strings(a.value, b.toString));
+    ivstr(b) && (r = add_strings(a.toString(), b.value));
+    iss(a, b) && (r = add_vstring(a, b));
 
     if (r !== null) return r;
     throw ERRORS.INVALID_ARG_ADD(a, b);
@@ -144,9 +163,8 @@ function mod(a, b) {
     icl(a, b) && (r = b.map(e => mod(a, e)));
     ilc(a, b) && (r = a.map(e => mod(e, b)));
     ill(a, b) && (r = zip(a, b).map(([e1, e2]) => mod(e1, e2)));
-
     if (r !== null) return r;
-
+    
     throw ERRORS.INVALID_ARG_MOD(a, b);
 }
 
@@ -155,11 +173,12 @@ function eq(a, b) {
     icc(a, b) && (r = eq_complex(a, b));
     icl(a, b) && (r = b.map(e => eq(a, e)));
     ilc(a, b) && (r = a.map(e => eq(e, b)));
-    ill(a, b) && (r = zip(a, b).map(([e1, e2]) => eq(e1, e2)));
+    ill(a, b) && (r = fbool(zip(a, b).every(([e1, e2]) => bool(eq(e1, e2)))));
+    iss(a, b) && (r = fbool(a.value == b.value));
+
 
     if (r !== null) return r;
-
-    throw ERRORS.INVALID_ARG_EQ(a, b);
+    else return fbool(false);
 }
 
 function lt(a, b) {
@@ -168,7 +187,8 @@ function lt(a, b) {
     icl(a, b) && (r = b.map(e => lt(a, e)));
     ilc(a, b) && (r = a.map(e => lt(e, b)));
     ill(a, b) && (r = zip(a, b).map(([e1, e2]) => lt(e1, e2)));
-
+    
+    iss(a, b) && (r = fbool(a.value < b.value));
     if (r !== null) return r;
 
     throw ERRORS.INVALID_ARG_LT(a, b);
@@ -181,8 +201,10 @@ function gt(a, b) {
     ilc(a, b) && (r = a.map(e => gt(e, b)));
     ill(a, b) && (r = zip(a, b).map(([e1, e2]) => gt(e1, e2)));
 
+    iss(a, b) && (r = fbool(a.value > b.value));
+    
     if (r !== null) return r;
-
+    
     throw ERRORS.INVALID_ARG_GT(a, b);
 }
 
@@ -192,9 +214,10 @@ function lte(a, b) {
     icl(a, b) && (r = b.map(e => lte(a, e)));
     ilc(a, b) && (r = a.map(e => lte(e, b)));
     ill(a, b) && (r = zip(a, b).map(([e1, e2]) => lte(e1, e2)));
-
+    
+    iss(a, b) && (r = fbool(a.value <= b.value));
     if (r !== null) return r;
-
+    
     throw ERRORS.INVALID_ARG_LTE(a, b);
 }
 
@@ -204,7 +227,8 @@ function gte(a, b) {
     icl(a, b) && (r = b.map(e => gte(a, e)));
     ilc(a, b) && (r = a.map(e => gte(e, b)));
     ill(a, b) && (r = zip(a, b).map(([e1, e2]) => gte(e1, e2)));
-
+    
+    iss(a, b) && (r = fbool(a.value >= b.value));
     if (r !== null) return r;
 
     throw ERRORS.INVALID_ARG_GTE(a, b);

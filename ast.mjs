@@ -1,4 +1,4 @@
-import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation } from "./nodes.mjs";
+import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation, NodeString } from "./nodes.mjs";
 
 import { LANG } from "./language.mjs";
 import assert from "assert"
@@ -29,7 +29,6 @@ function splitOnUncontainedDelim(text, og, cg, delim, includedelim = false) {
     return splitOnMultipleUncontainedDelims(text, [og], [cg], [delim], includedelim)
 }
 
-
 function parseNumber(t) {
     let n;
     if (t.startsWith(LANG.NEGATIVE)) {
@@ -52,7 +51,7 @@ function make_ast(input) {
                  .filter(e => e && !e.startsWith(LANG.COMMENT))
                  .join(LANG.COMMENT_SEPARATOR);
 
-    input = input.replace(LANG.IGNORE, '');
+    // input = input.replace(LANG.IGNORE, '');
 
     const body = splitOnUncontainedDelim(input, LANG.EXPR_OPEN, LANG.EXPR_CLOSE, LANG.STATEMENT_SEPARATOR)
                  .filter(e => e);
@@ -63,8 +62,8 @@ function make_ast(input) {
         const exprs = splitOnMultipleUncontainedDelims(se, LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, LANG.OPERATORS, true);
     
         let values = [];
-        for (const e of exprs) {
-    
+        for (const ex of exprs) {
+            let e = ex.replace(LANG.IGNORE, '');
             let li;
             if (e.startsWith(LANG.EXPR_OPEN)) {
                 li = e.lastIndexOf(LANG.EXPR_CLOSE);
@@ -88,7 +87,13 @@ function make_ast(input) {
     
                 }
             }
-    
+            
+            else if (ex.trim().startsWith(LANG.STRING_OPEN)) {
+                e = ex.trim();
+                if (e[e.length - 1] != LANG.STRING_CLOSE) throw `Unmatched ${LANG.STRING_OPEN}`;
+
+                values.push(new NodeString(e.slice(1, -1)));
+            }
             else if (LANG.NUMBER_START.test(e)) {
                 values.push(parseNumber(e));
             }
