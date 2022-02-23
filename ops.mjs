@@ -110,7 +110,7 @@ function mul(a, b) {
         assert_isreal_strict(b, "can not multiply string by complex number");
         assert_integral(b.real, "can not multiply string by non-integer");
 
-        r = new VString(Array(b.real).fill(a.toString()).join(""));
+        r = new VString(Array(Math.max(b.real, 0)).fill(a.toString()).join(""));
     }
     if (r !== null) return r;
 
