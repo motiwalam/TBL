@@ -125,6 +125,7 @@ Example programs can be found in the examples/ folder
 
 ## Running
 You can run TBL code client side in your browser [here](http://motiwala.ca/TBL).
+The above website also contains examples to help acquaint yourself with the language.
 
 You can also run it locally:
 
