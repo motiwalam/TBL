@@ -5,7 +5,7 @@ import {
     assert_value, assert_func, assert_list,
     assert_isreal_strict,
     assert_complex,
-    ilist, ivstr, assert_lors, ivalue,
+    ilist, ivstr, assert_lors, ivalue, assert_vstring,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -133,6 +133,24 @@ const accumulate = [new BuiltinFunction(function accumulate(params, env) {
 
     return l.accum((a, b) => eval_application(f, new List([a, b]), env), i);
 })];
+
+const split = [new BuiltinFunction(function split(params) {
+    const [s, d] = get_n(params, 2);
+
+    assert_vstring(s, `Can only split strings`);
+    assert_vstring(d, `Can only split on string delimiter`);
+
+    return s.split(d);
+})];
+
+const join = [new BuiltinFunction(function join(params) {
+    const [l, s] = get_n(params, 2);
+
+    assert_list(l, `Can only join a list`);
+    assert_vstring(s, `Can only join with a string`);
+
+    return l.join(s);
+})]
 
 const dup = [new BuiltinFunction(function dup(params) {
     const [v] = get_n(params, 1);
@@ -309,6 +327,7 @@ const STDLIB = Object.freeze({
     reduce, accumulate,
     concat,
     range,
+    join, split,
     dup,
     im, re,
     neg,

@@ -122,6 +122,10 @@ class List {
     toString() {
         return `[${this.values.map(e => e.toString()).join(', ')}]`;
     }
+
+    join(s) {
+        return new VString(this.values.map(e => e.toString()).join(s.value));
+    }
 }
 
 
@@ -158,6 +162,10 @@ class VString {
 
     concat(s) {
         return new VString(this.value.concat(s.toString()));
+    }
+
+    split(d) {
+        return new List(this.value.split(d.value).map(s => new VString(s)));
     }
 
 
