@@ -48,6 +48,7 @@ The following functions allow for working with lists:
  * `reduce` [function, list]
  * `accumulate` [function, list] (reduction with intermediate results)
  * `concat` [list1, list2]
+ * `join` [list, string] 
 
 ## String manipulation
 
@@ -58,12 +59,14 @@ The following functions allow for working with strings:
   * `pop` [string]
   * `len` [string]
   * `concat` [string1, string2]
+  * `split` [string, string]
 
 The `eval` function exists to evaluate a string as if it were an expression.
 
 The `+` operator concats two strings, and if one of the operands is not a string, it is coerced to one.
 
 The `*` operator, when applied to a left operand string and a right operand integer, can be used to repeat a string.
+
 ## Functions
 TBL supports functions and higher order functions.
 
