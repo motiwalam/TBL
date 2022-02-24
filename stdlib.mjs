@@ -261,6 +261,7 @@ define_expr("add", `[a, b] $ a + b`);
 define_expr("sub", `[a, b] $ a - b`);
 define_expr("mod", `[a, b] $ a % b`);
 define_expr("eq", `[a, b] $ a = b`);
+define_expr("neq", `[a, b] $ not @ [a = b]`);
 define_expr("lt", `[a, b] $ a < b`);
 define_expr("gt", `[a, b] $ a > b`);
 define_expr("lte", `[a, b] $ a ≤ b`);
@@ -322,6 +323,9 @@ define_const("E", Math.E);
 
 define_const("NEWL", '\n');
 define_const("TAB", '\t');
+define_const("ASCII_LOWER", 'abcdefghijklmnopqrstuvwxyz');
+define_const("ASCII_UPPER", 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+define_const("ASCII_DIGITS", '0123456789');
 
 export {
     STDLIB
