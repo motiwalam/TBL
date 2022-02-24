@@ -18,6 +18,7 @@ Many of the functions available can be, and indeed are, defined in TBL itself. H
  * `filter` [function, list] -> list
  * `reduce` [function, list, value?] -> value
  * `accumulate` [function, list, value?] -> list
+   * this is a reduction with intermediate results
  * `join` [list, string] -> string
 
 ### String only functions
@@ -76,25 +77,40 @@ Many of the functions available can be, and indeed are, defined in TBL itself. H
 
 ### Base Conversion
  * `encode` [num, num] -> list
+   * encode the first number in the base of the second number, returning a vector of digits
  * `decode` [list, num] -> num
+   * decode a vector of digits from the base of the second number
  * `bin` num -> list
+   * wrap `encode` with base = 2
  * `hex` num -> list
+   * wrap `encode` with base = 16
  * `fbin` list -> num
+   * wrap `decode` with base = 2
  * `fhex` list -> num
+   * wrap `decode` with base = 16
 
 ### Numbers
  * `im` complex -> real
+   * get the imaginary component
  * `re` complex -> real
+   * get the real component
  * `polar` [num, num] -> complex
+   * create a complex number from a magnitude and an angle
  * `rad` num -> num
+   * convert degrees to radians
  * `deg` num -> num
+   * convert radians to degrees
  * `abs` num -> num
+
 
 ### Utility functions
  * `max` [num, num] -> num
  * `min` [num, num] -> num
  * `dup` value -> value
+   * duplicate an object
  * `nwise` [list, num] -> list
+   * generate consecutive tuples of length n
+   * e.g nwise @ [[1, 2, 3, 4], 2] -> [[1, 2], [2, 3], [3, 4]]
  * `range` [num, num, num?] -> list
  * `random` [] -> real
  * `neg` num -> num
