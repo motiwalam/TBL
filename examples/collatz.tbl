@@ -1,0 +1,30 @@
+applywhile: [f, c] $ (
+  i $ (
+    [l, r]: [i, [i]];
+    
+    c @ l ! push @ [r, l: f @ l];
+    
+    r;
+  )
+);
+
+collatz: n $ n % 2 ? [3*n + 1, n / 2];
+
+scollatz: n $ applywhile @ [collatz, n $ not @ [n = 1]] @ n;
+
+lcollatz: n $ len @ [scollatz @ n];
+
+maxk: [l, f] $ (
+  mx: get @ [l, 0];
+  mxv: f @ [mx];
+  
+  [i: 1, i < len @ [l], i: i + 1] # (
+    v: get @ [l, i];
+    fv: f @ [v];
+    fv > mxv ? [(mx: v; mxv: fv),];
+  );
+  
+  mx;
+);
+
+maxk @ [range @ [1, 1000], lcollatz];

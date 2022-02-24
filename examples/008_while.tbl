@@ -1,0 +1,11 @@
+-- while loops are done with the '!' operator
+-- given a condition on the left and an expression on the right
+-- the operator will execute the expression as long as the condition is true
+
+-- generate the numbers from 9 to 0
+r: [];
+i: 10;
+
+i > 0 ! push @ [r, i: i - 1];
+
+r;

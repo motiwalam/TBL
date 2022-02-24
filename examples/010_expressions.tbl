@@ -1,0 +1,28 @@
+-- everything in tbl is an expression
+-- everything has a value, and there is no null value
+
+-- literal expressions evaluate to themselves
+-- assignments have the value of whatever was assigned
+-- the arithmetic, comparison, definition, and application operators
+--  have obvious values
+
+-- the while and for loop operators have values too!
+-- they evaluate to the result of their last expression
+
+-- finally, you can construct a more complex expression by separating
+--  sub expressions with ';' and enclosing them in parentheses
+
+-- this evaluates to 5
+(1; 2; 3; 4; 5);
+
+-- this also allows for more complex function bodies
+-- a function that assigns three variables and then returns 8
+f: [] $ (
+  a: 0;
+  b: 0;
+  c: 0;
+  8;
+);
+
+-- semicolons only work inside parentheses and at the top level
+-- they can not be used inside lists
