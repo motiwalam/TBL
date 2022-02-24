@@ -48,7 +48,7 @@ function parseNumber(t) {
 function make_ast(input) {
     // remove comments
     input = input.split(LANG.COMMENT_SEPARATOR)
-                 .filter(e => e && !e.startsWith(LANG.COMMENT))
+                 .filter(e => !e.startsWith(LANG.COMMENT))
                  .join(LANG.COMMENT_SEPARATOR);
 
     // input = input.replace(LANG.IGNORE, '');
@@ -64,6 +64,7 @@ function make_ast(input) {
         let values = [];
         for (const ex of exprs) {
             let e = ex.replace(LANG.IGNORE, '');
+            if (e === '') continue;
             let li;
             if (e.startsWith(LANG.EXPR_OPEN)) {
                 li = e.lastIndexOf(LANG.EXPR_CLOSE);
@@ -116,7 +117,8 @@ function make_ast(input) {
                 values = values.slice(0, idx - 1).concat(opr).concat(values.slice(idx - 1))
             }
         }
-    
+        
+        if (values.length == 0) continue;
         assert(values.length == 1, 'AST is malformed');
         asts.push(values[0]);
     }
