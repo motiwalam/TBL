@@ -118,7 +118,7 @@ The for loop operator, `#`, takes a list of three expressions on its left and a 
 
 ## Standard Library
 
-The functions and constants availabe are described in `STDLIB.md`
+The functions and constants available in the standard library are described in `STDLIB.md`
 
 ## Examples
 Example programs can be found in the examples/ folder
