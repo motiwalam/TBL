@@ -7,6 +7,11 @@ const LIST_CLOSE = ']';
 const STRING_OPEN = '{';
 const STRING_CLOSE = '}';
 
+const INTERP_OPEN = '{';
+const INTERP_CLOSE = '}';
+
+const ESCAPE = '\\';
+
 const OPEN_GROUPS = [EXPR_OPEN, LIST_OPEN, STRING_OPEN];
 const CLOSE_GROUPS = [EXPR_CLOSE, LIST_CLOSE, STRING_CLOSE];
 
@@ -76,6 +81,11 @@ const LANG = Object.freeze({
 
     STRING_OPEN,
     STRING_CLOSE,
+
+    INTERP_OPEN,
+    INTERP_CLOSE,
+
+    ESCAPE,
 
     OPEN_GROUPS,
     CLOSE_GROUPS,

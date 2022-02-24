@@ -47,13 +47,26 @@ class NodeComplex {
 
 class NodeString {
     text;
+    interpolations;
 
-    constructor(text) {
+    constructor(text, interpolations) {
         this.text = text;
+        this.interpolations = interpolations;
     }
 
-    eval() {
-        return new VString(this.text);
+    eval(env) {
+        let string = "";
+
+        let base = 0;
+        for (const {start, end, ast} of this.interpolations) {
+            string += this.text.slice(base, start);
+            string += eval_ast(ast, env).toString();
+            base = end + 1;
+        }
+
+        string += this.text.slice(base);
+
+        return new VString(string);
     }
 
     toString() {

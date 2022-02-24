@@ -45,6 +45,37 @@ function parseNumber(t) {
 
 }
 
+function searchInterpolations(text) {
+    let indices = [];
+    let startidx = null;
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        let c = text[i];
+
+        if (c == LANG.ESCAPE) {
+            i++;
+            continue;
+        }
+
+        if (c == LANG.INTERP_OPEN) {
+            ++depth;
+            if (startidx == null)
+                startidx = i;
+        }
+
+        if (c == LANG.INTERP_CLOSE && depth > 0) {
+            --depth;
+            if (depth == 0 && startidx != null) {
+                indices.push([startidx, i]);
+                startidx = null;
+            }
+        }
+
+    }
+
+    return indices;
+}
+
 function make_ast(input) {
     // remove comments
     input = input.split(LANG.COMMENT_SEPARATOR)
@@ -92,8 +123,18 @@ function make_ast(input) {
             else if (ex.trim().startsWith(LANG.STRING_OPEN)) {
                 e = ex.trim();
                 if (e[e.length - 1] != LANG.STRING_CLOSE) throw `Unmatched ${LANG.STRING_OPEN}`;
+                
+                const text = e.slice(1, -1);
+                const interp_idxs = searchInterpolations(text);
+                const interps = [];
+                for (const [start, end] of interp_idxs) {
+                    interps.push({
+                        start, end,
+                        ast: make_ast(text.slice(start + 1, end)), 
+                    });
+                }
 
-                values.push(new NodeString(e.slice(1, -1)));
+                values.push(new NodeString(text, interps));
             }
             else if (LANG.NUMBER_START.test(e)) {
                 values.push(parseNumber(e));
