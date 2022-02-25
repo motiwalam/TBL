@@ -11,6 +11,13 @@ const INTERP_OPEN = '{';
 const INTERP_CLOSE = '}';
 
 const ESCAPE = '\\';
+const WHITESPACE_ESCAPES = {
+    n: '\n',
+    t: '\t',
+    b: '\b',
+    r: '\r',
+    f: '\f',
+}
 
 const OPEN_GROUPS = [EXPR_OPEN, LIST_OPEN, STRING_OPEN];
 const CLOSE_GROUPS = [EXPR_CLOSE, LIST_CLOSE, STRING_CLOSE];
@@ -86,6 +93,7 @@ const LANG = Object.freeze({
     INTERP_CLOSE,
 
     ESCAPE,
+    WHITESPACE_ESCAPES,
 
     OPEN_GROUPS,
     CLOSE_GROUPS,

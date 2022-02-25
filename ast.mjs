@@ -45,15 +45,33 @@ function parseNumber(t) {
 
 }
 
-function searchInterpolations(text) {
-    let indices = [];
+function parseText(text) {
+    const results = [];
+
     let startidx = null;
     let depth = 0;
+    let esflag = false;
     for (let i = 0; i < text.length; i++) {
         let c = text[i];
+        if (esflag) {
+            let v;
+            if (c in LANG.WHITESPACE_ESCAPES) {
+                v = LANG.WHITESPACE_ESCAPES[c];
+            } else {
+                v = c;
+            }
+            results.push({
+                type: "escape",
+                start: i - 1,
+                end: i,
+                value: v
+            });
+            esflag = false;
+            continue;
+        }
 
         if (c == LANG.ESCAPE) {
-            i++;
+            esflag = true;
             continue;
         }
 
@@ -66,15 +84,21 @@ function searchInterpolations(text) {
         if (c == LANG.INTERP_CLOSE && depth > 0) {
             --depth;
             if (depth == 0 && startidx != null) {
-                indices.push([startidx, i]);
+                results.push({
+                    type: "expr",
+                    start: startidx,
+                    end: i,
+                    ast: make_ast(text.slice(startidx + 1, i))
+                });
+
                 startidx = null;
             }
         }
-
     }
 
-    return indices;
+    return results;
 }
+
 
 function make_ast(input) {
     // remove comments
@@ -125,16 +149,9 @@ function make_ast(input) {
                 if (e[e.length - 1] != LANG.STRING_CLOSE) throw `Unmatched ${LANG.STRING_OPEN}`;
                 
                 const text = e.slice(1, -1);
-                const interp_idxs = searchInterpolations(text);
-                const interps = [];
-                for (const [start, end] of interp_idxs) {
-                    interps.push({
-                        start, end,
-                        ast: make_ast(text.slice(start + 1, end)), 
-                    });
-                }
+                const replacements = parseText(text);
 
-                values.push(new NodeString(text, interps));
+                values.push(new NodeString(text, replacements));
             }
             else if (LANG.NUMBER_START.test(e)) {
                 values.push(parseNumber(e));

@@ -47,20 +47,29 @@ class NodeComplex {
 
 class NodeString {
     text;
-    interpolations;
+    replacements;
 
-    constructor(text, interpolations) {
+    constructor(text, replacements) {
         this.text = text;
-        this.interpolations = interpolations;
+        this.replacements = replacements;
     }
 
     eval(env) {
         let string = "";
 
         let base = 0;
-        for (const {start, end, ast} of this.interpolations) {
+        for (const r of this.replacements) {
+            const {start, end} = r;
             string += this.text.slice(base, start);
-            string += eval_ast(ast, env).toString();
+            switch (r.type) {
+                case "escape":
+                    string += r.value;
+                    break;
+                
+                case "expr":
+                    string += eval_ast(r.ast, env).toString();
+                    break;
+            }
             base = end + 1;
         }
 
