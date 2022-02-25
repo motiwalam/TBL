@@ -236,7 +236,7 @@ mathfun(Math.log10);
 mathfun(Math.log2);
 
 define_builtin("random", () => new Complex(Math.random(), 0));
-define_builtin("abs", () => abs(...get_n(params, 1)));
+define_builtin("abs", params => abs(...get_n(params, 1)));
 
 define_expr("neg", `x $ x * ~1`);
 
