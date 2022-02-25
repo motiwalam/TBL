@@ -321,8 +321,6 @@ define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
 
-define_const("NEWL", '\n');
-define_const("TAB", '\t');
 define_const("ASCII_LOWER", 'abcdefghijklmnopqrstuvwxyz');
 define_const("ASCII_UPPER", 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 define_const("ASCII_DIGITS", '0123456789');

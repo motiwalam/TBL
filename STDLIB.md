@@ -126,8 +126,6 @@ Many of the functions available can be, and indeed are, defined in TBL itself. H
 ## Constants
  * `PI` (or `π`) = `3.141592653589793`
  * `E` = `2.718281828459045`
- * `NEWL` = `\n`
- * `TAB` = `\t`
  * `ASCII_LOWER` = `abcdefghijklmnopqrstuvwxyz`
  * `ASCII_UPPER` = `ABCDEFGHIJKLMNOPQRSTUVWXYZ`
  * `ASCII_DIGITS` = `0123456789`
