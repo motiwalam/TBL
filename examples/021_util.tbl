@@ -1,0 +1,35 @@
+-- max returns the maximum of two numbers
+max;
+
+-- min returns the minimum of two numbers
+min;
+
+-- maxl is the reduction of max, to find the maximum in a list
+maxl;
+
+-- minl is the reduction of min, to find the minimum in a list;
+minl;
+
+-- nwise will take a list and a number and return consecutive n-tuples
+nwise @ [[1,2,3,4,5,6], 2];
+
+-- range takes a start, an end, and an optional step
+range @ [0, 912];
+range @ [0, 66, 3];
+
+-- random returns a random number between 0 and 1
+random @ [];
+
+-- sum is the reduction of add
+sum;
+
+-- prod is the reduction of multiply
+prod;
+
+-- all is the reduction of and
+all;
+
+-- any is the reduction of or
+any;
+
+

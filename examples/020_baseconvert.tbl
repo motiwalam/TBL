@@ -1,0 +1,18 @@
+-- 'encode' will take a number and a base and return a list of digits that represent that number in that base
+encode @ [64, 2];
+
+-- 'decode' will take a list of digits and a base and return the decimal value represented by those digits
+-- the number 64
+decode @ [encode @ [64, 2]];
+
+-- 'bin' wraps 'encode' with a second argument of 2
+bin @ 64;
+
+-- 'fbin' wraps 'decode' with a second argument of 2
+fbin @ [bin @ 64];
+
+-- 'hex' wraps 'encode' with a second argument of 16
+hex @ 64;
+
+-- 'fhex' wraps 'decode' with a second argument of 16
+fhex @ [hex @ 64];
