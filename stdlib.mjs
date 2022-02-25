@@ -324,6 +324,7 @@ define_const("E", Math.E);
 define_const("ASCII_LOWER", 'abcdefghijklmnopqrstuvwxyz');
 define_const("ASCII_UPPER", 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 define_const("ASCII_DIGITS", '0123456789');
+define_const("ponky", "bear");
 
 export {
     STDLIB
