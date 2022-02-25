@@ -314,6 +314,7 @@ define_expr("hex", `n $ encode @ [n, 16]`);
 define_expr("fhex", `n $ decode @ [n, 16]`);
 
 define_expr("polar", `[r, t] $ r * (cos @ t + 1i * sin @ t)`);
+define_expr("arg", `z $ atan @ [im @ z / re @ z]`);
 define_expr("rad", `d $ d * PI/180`);
 define_expr("deg", `r $ r * 180/PI`);
 

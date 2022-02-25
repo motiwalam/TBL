@@ -96,6 +96,8 @@ Many of the functions available can be, and indeed are, defined in TBL itself. H
    * get the real component
  * `polar` [num, num] -> complex
    * create a complex number from a magnitude and an angle
+ * `arg` num -> num
+   * return the argument of a complex number (its angle from the x axis)
  * `rad` num -> num
    * convert degrees to radians
  * `deg` num -> num
