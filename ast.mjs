@@ -118,7 +118,7 @@ function make_ast(input) {
     
         let values = [];
         for (const ex of exprs) {
-            let e = ex.replace(LANG.IGNORE, '');
+            const e = ex.trim();
             if (e === '') continue;
             let li;
             if (e.startsWith(LANG.EXPR_OPEN)) {
@@ -144,8 +144,7 @@ function make_ast(input) {
                 }
             }
             
-            else if (ex.trim().startsWith(LANG.STRING_OPEN)) {
-                e = ex.trim();
+            else if (e.startsWith(LANG.STRING_OPEN)) {
                 if (e[e.length - 1] != LANG.STRING_CLOSE) throw `Unmatched ${LANG.STRING_OPEN}`;
                 
                 const text = e.slice(1, -1);
