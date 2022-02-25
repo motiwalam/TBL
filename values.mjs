@@ -1,5 +1,5 @@
 import { 
-    icomp, ivfun, ibfun, ilist,
+    icomp, ivfun, ibfun, ilist, ivstr,
     isreal_fuzz, isimag_fuzz, iszero_fuzz,
 } from "./checks.mjs";
 
@@ -187,6 +187,10 @@ function duplicate(v) {
 
     if (ilist(v)) {
         return new List(v.values.map(duplicate))
+    }
+
+    if (ivstr(v)) {
+    	return new VString(v.value);
     }
 }
 
