@@ -103,7 +103,7 @@ function parseText(text) {
 function make_ast(input) {
     // remove comments
     input = input.split(LANG.COMMENT_SEPARATOR)
-                 .filter(e => !e.startsWith(LANG.COMMENT))
+                 .filter(e => !e.trim().startsWith(LANG.COMMENT))
                  .join(LANG.COMMENT_SEPARATOR);
 
     // input = input.replace(LANG.IGNORE, '');
