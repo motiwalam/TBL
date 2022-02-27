@@ -143,7 +143,7 @@ class VString {
     }
 
     get(i) {
-        return this.value[i];
+        return new VString(this.value[i]);
     }
 
     set(idx, ch) {
