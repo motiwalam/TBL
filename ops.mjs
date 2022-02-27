@@ -1,6 +1,6 @@
 import { List, Complex, VString } from "./values.mjs";
 import {
-    icc, icl, ilc, ill,
+    icc, icl, ilc, ill, ils, isl,
     assert_le,
     isreal_fuzz,
     assert_value,
@@ -175,6 +175,8 @@ function eq(a, b) {
     ilc(a, b) && (r = a.map(e => eq(e, b)));
     ill(a, b) && (r = fbool(zip(a, b).every(([e1, e2]) => bool(eq(e1, e2)))));
     iss(a, b) && (r = fbool(a.value == b.value));
+    isl(a, b) && (r = b.map(e => eq(a, e)));
+    ils(a, b) && (r = a.map(e => eq(e, b)));
 
 
     if (r !== null) return r;
