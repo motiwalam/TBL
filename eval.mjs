@@ -188,22 +188,22 @@ function eval_ast(ast, env) {
             assert_valid_arg("right", ast.right);
 
             const op = new NodeOperation(
-                new NodeIdentifier("i"),
                 LANG.DEFINITION,
+                new NodeIdentifier("i"),
                 new NodeOperation(
                     ast.left,
                     LANG.APPLICATION,
                     new NodeList([
                         new NodeOperation(
-                            ast.right,
                             LANG.APPLICATION,
+                            ast.right,
                             new NodeList([new NodeIdentifier("i")])
                         )
                     ])
                 )
             );
 
-            return eval_ast(op);
+            return eval_ast(op, env);
         }
 
         // operations that do not directly affect environment
