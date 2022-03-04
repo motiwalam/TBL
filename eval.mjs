@@ -213,7 +213,7 @@ function eval_ast(ast, env) {
         }
 
         if (ast.operator == LANG.PARTIAL) {
-            assert(is_ast_func(ast.left), `Left argument to ${LANG.PARTIAL} must be a function`);
+            assert(is_ast_func(ast.left, env), `Left argument to ${LANG.PARTIAL} must be a function`);
 
             const f = eval_ast(ast.left, env);
             const v = eval_ast(ast.right, env);
