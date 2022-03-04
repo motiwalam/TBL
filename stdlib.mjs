@@ -6,12 +6,13 @@ import {
     assert_complex,
     ivstr, assert_lors, assert_vstring,
     ivalue,
+    ilist, icomp, ifunc
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
 
 import {
-    bool,
+    bool, fbool,
     abs,
 } from "./ops.mjs";
 
@@ -214,6 +215,16 @@ define_builtin("eval", (params, env) => {
     if (ivstr(c)) return eval_expr(c.toString(), env);
     else return c;
 });
+
+const predfun = (n, f) => define_builtin(n, params => {
+    const [c] = get_n(params, 1);
+    return fbool(f(c));
+});
+
+predfun("islist", ilist);
+predfun("isnum", icomp);
+predfun("isfun", ifunc);
+predfun("isstr", ivstr);
 
 const mathfun = f => define_builtin(f.name, params => {
     const [c] = get_n(params, 1);
