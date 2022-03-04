@@ -6,7 +6,7 @@ import { LANG } from "./language.mjs";
 import assert from "assert";
 
 import {
-    assert_func, assert_list, ilist, ivfun
+    assert_func, assert_list, ilist, ivfun, assert_value,
 } from "./checks.mjs";
 import { ifunc } from "./checks.mjs";
 
@@ -215,9 +215,27 @@ function eval_ast(ast, env) {
         if (ast.operator == LANG.PARTIAL) {
             assert(is_ast_func(ast.left, env), `Left argument to ${LANG.PARTIAL} must be a function`);
 
+            // [_, 1, _, 3]
+
+            const vals = ast.right instanceof NodeList ? ast.right : new NodeList([ast.right]);
+
+            const transform = params => {
+                const out = [];
+                let idx = 0;
+
+                for (const s of vals) {
+                    if (s instanceof NodeIdentifier && s.name == LANG.SLOT) {
+                        const v = params.get(idx++);
+                        assert_value(v, `Invalid argument: ${v}`);
+                        out.push(v);
+                    } else out.push(eval_ast(s, env));
+                }
+
+                return new List(out).concat(params.slice(idx));
+            }
+
             const f = eval_ast(ast.left, env);
-            const v = eval_ast(ast.right, env);
-            const b = new BuiltinFunction(params => eval_application(f, new List([v]).concat(params), env));
+            const b = new BuiltinFunction(params => eval_application(f, transform(params), env));
             b.name = `${f}\\${v}`;
 
             return b;
