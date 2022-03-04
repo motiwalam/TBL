@@ -347,6 +347,8 @@ any @ [map @ [
   l
 ]];`);
 
+define_expr("reverse", `l $ map @ [get\[l], range @ [len @ [l] - 1, 0, ~1]]`)
+
 define_expr("every", `[l, f] $ all @ [map @ [f, l]]`);
 define_expr("some", `[l, f] $ any @ [map @ [f, l]]`);
 
