@@ -43,6 +43,9 @@ const LESS_THAN_EQ = '≤';
 const GREATER_THAN = '>';
 const GREATER_THAN_EQ = '≥';
 
+const COMPOSITION = "'";
+const PARTIAL = "\\";
+
 const NEGATIVE = '~';
 const DECIMAL = '.';
 
@@ -120,6 +123,9 @@ const LANG = Object.freeze({
     LESS_THAN_EQ,
     GREATER_THAN,
     GREATER_THAN_EQ,
+
+    COMPOSITION,
+    PARTIAL,
 
     WHILE,
     FOR,

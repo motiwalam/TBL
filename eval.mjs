@@ -8,6 +8,7 @@ import assert from "assert";
 import {
     assert_func, assert_list, ilist, ivfun
 } from "./checks.mjs";
+import { ifunc } from "./checks.mjs";
 
 function eval_application(f, a, env) {
     if (f instanceof BuiltinFunction) return f.apply(a, env);
@@ -175,6 +176,34 @@ function eval_ast(ast, env) {
 
             if (value == null) return new Complex(0, 0);
             return value;
+        }
+
+        if (ast.operator == LANG.COMPOSITION) {
+            const assert_valid_arg = (o, f) => assert(
+                (f instanceof NodeOperation && f.operator == LANG.DEFINITION)
+                || (f instanceof NodeIdentifier && ifunc(eval_ast(f, env))),
+                `${o} argument to ${LANG.COMPOSITION} must be a function`
+            );
+            assert_valid_arg("left", f);
+            assert_valid_arg("right", g);
+
+            const op = new NodeOperation(
+                new NodeIdentifier("i"),
+                LANG.DEFINITION,
+                new NodeOperation(
+                    f,
+                    LANG.APPLICATION,
+                    new NodeList([
+                        new NodeOperation(
+                            b,
+                            LANG.APPLICATION,
+                            new NodeList([new NodeIdentifier("i")])
+                        )
+                    ])
+                )
+            );
+
+            return eval_ast(op);
         }
 
         // operations that do not directly affect environment
