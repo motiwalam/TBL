@@ -217,7 +217,10 @@ function eval_ast(ast, env) {
 
             const f = eval_ast(ast.left, env);
             const v = eval_ast(ast.right, env);
-            return new BuiltinFunction(`${f}\\${v}`, params => eval_application(f, new List([v]).concat(params), env));
+            const b = new BuiltinFunction(params => eval_application(f, new List([v]).concat(params), env));
+            b.name = `${f}\\${v}`;
+
+            return b;
         }
 
         // operations that do not directly affect environment
