@@ -178,44 +178,23 @@ function eval_ast(ast, env) {
             return value;
         }
 
-        const is_ast_func = (f, env) => (
-            (f instanceof NodeOperation && [
-                LANG.DEFINITION, LANG.COMPOSITION, LANG.PARTIAL
-            ].includes(f.operator))
-            || (f instanceof NodeIdentifier && ifunc(eval_ast(f, env)))
-        );
-
         if (ast.operator == LANG.COMPOSITION) {
-            const assert_valid_arg = (o, f) => assert(
-                is_ast_func(f, env),
-                `${o} argument to ${LANG.COMPOSITION} must be a function`
-            );
-            assert_valid_arg("left", ast.left);
-            assert_valid_arg("right", ast.right);
+            const f = eval_ast(ast.left, env);
+            const g = eval_ast(ast.right, env);
 
-            const op = new NodeOperation(
-                LANG.DEFINITION,
-                new NodeIdentifier("i"),
-                new NodeOperation(
-                    LANG.APPLICATION,
-                    ast.left,
-                    new NodeList([
-                        new NodeOperation(
-                            LANG.APPLICATION,
-                            ast.right,
-                            new NodeList([new NodeIdentifier("i")])
-                        )
-                    ])
-                )
-            );
+            assert_func(f, `Left argument to ${LANG.COMPOSITION} must be a function`);
+            assert_func(g, `Right argument to ${LANG.COMPOSITION} must be a function`);
+            
+            const b = new BuiltinFunction(params => eval_application(f, eval_application(g, params, env), env));
+            b.name = `${f} compose ${g}`;
 
-            return eval_ast(op, env);
+            return b;
         }
 
         if (ast.operator == LANG.PARTIAL) {
-            assert(is_ast_func(ast.left, env), `Left argument to ${LANG.PARTIAL} must be a function`);
+            const f = eval_ast(ast.left, env);
 
-            // [_, 1, _, 3]
+            assert_func(f, `left argument to ${LANG.PARTIAL} must be a function`)l
 
             const vals = ast.right instanceof NodeList ? ast.right : new NodeList([ast.right]);
 
@@ -234,7 +213,6 @@ function eval_ast(ast, env) {
                 return new List(out).concat(params.slice(idx));
             }
 
-            const f = eval_ast(ast.left, env);
             const b = new BuiltinFunction(params => eval_application(f, transform(params), env));
             b.name = `${f}\\${vals}`;
 
