@@ -136,11 +136,6 @@ define_builtin("accumulate", (params, env) => {
     return l.accum((a, b) => eval_application(f, new List([a, b]), env), i);
 });
 
-define_builtin("includes", params => {
-    const [l, e] = get_n(params, 3);
-    
-})
-
 define_builtin("split", params => {
     const [s, d] = get_n(params, 2);
 
@@ -333,6 +328,13 @@ define_expr("polar", `[r, t] $ r * (cos @ t + 1i * sin @ t)`);
 define_expr("arg", `z $ atan @ [im @ z / re @ z]`);
 define_expr("rad", `d $ d * PI/180`);
 define_expr("deg", `r $ r * 180/PI`);
+
+define_expr("includes", `
+[l, e] $
+any @ [map @ [
+  i $ (r: e = i; islist @ [r] ? [0, r]),
+  l
+]];`);
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
