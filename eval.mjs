@@ -194,7 +194,7 @@ function eval_ast(ast, env) {
         if (ast.operator == LANG.PARTIAL) {
             const f = eval_ast(ast.left, env);
 
-            assert_func(f, `left argument to ${LANG.PARTIAL} must be a function`)l
+            assert_func(f, `left argument to ${LANG.PARTIAL} must be a function`);
 
             const vals = ast.right instanceof NodeList ? ast.right : new NodeList([ast.right]);
 
