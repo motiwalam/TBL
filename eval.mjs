@@ -223,7 +223,7 @@ function eval_ast(ast, env) {
                 const out = [];
                 let idx = 0;
 
-                for (const s of vals) {
+                for (const s of vals.subasts) {
                     if (s instanceof NodeIdentifier && s.name == LANG.SLOT) {
                         const v = params.get(idx++);
                         assert_value(v, `Invalid argument: ${v}`);
