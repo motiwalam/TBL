@@ -29,4 +29,5 @@ export const fix = input => input
                             .replace('--', LANG.COMMENT)
                             .replace('&', LANG.RECURSION)
                             .replace('~', LANG.NEGATIVE)
-                            
+                            .replace("'", LANG.COMPOSITION)
+                            .replace("\\", LANG.PARTIAL)
