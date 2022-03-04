@@ -191,8 +191,8 @@ function eval_ast(ast, env) {
                 LANG.DEFINITION,
                 new NodeIdentifier("i"),
                 new NodeOperation(
-                    ast.left,
                     LANG.APPLICATION,
+                    ast.left,
                     new NodeList([
                         new NodeOperation(
                             LANG.APPLICATION,
