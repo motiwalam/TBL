@@ -187,7 +187,7 @@ function eval_ast(ast, env) {
 
         if (ast.operator == LANG.COMPOSITION) {
             const assert_valid_arg = (o, f) => assert(
-                is_ast_func(f),
+                is_ast_func(f, env),
                 `${o} argument to ${LANG.COMPOSITION} must be a function`
             );
             assert_valid_arg("left", ast.left);
