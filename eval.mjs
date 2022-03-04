@@ -178,10 +178,16 @@ function eval_ast(ast, env) {
             return value;
         }
 
+        const is_ast_func = (f, env) => (
+            (f instanceof NodeOperation && [
+                LANG.DEFINITION, LANG.COMPOSITION, LANG.PARTIAL
+            ].includes(f.operator))
+            || (f instanceof NodeIdentifier && ifunc(eval_ast(f, env)))
+        );
+
         if (ast.operator == LANG.COMPOSITION) {
             const assert_valid_arg = (o, f) => assert(
-                (f instanceof NodeOperation && f.operator == LANG.DEFINITION)
-                || (f instanceof NodeIdentifier && ifunc(eval_ast(f, env))),
+                is_ast_func(f),
                 `${o} argument to ${LANG.COMPOSITION} must be a function`
             );
             assert_valid_arg("left", ast.left);
