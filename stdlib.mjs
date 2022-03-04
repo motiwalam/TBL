@@ -18,6 +18,7 @@ import {
 
 import { ERRORS } from "./errors.mjs";
 import assert from "assert";
+import { assert_integral } from "./checks.mjs";
 
 const STDLIB = {};
 
@@ -152,6 +153,16 @@ define_builtin("join", params => {
     assert_vstring(s, `Can only join with a string`);
 
     return l.join(s);
+});
+
+define_builtin("slice", params => {
+    const [l, s, e] = get_n(params, 3);
+
+    assert_lors(l, `Can only slice a list or a string`);
+    assert_isreal_strict(s, `Start index must be a real number`);
+    e && assert_isreal_strict(e, `End index must be a real number`);
+
+    return l.slice(s.real, e?.real);
 });
 
 define_builtin("dup", params => {

@@ -126,6 +126,10 @@ class List {
     join(s) {
         return new VString(this.values.map(e => e.toString()).join(s.value));
     }
+
+    slice(start, end) {
+        return new List(this.values.slice(start, end));
+    }
 }
 
 
@@ -166,6 +170,10 @@ class VString {
 
     split(d) {
         return new List(this.value.split(d.value).map(s => new VString(s)));
+    }
+
+    slice(start, end) {
+        return new VString(this.value.slice(start, end));
     }
 
 
