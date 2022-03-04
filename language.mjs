@@ -69,6 +69,7 @@ const COMPLEX = 'i';
 const COMMENT = '--';
 
 const PRECEDENCE = [
+    [PARTIAL],
     [COMPOSITION],
     [APPLICATION],
     [EXPONENTIATION],

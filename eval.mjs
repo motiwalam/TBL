@@ -212,6 +212,14 @@ function eval_ast(ast, env) {
             return eval_ast(op, env);
         }
 
+        if (ast.operator == LANG.PARTIAL) {
+            assert(is_ast_func(ast.left), `Left argument to ${LANG.PARTIAL} must be a function`);
+
+            const f = eval_ast(ast.left);
+            const v = eval_ast(ast.right);
+            return new BuiltinFunction(`${f}\\${v}`, params => eval_application(f, new List([v]).concat(params), env));
+        }
+
         // operations that do not directly affect environment
         const f = {
             [LANG.EXPONENTIATION]: pow,
