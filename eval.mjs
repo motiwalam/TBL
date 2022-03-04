@@ -185,7 +185,7 @@ function eval_ast(ast, env) {
             assert_func(f, `Left argument to ${LANG.COMPOSITION} must be a function`);
             assert_func(g, `Right argument to ${LANG.COMPOSITION} must be a function`);
             
-            const b = new BuiltinFunction(params => eval_application(f, eval_application(g, params, env), env));
+            const b = new BuiltinFunction(params => eval_application(f, new List([eval_application(g, params, env)]), env));
             b.name = `${f} compose ${g}`;
 
             return b;
