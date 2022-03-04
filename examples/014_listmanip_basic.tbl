@@ -1,0 +1,43 @@
+-- defining an example list
+list: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+-- getting the length of the list with the 'len' function
+-- notice the square brackets around list
+-- they are absolutely necessary! otherwise each element in the list
+--  will be treated as a separate argument to the function len
+len @ [list];
+
+-- indexing with the function 'get'
+-- first element (indexing is 0 based)
+get @ [list, 0];
+
+-- fifth element
+get @ [list, 4];
+
+-- an error
+-- get @ [list, 100];
+
+
+-- changing values with the function 'set'
+-- first element of list is now 14
+set @ [list, 0, 14];
+
+
+-- popping and pushing values on the list with 'pop' and 'push'
+-- remove the last element
+pop @ [list];
+-- append a 15 to the list
+push @ [list, 15];
+
+-- concatenating lists with 'concat'
+-- creating a copy of list with 1,1,2,3 appended
+concat @ [list, [1,1,2,3]];
+
+-- joining everything in the list to create a string
+-- all of the numbers in the list separated by a space
+join @ [list, { }];
+
+
+-- these are the basic tools for manipulating a list!
+-- next tutorial will cover the slightly more complex but infinitely more powerful
+--  map, filter, reduce (and accumulate)

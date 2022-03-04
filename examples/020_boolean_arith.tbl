@@ -1,0 +1,8 @@
+-- recall that every value is considered true except for the number 0 + 0i
+-- the following functions exist for boolean arithmetic
+and;
+or;
+not;
+-- this is the boolean identity
+-- coerce a value to a 0 or 1 depending on its truth value
+bool;

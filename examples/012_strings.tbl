@@ -1,0 +1,41 @@
+-- to create strings in TBL, type the content of your strings inside curly brackets
+-- the string Hello World!
+{Hello World!};
+
+-- inside of a string, all whitespace is retained, so to add in new lines, simply add in new lines
+-- the string 1\n2\n3
+{1
+2
+3};
+
+-- you can of course use conventional escaping syntax as well
+-- the same string as above
+{1\n2\n3};
+
+-- TBL has string interpolation as well
+-- inside of a string, open up a new pair of curly brackets, and type in any expression
+-- the result of that expression will be coerced to a string and interpolated inside
+
+-- note: unfortunately the syntax highlighting doesn't work in interpolated expressions
+-- just quite yet
+
+-- the string 2
+{{1 + 1}};
+
+-- displaying the value of a variable
+x: 4;
+{the value of x is {x}};
+
+-- the interpolations nest!
+-- this means you can interpolate a string which itself interpolates more expressions
+-- for example: "this is a string"
+{this is {{a {(2 = 1 + 1) ? [{string}, {not a string}]}}}};
+
+-- to type in a literal opening curly brace, prefix it with a \
+-- e.g: "an opening curly brace looks like: {"
+{an opening curly brace looks like \{};
+
+-- and unmatched closing curly braces are ignored automatically
+-- e.g: "a closing curly brace looks like: }"
+{a closing curly brace looks like }};
+

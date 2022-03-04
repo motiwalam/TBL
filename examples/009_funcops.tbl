@@ -1,0 +1,24 @@
+-- TBL provides a composition operator: '
+-- the composition operator desugars f ' g to l $ f @ [g @ i]
+
+-- thus to raise 2 to the power of the increment of x
+-- i.e f(x) = 2^(x + 1)
+
+(x $ 2^x) ' (x $ x + 1);
+
+
+-- There is also a curry operator: \
+-- with the curry operator, the above can be simplified to
+
+pow\2 ' add\1;
+
+-- by default, the curry operator will insert its right operand as
+-- the first argument to the resulting function
+
+-- however, by supplying a list as the right operand, you can
+-- specify slots with _ ; now, the resulting function will place its arguments in the slot
+
+-- for example, to make f(x) = (x+1)^2
+pow\[_, 2] ' add\1;
+
+

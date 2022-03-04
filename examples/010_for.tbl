@@ -1,0 +1,14 @@
+-- for loops are done with the '#' operator
+-- given a list of three expressions on the left: 
+--   1. the initializer
+--   2. the condition
+--   3. the updater
+-- and a body expression on the right
+-- the operator will execute the initializer, 
+-- and repeatedly execute the body, and then the updater,
+-- as long as the condition is true
+
+-- the numbers from 9 to 0
+r: [];
+[i: 9, i > ~1, i: i - 1] # push @ [r, i];
+r;

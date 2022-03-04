@@ -1,0 +1,29 @@
+-- the range function can be used to create lists
+-- it takes a mandatory start and end argument, and an optional third step argument
+-- the numbers from 1 to 10
+list: range @ [1, 10];
+-- the odd numbers from 1 to 10
+odds: range @ [1, 10, 2];
+
+-- 'map' takes a function and a list and applies the function to every element in the list
+-- square one minus the half of every element in the list
+map @ [x $ (1-x/2)^2, list];
+
+-- 'filter' takes a function and a list, and returns a list of every element for which the function evaluated true
+-- get all odd numbers less than 7
+filter @ [x $ x < 7, odds];
+
+-- 'reduce' takes a function and a list, and applies the function between every element in the list
+-- returning a final result
+-- for example, here is how the reduction of the list [1, 2, 3, 4] with addition proceeds
+--  1 + 2 + 3 + 4
+--  3 + 3 + 4
+--  6 + 4
+--  10  <-- final result
+
+-- summing a list
+reduce @ [[a,b] $ a + b, list];
+
+-- 'accumulate' does the same thing as reduce, but saves intermediate results
+-- summing a list with intermediate results
+accumulate @ [[a, b] $ a + b, list];
