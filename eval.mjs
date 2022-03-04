@@ -184,18 +184,18 @@ function eval_ast(ast, env) {
                 || (f instanceof NodeIdentifier && ifunc(eval_ast(f, env))),
                 `${o} argument to ${LANG.COMPOSITION} must be a function`
             );
-            assert_valid_arg("left", f);
-            assert_valid_arg("right", g);
+            assert_valid_arg("left", ast.left);
+            assert_valid_arg("right", ast.right);
 
             const op = new NodeOperation(
                 new NodeIdentifier("i"),
                 LANG.DEFINITION,
                 new NodeOperation(
-                    f,
+                    ast.left,
                     LANG.APPLICATION,
                     new NodeList([
                         new NodeOperation(
-                            b,
+                            ast.right,
                             LANG.APPLICATION,
                             new NodeList([new NodeIdentifier("i")])
                         )
