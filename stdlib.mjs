@@ -347,6 +347,9 @@ any @ [map @ [
   l
 ]];`);
 
+define_expr("every", `[l, f] $ all @ [map @ [f, l]]`);
+define_expr("some", `[l, f] $ any @ [map @ [f, l]]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
