@@ -1,7 +1,0 @@
--- now you're acquainted with all of the basic syntax
--- but there's still a few things we can't quite do yet
-
--- TBL fills in the gaps left by its syntax with a standard library of functions
-
--- the next few tutorials will cover this standard library
--- starting with things like list indexing and manipulation
