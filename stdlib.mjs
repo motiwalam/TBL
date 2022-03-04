@@ -135,6 +135,11 @@ define_builtin("accumulate", (params, env) => {
     return l.accum((a, b) => eval_application(f, new List([a, b]), env), i);
 });
 
+define_builtin("includes", params => {
+    const [l, e] = get_n(params, 3);
+    
+})
+
 define_builtin("split", params => {
     const [s, d] = get_n(params, 2);
 

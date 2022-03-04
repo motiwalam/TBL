@@ -173,7 +173,7 @@ function eq(a, b) {
     icc(a, b) && (r = eq_complex(a, b));
     icl(a, b) && (r = b.map(e => eq(a, e)));
     ilc(a, b) && (r = a.map(e => eq(e, b)));
-    ill(a, b) && (r = fbool(zip(a, b).every(([e1, e2]) => bool(eq(e1, e2)))));
+    ill(a, b) && (r = a.length == b.length ? fbool(zip(a, b).every(([e1, e2]) => bool(eq(e1, e2)))) : bool(false));
     iss(a, b) && (r = fbool(a.value == b.value));
     isl(a, b) && (r = b.map(e => eq(a, e)));
     ils(a, b) && (r = a.map(e => eq(e, b)));
