@@ -6,7 +6,7 @@ import { LANG } from "./language.mjs";
 import assert from "assert";
 
 import {
-    assert_func, assert_list, ilist, ivfun, assert_value,
+    assert_func, assert_list, ilist, ivfun, assert_value, ivalue,
 } from "./checks.mjs";
 import { ifunc } from "./checks.mjs";
 
@@ -62,7 +62,7 @@ function eval_ast(ast, env) {
                 assert(target.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
                       "Invalid assignment: list can only contain identifiers");
 
-                if (value instanceof NodeList) {
+                if (value instanceof NodeList || (value instanceof NodeIdentifier && eval_ast(value, env) instanceof List)) {
                     assert(value.subasts.length == 1 || value.subasts.length == target.subasts.length, 
                         `Expected ${target.subasts.length} values; received ${value.subasts.length}`);
 
