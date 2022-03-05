@@ -79,7 +79,11 @@ class List {
     }
 
     every(f) {
-	return this.values.every(f);
+	    return this.values.every(f);
+    }
+
+    some(f) {
+        return this.values.some(f);
     }
 
     accum(f, i) {
