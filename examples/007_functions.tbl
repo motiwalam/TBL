@@ -31,3 +31,20 @@ f @ [[1, 2, 3]];
 -- the fibonacci function, defined recursively, in two ways
 fib1: n -> n < 2 ? [1, fib1 @ [n - 1] + fib1 @ [n - 2]];
 fib2: n -> n < 2 ? [1, & @ [n - 1] + & @ [n - 2]];
+
+-- TBL has variadic functions as well
+-- variadic functions are functions defined with '=>' instead of '->'
+-- in a variadic function, the last parameter is treated as a 'catch all' 
+-- all excess arguments are captured as a list available under the last parameter
+-- of a variadic function
+
+-- for example: sum all the arguments
+vsum: r => sum @ [r];
+
+vsum @ [1,2,3,4,5,6,7]; --> 28
+
+-- a and b are the first two arguments
+-- everything after that is in the list rest
+f: [a, b, rest] => (a*b)^rest;
+
+f @ [5, 2, 7, 8, 9]; --> (5*2)^[7, 8, 9]
