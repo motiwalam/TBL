@@ -288,7 +288,7 @@ define_expr("add", `[a, b] -> a + b`);
 define_expr("sub", `[a, b] -> a - b`);
 define_expr("mod", `[a, b] -> a % b`);
 define_expr("eq", `[a, b] -> a = b`);
-define_expr("neq", `not . eq`);
+define_expr("neq", `[a, b] -> a != b`);
 define_expr("lt", `[a, b] -> a < b`);
 define_expr("gt", `[a, b] -> a > b`);
 define_expr("lte", `[a, b] -> a <= b`);
