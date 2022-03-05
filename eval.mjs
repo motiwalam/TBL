@@ -61,12 +61,14 @@ function eval_ast(ast, env) {
                 
                 assert(target.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
                       "Invalid assignment: list can only contain identifiers");
-
+                
                 if (value instanceof NodeList || (value instanceof NodeIdentifier && eval_ast(value, env) instanceof List)) {
-                    assert(value.subasts.length == 1 || value.subasts.length == target.subasts.length, 
-                        `Expected ${target.subasts.length} values; received ${value.subasts.length}`);
+                    
+                    const vlength = value instanceof NodeList ? value.subasts.length || eval_ast(value, env).length;
+                    assert(vlength == 1 || vlength == target.subasts.length, 
+                        `Expected ${target.subasts.length} values; received ${vlength}`);
 
-                    if (value.subasts.length == 1) {
+                    if (vlength == 1) {
                         const v = eval_ast(value, env).get(0);
                         rv = v;
                         values = Array.from({length: target.subasts.length}, () => duplicate(v));
