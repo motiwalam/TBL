@@ -1,25 +1,6 @@
--- surround a list with zeros
-sz: l $ (
-    z: [0];
-    concat @ [z, concat @ [l, z]]
-);
-
--- take consecutive pairs in a list
--- i.e [1, 2, 3, 4] -> [[1,2], [2,3], [3,4]]
-pw: l $ nwise @ [l, 2];
-
--- given one row of pascal's triangle, generate the next
-R: r $
-    map @ [
-        sum,
-        pw @ [sz @ [r]]
-    ]
-;
-
-fpower: [f, n] $ (i $ accumulate @ [[f, g] $ g @ [f], repeat @ [f, n], i]);
-
--- accumulate the composition of R, n-times, with initial value [1], the first row of pascal's triangle
-pascal: n $ fpower @ [R, n] @ [[1]];
-
-join @ [pascal @ 10, {\n}];
-
+sz: concat\[[0]] ' concat\[_, [0]];
+pw: nwise\[_, 2];
+fpower: [f, n] $ accumulate\[[f, g] $ g @ [f], repeat @ [f, n]];
+pascal: n $ fpower @ [map\sum ' pw ' sz, n] @ [[1]];
+ppascal: join\[_, {\n}] ' pascal;
+ppascal @ 10;
