@@ -24,6 +24,7 @@ const CLOSE_GROUPS = [EXPR_CLOSE, LIST_CLOSE, STRING_CLOSE];
 
 const CONDITIONAL = '?';
 const DEFINITION = '->';
+const VARIADIC_DEFINE = '=>';
 const BIND = ':';
 const APPLICATION = '@';
 
@@ -80,7 +81,7 @@ const PRECEDENCE = [
     [EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
     [CONDITIONAL],
     [WHILE, FOR],
-    [DEFINITION],
+    [DEFINITION, VARIADIC_DEFINE],
     [BIND],
 ]
 
@@ -113,7 +114,7 @@ const LANG = Object.freeze({
     IGNORE,
 
     CONDITIONAL,
-    DEFINITION,
+    DEFINITION, VARIADIC_DEFINE,
     BIND,
     APPLICATION,
 

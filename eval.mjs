@@ -13,14 +13,15 @@ import { ifunc } from "./checks.mjs";
 function eval_application(f, a, env) {
     if (f instanceof BuiltinFunction) return f.apply(a, env);
 
-    assert(f.params.length == a.length, `Invalid number of arguments`);
+    if (!f.variadic)
+        assert(f.params.length == a.length, `Invalid number of arguments`);
     
     const eval_env = {...env, ...f.closure};
 
     // update the environment
     for (let i = 0; i < f.params.length; i++) {
         const name = f.params[i];
-        const val = a.get(i);
+        const val = (f.variadic && i == f.params.length - 1) ? a.slice(i) : a.get(i);
 
         eval_env[name] = (eval_env[name] ?? []).concat(val);
     }
@@ -105,7 +106,7 @@ function eval_ast(ast, env) {
         }
 
         // function definition
-        if (ast.operator == LANG.DEFINITION) {
+        if ([LANG.DEFINITION, LANG.VARIADIC_DEFINE].includes(ast.operator)) {
             assert(ast.left instanceof NodeList || ast.left instanceof NodeIdentifier, `Invalid function head.`);
             if (ast.left instanceof NodeList) {
                 assert(ast.left.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
@@ -118,7 +119,7 @@ function eval_ast(ast, env) {
             for (const [name, binding] of Object.entries(env)) {
                 closure[name] = [...binding];
             }
-            return new VFunction(params, body, closure);
+            return new VFunction(params, body, closure, ast.operator == LANG.VARIADIC_DEFINE);
         }
 
         // function application

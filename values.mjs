@@ -21,11 +21,13 @@ class VFunction {
     params;
     body;
     closure;
+    variadic;
 
-    constructor(params, body, closure) {
+    constructor(params, body, closure, variadic = false) {
         this.params = params;
         this.body = body;
         this.closure = closure;
+        this.variadic = variadic;
     }
 
     toString() {
