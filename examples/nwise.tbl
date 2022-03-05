@@ -1,9 +1,11 @@
 -- chunk a list into nwise tuples;
 nwise: [l, n] $
     map @ [
-        i $ map @ [
-            j $ get @ [l, i + j],
+      	i $ map @ [
+            get\[l] ' add\i, 
             range @ [0, n-1]
         ],
         range @ [0, len @ [l] - n]
-    ]
+    ];
+
+nwise @ [range @ [1, 10], 2]
