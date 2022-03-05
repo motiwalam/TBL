@@ -30,7 +30,7 @@ const define_builtin = (n, f) => {
     STDLIB[n] = [bf];
 }
 
-const define_expr = (n, expr) => (STDLIB[n] = [eval_expr(fix(expr))]);
+const define_expr = (n, expr) => (STDLIB[n] = [eval_expr(fix(expr), STDLIB)]);
 
 const define_const = (n, c) => {
     if (typeof c === 'string') STDLIB[n] = [new VString(c)];
@@ -260,8 +260,6 @@ mathfun(Math.log2);
 define_builtin("random", () => new Complex(Math.random(), 0));
 define_builtin("abs", params => abs(...get_n(params, 1)));
 
-define_expr("neg", `mul\\~1`);
-
 define_expr("max", `[a, b] $ (a > b) ? [a, b])`);
 define_expr("maxl", `reduce\\max`);
 define_expr("min", '[a, b] $ (a < b) ? [a, b])');
@@ -351,6 +349,8 @@ define_expr("reverse", `l $ map @ [get\\[l], range @ [len @ [l] - 1, 0, ~1]]`)
 
 define_expr("every", `[l, f] $ all @ [map @ [f, l]]`);
 define_expr("some", `[l, f] $ any @ [map @ [f, l]]`);
+
+define_expr("neg", `mul\\~1`);
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
