@@ -352,6 +352,7 @@ define_expr("every", `[l, f] $ all @ [map @ [f, l]]`);
 define_expr("some", `[l, f] $ any @ [map @ [f, l]]`);
 
 define_expr("neg", `mul\\~1`);
+define_expr("id", "x $ x");
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
