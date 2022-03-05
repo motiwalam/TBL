@@ -1,0 +1,35 @@
+qsort: a $ (
+  _qsort: [a, l, h] $ (
+    l < h ? [
+      (
+          pi: part @ [a, l, h];
+          & @ [a, l, pi - 1];
+          & @ [a, pi + 1, h];  
+      ),
+    ];
+
+  );
+
+  part: [a, l, h] $ (
+    swap: [a, i, j] $ (
+      t: get @ [a, i];
+      set @ [a, i, get @ [a, j]];
+      set @ [a, j, t];
+    );
+    pivot: get @ [a, h];
+    i: l - 1;
+    [j: l, j < h, j: j + 1] # (
+      get @ [a, j] < pivot ? [
+        (
+          i: i + 1;
+          swap @ [a, i, j];
+        ),
+      ]
+    );
+    swap @ [a, i + 1, h];
+    i + 1;
+  );
+  
+  _qsort @ [a, 0, len @ [a] - 1];
+  a;
+);
