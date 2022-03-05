@@ -260,12 +260,12 @@ mathfun(Math.log2);
 define_builtin("random", () => new Complex(Math.random(), 0));
 define_builtin("abs", params => abs(...get_n(params, 1)));
 
-define_expr("neg", `x $ x * ~1`);
+define_expr("neg", `mul\\~1`);
 
 define_expr("max", `[a, b] $ (a > b) ? [a, b])`);
-define_expr("maxl", `l $ (reduce @ [max, l])`);
+define_expr("maxl", `reduce\\max`);
 define_expr("min", '[a, b] $ (a < b) ? [a, b])');
-define_expr("minl", `l $ (reduce @ [min, l])`);
+define_expr("minl", `reduce\\min`);
 define_expr("repeat", `
 [v, n] $ (
     map @ [
@@ -283,19 +283,19 @@ define_expr("add", `[a, b] $ a + b`);
 define_expr("sub", `[a, b] $ a - b`);
 define_expr("mod", `[a, b] $ a % b`);
 define_expr("eq", `[a, b] $ a = b`);
-define_expr("neq", `[a, b] $ not @ [a = b]`);
+define_expr("neq", `not ' eq`);
 define_expr("lt", `[a, b] $ a < b`);
 define_expr("gt", `[a, b] $ a > b`);
 define_expr("lte", `[a, b] $ a ≤ b`);
 define_expr("gte", `[a, b] $ a ≥ b`);
 
-define_expr("sum", `l $ reduce @ [add, l, 0]`);
-define_expr("prod", `l $ reduce @ [mul, l, 1]`);
+define_expr("sum", `reduce\\[add, _, 0]`);
+define_expr("prod", `reduce\\[mul, _, 1]`);
 define_expr("fact", `n $ n > 1 ? [prod @ [range @ [2, n]], 1]`);
 define_expr("and", `[a, b] $ a ? [b ? [1, 0], 0]`);
 define_expr("or", `[a, b] $ a ? [1, b ? [1, 0]]`);
-define_expr("all", `l $ reduce @ [and, l, 1]`);
-define_expr("any", `l $ reduce @ [or, l, 0]`);
+define_expr("all", `reduce\\[and, _, 1]`);
+define_expr("any", `reduce\\[or, _, 0]`);
 define_expr("bool", `a $ a ? [1, 0]`);
 define_expr("not", `a $ a ? [0, 1]`);
 
@@ -329,16 +329,16 @@ define_expr("decode", `
 ;
 `);
 
-define_expr("bin", `n $ encode @ [n, 2]`);
-define_expr("fbin", `n $ decode @ [n, 2]`);
+define_expr("bin", `encode\\[_, 2]`);
+define_expr("fbin", `decode\\[_, 2]`);
 
-define_expr("hex", `n $ encode @ [n, 16]`);
-define_expr("fhex", `n $ decode @ [n, 16]`);
+define_expr("hex", `encode\\[_, 16]`);
+define_expr("fhex", `decode\\[_, 16]`);
 
 define_expr("polar", `[r, t] $ r * (cos @ t + 1i * sin @ t)`);
 define_expr("arg", `z $ atan @ [im @ z / re @ z]`);
-define_expr("rad", `d $ d * PI/180`);
-define_expr("deg", `r $ r * 180/PI`);
+define_expr("rad", `mul\\(PI/180)`);
+define_expr("deg", `mul\\(80/PI)`);
 
 define_expr("includes", `
 [l, e] $
