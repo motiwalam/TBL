@@ -17,7 +17,7 @@
 
 -- this also allows for more complex function bodies
 -- a function that assigns three variables and then returns 8
-f: [] $ (
+f: [] -> (
   a: 0;
   b: 0;
   c: 0;

@@ -1,5 +1,5 @@
-applywhile: [f, c] $ (
-  i $ (
+applywhile: [f, c] -> (
+  i -> (
     [l, r]: [i, [i]];
     
     c @ l ! push @ [r, l: f @ l];
@@ -8,13 +8,13 @@ applywhile: [f, c] $ (
   )
 );
 
-collatz: n $ n % 2 ? [3*n + 1, n / 2];
+collatz: n -> n % 2 ? [3*n + 1, n / 2];
 
-scollatz: applywhile @ [collatz, not ' eq\1];;
+scollatz: applywhile @ [collatz, not . eq'1];;
 
-lcollatz: len ' scollatz;
+lcollatz: len . scollatz;
 
-maxk: [l, f] $ (
+maxk: [l, f] -> (
   mx: get @ [l, 0];
   mxv: f @ [mx];
   

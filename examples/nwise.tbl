@@ -1,5 +1,5 @@
 -- chunk a list into nwise tuples;
-nwise: [l, n] $
+nwise: [l, n] ->
     map @ [
       	i $ map @ [
             get\[l] ' add\i, 

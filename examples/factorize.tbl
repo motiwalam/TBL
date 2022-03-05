@@ -1,4 +1,4 @@
-factorize: n $ (
+factorize: n -> (
     factors: [];
     a: 2;
     n > 1 ! (

@@ -31,11 +31,10 @@ x: 4;
 -- for example: "this is a string"
 {this is {{a {(2 = 1 + 1) ? [{string}, {not a string}]}}}};
 
--- to type in a literal opening curly brace, prefix it with a \
+-- to type in a literal opening or closing curly brace, prefix it with a \
 -- e.g: "an opening curly brace looks like: {"
 {an opening curly brace looks like \{};
 
--- and unmatched closing curly braces are ignored automatically
 -- e.g: "a closing curly brace looks like: }"
-{a closing curly brace looks like }};
+{a closing curly brace looks like \}};
 

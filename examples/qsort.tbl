@@ -1,5 +1,5 @@
-qsort: a $ (
-  _qsort: [a, l, h] $ (
+qsort: a -> (
+  _qsort: [a, l, h] -> (
     l < h ? [
       (
           pi: part @ [a, l, h];
@@ -10,8 +10,8 @@ qsort: a $ (
 
   );
 
-  part: [a, l, h] $ (
-    swap: [a, i, j] $ (
+  part: [a, l, h] -> (
+    swap: [a, i, j] -> (
       t: get @ [a, i];
       set @ [a, i, get @ [a, j]];
       set @ [a, j, t];

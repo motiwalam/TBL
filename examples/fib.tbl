@@ -1,10 +1,10 @@
-shift: [l, o] $ map @ [i $ get @ [l, i], range @ (o > 0 ? [[0, len @ [l] - 1 - o], [neg @ o, len @ [l] - 1]])];
+shift: [l, o] -> map @ [i -> get @ [l, i], range @ (o > 0 ? [[0, len @ [l] - 1 - o], [neg @ o, len @ [l] - 1]])];
 -- take a list of n initial values
 -- return a function f(x) which is f(x - 1) + f(x - 2) ... + f(x - n)
 -- if x >= n, other wise return the x'th element from the list of initial
 -- values
-genfib: l $ (
-    n $ (
+genfib: l -> (
+    n -> (
         n < len @ [l] ? [
             get @ [l, max @ [n, 0]],
             (
@@ -24,7 +24,7 @@ fib: genfib @ [[0, 1]];
 lucas: genfib @ [[2, 1]];
 
 -- n-nacci numbers, that is where the first n-1 values are 0 and the n-th initial value is 1
-nfib: n $ (genfib @ [concat @ [repeat @ [0, n-1], [1]]]);
+nfib: n -> (genfib @ [concat @ [repeat @ [0, n-1], [1]]]);
 
 -- tribonacci numbers
 trib: nfib @ 3;
