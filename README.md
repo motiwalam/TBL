@@ -70,7 +70,7 @@ The `*` operator, when applied to a left operand string and a right operand inte
 ## Functions
 TBL supports functions and higher order functions.
 
-Functions are defined with the definition operator, `$`. The parameters of the function are given as a list on the left of the operator, and the body of the function is given on the right. 
+Functions are defined with the definition operator, `->`. The parameters of the function are given as a list on the left of the operator, and the body of the function is given on the right. 
 
 Inside of a function, you can use the special symbol `&` to denote the function currently being defined, thus enabling recursion for anonymous functions. Alternatively, assigning the function to a name that is then used inside of the function also does the same thing.
 
@@ -112,8 +112,8 @@ The for loop operator, `#`, takes a list of three expressions on its left and a 
  * equal: `=`
  * less than: `<`
  * greater than: `>`
- * less than or equal to: `≤`
- * greater than or equal to: `≥`
+ * less than or equal to: `<=`
+ * greater than or equal to: `>=`
 
 
 ## Standard Library
