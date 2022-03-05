@@ -13,9 +13,8 @@ import { ifunc } from "./checks.mjs";
 function eval_application(f, a, env) {
     if (f instanceof BuiltinFunction) return f.apply(a, env);
 
-    if (!f.variadic)
-        assert(f.params.length == a.length, `Invalid number of arguments`);
-    
+    assert((f.params.length == a.length) 
+            || (f.variadic && a.length >= f.params.length - 1), `Invalid number of arguments`);
     const eval_env = {...env, ...f.closure};
 
     // update the environment
@@ -29,12 +28,6 @@ function eval_application(f, a, env) {
     eval_env[LANG.RECURSION] = [f];
     
     const result = eval_ast(f.body, eval_env);
-    
-    // // reset the environments
-    // for (const name of f.params) {
-    //     env[name].pop();
-    //     if (env[name].length == 0) delete env[name]
-    // }
 
     return result;
 }
