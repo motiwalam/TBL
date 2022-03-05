@@ -29,6 +29,153 @@ function splitOnUncontainedDelim(text, og, cg, delim, includedelim = false) {
     return splitOnMultipleUncontainedDelims(text, [og], [cg], [delim], includedelim)
 }
 
+function state_machine_parse(text) {
+    const results = [];
+
+    let state = "start";
+
+    let start = 0;
+    const ctxt = {};
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        
+        switch (state) {
+            case "start":
+                if (c == LANG.STRING_OPEN) {
+                    start = i;
+                    ctxt.sdepth = 1;
+                    state = "string";
+                }
+
+                else if (c == LANG.LIST_OPEN) {
+                    start = i;
+                    ctxt.ldepth = 1;
+                    state = "list";
+                }
+
+                else if (c == LANG.EXPR_OPEN) {
+                    start = i;
+                    ctxt.edepth = 1;
+                    state = "expression";
+                }
+
+                else if (c + text[i + 1] == LANG.COMMENT) {
+                    state = "comment";
+                }
+
+                else if (LANG.OPCHARS.includes(c)) {
+                    start = i;
+                    state = "operator";
+                }
+
+                else if (LANG.NUMBER_START.includes(c)) {
+                    start = i;
+                    state = "number";
+                }
+
+                else if (LANG.IDENTIFIER_START.includes(c)) {
+                    start = i;
+                    state = "identifier";
+                }
+
+                else if (LANG.CLOSE_GROUPS.includes(c)) {
+                    throw `Unmatched ${c}`;
+                }
+
+                break;
+
+            case "operator":
+                if (!LANG.OPCHARS.includes(c)) {
+                    state = "start";
+                    results.push(text.slice(start, i));
+                    i--;
+                }
+                break;
+
+            case "number":
+                if (!LANG.NUMBER_BODY.includes(c)) {
+                    state = "start";
+                    results.push(text.slice(start, i));
+                    i--;
+                }
+                break;
+
+            case "identifier":
+                if (!LANG.IDENTIFIER_BODY.includes(c)) {
+                    state = "start";
+                    results.push(text.slice(start, i));
+                    i--;
+                }
+                break;
+
+            case "expression":
+                if (c == LANG.EXPR_OPEN) {
+                    ctxt.edepth++;
+                }
+                if (c == LANG.EXPR_CLOSE) {
+                    ctxt.edepth--;
+                    if (0 == ctxt.edepth) {
+                        state = "start";
+                        results.push(text.slice(start, i + 1));
+                    }
+                }
+                break;
+
+            case "list":
+                if (c == LANG.LIST_OPEN) {
+                    ctxt.ldepth++;
+                }
+                if (c == LANG.LIST_CLOSE) {
+                    ctxt.ldepth--;
+                    if (0 == ctxt.ldepth) {
+                        state = "start";
+                        results.push(text.slice(start, i + 1));
+                    }
+                }
+                break;
+
+            case "string":
+                if (ctxt.escape) {
+                    ctxt.escape = false;
+                    continue;
+                }
+                if (c == LANG.ESCAPE) {
+                    ctxt.escape = true;
+                }
+
+
+                if (c == LANG.STRING_OPEN) {
+                    ctxt.sdepth++;
+                }
+
+                if (c == LANG.STRING_CLOSE) {
+                    ctxt.sdepth--;
+                    if (0 == ctxt.sdepth) {
+                        state = "start";
+                        results.push(text.slice(start, i + 1));
+                    }
+                }
+                break;
+
+            case "comment":
+                if (c == LANG.COMMENT_SEPARATOR) {
+                    state = "start";
+                }
+                break;
+            
+        }
+
+    }
+
+    
+
+    assert(!["list", "expression", "string"].includes(state), "incomplete group");
+    !["start", "comment"].includes(state) && results.push(text.slice(start));
+
+    return results;
+
+}
+
 function parseNumber(t) {
     let n;
     if (t.startsWith(LANG.NEGATIVE)) {
@@ -114,7 +261,7 @@ function make_ast(input) {
     const asts = [];
 
     for (const se of body) {
-        const exprs = splitOnMultipleUncontainedDelims(se, LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, LANG.OPERATORS, true);
+        const exprs = state_machine_parse(se);
     
         let values = [];
         for (const ex of exprs) {
@@ -152,11 +299,11 @@ function make_ast(input) {
 
                 values.push(new NodeString(text, replacements));
             }
-            else if (LANG.NUMBER_START.test(e)) {
+            else if (LANG.NUMBER_START.includes(e[0])) {
                 values.push(parseNumber(e));
             }
     
-            else if (!LANG.OPERATORS.includes(e[0])) {
+            else if (!LANG.OPERATORS.includes(e)) {
                 values.push(new NodeIdentifier(e));
             }
     

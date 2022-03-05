@@ -23,7 +23,7 @@ const OPEN_GROUPS = [EXPR_OPEN, LIST_OPEN, STRING_OPEN];
 const CLOSE_GROUPS = [EXPR_CLOSE, LIST_CLOSE, STRING_CLOSE];
 
 const CONDITIONAL = '?';
-const DEFINITION = '$';
+const DEFINITION = '->';
 const BIND = ':';
 const APPLICATION = '@';
 
@@ -39,24 +39,25 @@ const MODULUS = '%';
 
 const EQUAL = '=';
 const LESS_THAN = '<';
-const LESS_THAN_EQ = '≤';
+const LESS_THAN_EQ = '<=';
 const GREATER_THAN = '>';
-const GREATER_THAN_EQ = '≥';
+const GREATER_THAN_EQ = '>=';
 
-const COMPOSITION = "'";
-const PARTIAL = "\\";
+const COMPOSITION = ".";
+const PARTIAL = "'";
 const SLOT = "_";
 
 const NEGATIVE = '~';
 const DECIMAL = '.';
 
-const digit = '[0-9]';
-const decimal = `\\${DECIMAL}${digit}`
-const dd = `(${digit})|(${decimal})`;
+const digits = "0123456789";
+const NUMBER_START = digits + NEGATIVE;
+const NUMBER_BODY = digits + DECIMAL + "ie+-";
+const alpha = "abcdefghijklmnopqrstuvwxyz";
 
-const NUMBER_START = new RegExp(
-    `^(${dd}|(${NEGATIVE}(${dd})))`
-);
+const IDENTIFIER_START = alpha + alpha.toUpperCase() + "_&";
+const IDENTIFIER_BODY = IDENTIFIER_START + digits;
+
 const IGNORE = /\s/g;
 
 const TINY = 1e-10;
@@ -84,6 +85,7 @@ const PRECEDENCE = [
 ]
 
 const OPERATORS = PRECEDENCE.reduce((a, b) => a.concat(b))
+const OPCHARS = OPERATORS.reduce((a, b) => a.concat(b));
 
 const LANG = Object.freeze({
     EXPR_OPEN,
@@ -106,7 +108,8 @@ const LANG = Object.freeze({
 
     NEGATIVE,
     DECIMAL,
-    NUMBER_START,
+    NUMBER_START, NUMBER_BODY,
+    IDENTIFIER_START, IDENTIFIER_BODY,
     IGNORE,
 
     CONDITIONAL,
@@ -133,7 +136,7 @@ const LANG = Object.freeze({
     WHILE,
     FOR,
 
-    OPERATORS,
+    OPERATORS, OPCHARS,
     PRECEDENCE,
 
     TINY,
@@ -147,6 +150,8 @@ const LANG = Object.freeze({
     RECURSION,
 
     COMMENT,
+
+    
 });
 
 export {
