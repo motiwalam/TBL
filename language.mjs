@@ -39,6 +39,7 @@ const SUBTRACTION = '-';
 const MODULUS = '%';
 
 const EQUAL = '=';
+const NOT_EQUAL = '!=';
 const LESS_THAN = '<';
 const LESS_THAN_EQ = '<=';
 const GREATER_THAN = '>';
@@ -78,7 +79,7 @@ const PRECEDENCE = [
     [EXPONENTIATION],
     [MULTIPLICATION, DIVISION],
     [MODULUS, ADDITION, SUBTRACTION],
-    [EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
+    [EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
     [CONDITIONAL],
     [WHILE, FOR],
     [DEFINITION, VARIADIC_DEFINE],
@@ -126,6 +127,7 @@ const LANG = Object.freeze({
     MODULUS,
     
     EQUAL,
+    NOT_EQUAL,
     LESS_THAN,
     LESS_THAN_EQ,
     GREATER_THAN,

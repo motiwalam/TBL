@@ -41,6 +41,7 @@ const bool = v => (assert_value(v, `can not coerce non value to boolean`), !(ico
 const fbool = b => b ? new Complex(1, 0) : new Complex(0, 0);
 
 const eq_complex = (a, b) => fbool(a.real == b.real && a.imag == b.imag);
+const neq_complex = (a, b) => fbool(a.real != b.real || a.imag != b.imag);
 
 const lt_complex = (a, b) => {
     if ([a, b].every(isreal_strict)) return fbool(a.real < b.real);
@@ -183,6 +184,21 @@ function eq(a, b) {
     else return fbool(false);
 }
 
+function neq(a, b) {
+    let r = null;
+    icc(a, b) && (r = neq_complex(a, b));
+    icl(a, b) && (r = b.map(e => neq(a, e)));
+    ilc(a, b) && (r = a.map(e => neq(e, b)));
+    ill(a, b) && (r = a.length == b.length ? fbool(zip(a, b).every(([e1, e2]) => bool(neq(e1, e2)))) : fbool(true));
+    iss(a, b) && (r = fbool(a.value == b.value));
+    isl(a, b) && (r = b.map(e => neq(a, e)));
+    ils(a, b) && (r = a.map(e => neq(e, b)));
+
+
+    if (r !== null) return r;
+    else return fbool(true);
+}
+
 function lt(a, b) {
     let r = null;
     icc(a, b) && (r = lt_complex(a, b));
@@ -247,5 +263,5 @@ export {
     zip,
     bool, fbool,
     pow, mul, div, add, sub, 
-    eq, lt, lte, gt, gte, mod, abs
+    eq, neq, lt, lte, gt, gte, mod, abs
 }

@@ -1,4 +1,4 @@
-import { pow, mul, div, add, sub, bool, lt, lte, gt, gte, eq, mod } from "./ops.mjs";
+import { pow, mul, div, add, sub, bool, lt, lte, gt, gte, eq, neq, mod } from "./ops.mjs";
 import { make_ast } from "./ast.mjs";
 import { BuiltinFunction, VFunction, List, Complex, duplicate } from "./values.mjs";
 import { NodeOperation, NodeIdentifier, NodeList, NodeExprBody } from "./nodes.mjs";
@@ -223,6 +223,7 @@ function eval_ast(ast, env) {
             [LANG.ADDITION]: add,
             [LANG.SUBTRACTION]: sub,
             [LANG.EQUAL]: eq,
+            [LANG.NOT_EQUAL]: neq,
             [LANG.LESS_THAN]: lt,
             [LANG.LESS_THAN_EQ]: lte,
             [LANG.GREATER_THAN]: gt,
