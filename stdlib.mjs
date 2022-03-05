@@ -165,6 +165,16 @@ define_builtin("slice", params => {
     return l.slice(s.real, e?.real);
 });
 
+define_builtin("splice", params => {
+    const [l, s, e] = get_n(params, 3);
+
+    assert_list(l, `Can only splice lists`);
+    assert_isreal_strict(s, `Start index must be a real number`);
+    assert_isreal_strict(e, `Amount to splice must be a real number`);
+
+    return l.splice(s.real, e.real);
+});
+
 define_builtin("dup", params => {
     const [v] = get_n(params, 1);
 

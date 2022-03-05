@@ -136,6 +136,10 @@ class List {
     slice(start, end) {
         return new List(this.values.slice(start, end));
     }
+
+    splice(start, amt) {
+        return new List(this.values.splice(start, amt));
+    }
 }
 
 
