@@ -64,7 +64,7 @@ function eval_ast(ast, env) {
                 
                 if (value instanceof NodeList || (value instanceof NodeIdentifier && eval_ast(value, env) instanceof List)) {
                     
-                    const vlength = value instanceof NodeList ? value.subasts.length || eval_ast(value, env).length;
+                    const vlength = value instanceof NodeList ? value.subasts.length : eval_ast(value, env).length;
                     assert(vlength == 1 || vlength == target.subasts.length, 
                         `Expected ${target.subasts.length} values; received ${vlength}`);
 
