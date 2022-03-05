@@ -189,7 +189,7 @@ function neq(a, b) {
     icc(a, b) && (r = neq_complex(a, b));
     icl(a, b) && (r = b.map(e => neq(a, e)));
     ilc(a, b) && (r = a.map(e => neq(e, b)));
-    ill(a, b) && (r = a.length == b.length ? fbool(zip(a, b).every(([e1, e2]) => bool(neq(e1, e2)))) : fbool(true));
+    ill(a, b) && (r = a.length == b.length ? fbool(zip(a, b).some(([e1, e2]) => bool(neq(e1, e2)))) : fbool(true));
     iss(a, b) && (r = fbool(a.value == b.value));
     isl(a, b) && (r = b.map(e => neq(a, e)));
     ils(a, b) && (r = a.map(e => neq(e, b)));
