@@ -10,9 +10,9 @@ applywhile: [f, c] $ (
 
 collatz: n $ n % 2 ? [3*n + 1, n / 2];
 
-scollatz: n $ applywhile @ [collatz, n $ not @ [n = 1]] @ n;
+scollatz: applywhile @ [collatz, not ' eq\1];;
 
-lcollatz: n $ len @ [scollatz @ n];
+lcollatz: len ' scollatz;
 
 maxk: [l, f] $ (
   mx: get @ [l, 0];
