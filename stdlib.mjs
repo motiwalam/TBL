@@ -273,6 +273,13 @@ define_expr("repeat", `
 )
 `);
 
+define_expr("and", `[a, b] $ a ? [b ? [1, 0], 0]`);
+define_expr("or", `[a, b] $ a ? [1, b ? [1, 0]]`);
+define_expr("all", `reduce\\[and, _, 1]`);
+define_expr("any", `reduce\\[or, _, 0]`);
+define_expr("bool", `a $ a ? [1, 0]`);
+define_expr("not", `a $ a ? [0, 1]`);
+
 define_expr("apply", `[a, b] $ a @ b`);
 define_expr("pow", `[a, b] $ a ^ b`);
 define_expr("mul", `[a, b] $ a * b`);
@@ -290,12 +297,6 @@ define_expr("gte", `[a, b] $ a ≥ b`);
 define_expr("sum", `reduce\\[add, _, 0]`);
 define_expr("prod", `reduce\\[mul, _, 1]`);
 define_expr("fact", `n $ n > 1 ? [prod @ [range @ [2, n]], 1]`);
-define_expr("and", `[a, b] $ a ? [b ? [1, 0], 0]`);
-define_expr("or", `[a, b] $ a ? [1, b ? [1, 0]]`);
-define_expr("all", `reduce\\[and, _, 1]`);
-define_expr("any", `reduce\\[or, _, 0]`);
-define_expr("bool", `a $ a ? [1, 0]`);
-define_expr("not", `a $ a ? [0, 1]`);
 
 
 define_expr("nwise", `
