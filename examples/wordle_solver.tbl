@@ -69,4 +69,3 @@ filter_c: [w, c] -> (
     filter_w @ [w, map'(split'[_, {+}]) . split'c @ { }]
 );
 
-filter_c @ [words, {adieu+bbbbb}]
