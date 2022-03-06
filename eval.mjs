@@ -54,32 +54,22 @@ function eval_ast(ast, env) {
             } else if (target instanceof NodeList) {
                 
                 assert(target.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
-                      "Invalid assignment: list can only contain identifiers");
+                      "Invalid assignment: target list can only contain identifiers");
                 
-                if (value instanceof NodeList || (value instanceof NodeIdentifier && eval_ast(value, env) instanceof List)) {
-                    
-                    const vlength = value instanceof NodeList ? value.subasts.length : eval_ast(value, env).length;
-                    assert(vlength == 1 || vlength == target.subasts.length, 
-                        `Expected ${target.subasts.length} values; received ${vlength}`);
+                rv = eval_ast(value, env);
+                if (rv instanceof List) {
+                    assert(rv.length == target.subasts.length || rv.length == 1, `Expected ${target.subasts.length}; receieved ${rv.length}`);
 
-                    if (vlength == 1) {
-                        const v = eval_ast(value, env).get(0);
-                        rv = v;
-                        values = Array.from({length: target.subasts.length}, () => duplicate(v));
+                    if (rv.length == 1) {
+                        values = Array.from({length: target.subasts.length}, () => duplicate(rv.get(0)));
                     } else {
-                        rv = eval_ast(value, env);
                         values = rv.values;
                     }
+                } else {
+                    values = Array.from({length: target.subasts.length}, () => duplicate(rv));
                 }
 
-                else {
-                    const v = eval_ast(value, env);
-                    rv = v;
-                    values = Array.from({length: target.subasts.length}, () => duplicate(v));
-                }
-
-                targets = target
-                .subasts.map(e => e.subasts[0].name);
+                targets = target.subasts.map(e => e.subasts[0].name);
             } else throw `Invalid assignment to ${ast.left}`;
 
             for (let i = 0; i < targets.length; i++) {
