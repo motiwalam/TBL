@@ -101,7 +101,7 @@ function state_machine_parse(text) {
                 break;
 
             case "number":
-                if (!LANG.NUMBER_BODY.includes(c) || (ctxt.pnum != 'e' && LANG.OPCHARS.includes(c))) {
+                if (!LANG.NUMBER_BODY.includes(c) || (ctxt.pnum != 'e' && [LANG.ADDITION, LANG.SUBTRACTION].includes(c))) {
                     state = "start";
                     results.push(text.slice(start, i));
                     i--;
