@@ -171,7 +171,7 @@ function eval_ast(ast, env) {
             assert_func(f, `Left argument to ${ast.operator} must be a function`);
             assert_func(g, `Right argument to ${ast.operator} must be a function`);
             
-            const t = x => ast.operator == LANG.UNWRAPPED_COMPOSITION ? x : new List([x]);
+            const t = x => x instanceof List && ast.operator == LANG.UNWRAPPED_COMPOSITION ? x : new List([x]);
 
             const b = new BuiltinFunction(params => eval_application(f, t(eval_application(g, params, env)), env));
             b.name = `${f} compose ${g}`;
