@@ -290,7 +290,7 @@ define_expr("any", `reduce'[or, _, 0]`);
 define_expr("bool", `a -> a ? [1, 0]`);
 define_expr("not", `a -> a ? [0, 1]`);
 
-define_expr("apply", `[a, b] -> a @ b`);
+define_expr("apply", `[a, b] -> a @ [b]`);
 define_expr("pow", `[a, b] -> a ^ b`);
 define_expr("mul", `[a, b] -> a * b`);
 define_expr("div", `[a, b] -> a / b`);
