@@ -46,6 +46,7 @@ const GREATER_THAN = '>';
 const GREATER_THAN_EQ = '>=';
 
 const COMPOSITION = ".";
+const UNWRAPPED_COMPOSITION = "..";
 const PARTIAL = "'";
 const SLOT = "_";
 
@@ -74,7 +75,7 @@ const COMMENT = '--';
 
 const PRECEDENCE = [
     [PARTIAL],
-    [COMPOSITION],
+    [COMPOSITION, UNWRAPPED_COMPOSITION],
     [APPLICATION],
     [EXPONENTIATION],
     [MULTIPLICATION, DIVISION],
@@ -133,7 +134,7 @@ const LANG = Object.freeze({
     GREATER_THAN,
     GREATER_THAN_EQ,
 
-    COMPOSITION,
+    COMPOSITION, UNWRAPPED_COMPOSITION,
     PARTIAL, SLOT,
 
     WHILE,
