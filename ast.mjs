@@ -71,6 +71,7 @@ function state_machine_parse(text) {
                 else if (LANG.NUMBER_START.includes(c)) {
                     start = i;
                     state = "number";
+                    delete ctxt.pnum;
                 }
 
                 else if (LANG.IDENTIFIER_START.includes(c)) {
@@ -93,10 +94,12 @@ function state_machine_parse(text) {
                 break;
 
             case "number":
-                if (!LANG.NUMBER_BODY.includes(c)) {
+                if (!LANG.NUMBER_BODY.includes(c) || (ctxt.pnum != 'e' && LANG.OPCHARS.includes(c))) {
                     state = "start";
                     results.push(text.slice(start, i));
                     i--;
+                } else {
+                    ctxt.pnum = c;
                 }
                 break;
 
