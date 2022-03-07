@@ -12991,18 +12991,29 @@ wordle: [] -> (
   guess_fb: [];
   soln: get'solns . floor . mul'(len @ [solns]) . random @ [];
   
-  g -> (
-    len @ g != 5 ? [
-      {invalid number of letters},
-      not . (w -> or @ [includes'solns @ w, includes'gwords @ w]) @ g ? [
-        {guess not in word list},
-        (
-          push'guess_fb @ [
-            [g, get_fb'soln @ g]
-          ];
-          join'guess_fb @ {\n}
-        )
-      ]
+  args => (
+    0 = len @ [args] ? [
+      join'guess_fb @ {\n},
+      (
+        c: get'args @ 0;
+        c = {solution} ? [
+          soln,
+          (
+            len @ c != 5 ? [
+              {invalid number of letters},
+              not . (w -> or @ [includes'solns @ w, includes'gwords @ w]) @ c ? [
+                {guess not in word list},
+                (
+                  push'guess_fb @ [
+                    [c, get_fb'soln @ c]
+                  ];
+                  join'guess_fb @ {\n}
+                )
+              ]
+            ]
+          )
+        ]
+      )
     ]
   )
 );
