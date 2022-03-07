@@ -358,11 +358,15 @@ any @ [map @ [
 
 define_expr("reverse", `l -> map @ [get'[l], range @ [len @ [l] - 1, 0, ~1]]`)
 
+
 define_expr("every", `[l, f] -> all @ [map @ [f, l]]`);
 define_expr("some", `[l, f] -> any @ [map @ [f, l]]`);
 
 define_expr("neg", `mul'~1`);
 define_expr("id", "x -> x");
+define_expr("uid", "x => x");
+
+define_expr("commute", `f -> f .. reverse . uid`);
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
