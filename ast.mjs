@@ -30,12 +30,13 @@ function splitOnUncontainedDelim(text, og, cg, delim, includedelim = false) {
 }
 
 function state_machine_parse(text) {
-    const results = [];
+    const out = [];
 
-    let state = "start";
-
+    let sstart = 0;
+    let results = [];
     let start = 0;
     const ctxt = {};
+    let state = "start";
     for (let i = 0; i < text.length; i++) {
         const c = text[i];
         
@@ -81,6 +82,12 @@ function state_machine_parse(text) {
 
                 else if (LANG.CLOSE_GROUPS.includes(c)) {
                     throw `Unmatched ${c}`;
+                }
+
+                else if (c == LANG.STATEMENT_SEPARATOR) {
+                    results.length > 0 && out.push(results);
+                    results = [];
+                    sstart = i + 1;
                 }
 
                 break;
@@ -175,7 +182,8 @@ function state_machine_parse(text) {
     assert(!["list", "expression", "string"].includes(state), "incomplete group");
     !["start", "comment"].includes(state) && results.push(text.slice(start));
 
-    return results;
+    results.length > 0 && out.push(results);
+    return out;
 
 }
 
@@ -251,14 +259,11 @@ function parseText(text) {
 
 
 function make_ast(input) {
-    const body = splitOnUncontainedDelim(input, LANG.EXPR_OPEN, LANG.EXPR_CLOSE, LANG.STATEMENT_SEPARATOR)
-                 .filter(e => e);
+    const body = state_machine_parse(input);
 
     const asts = [];
 
-    for (const se of body) {
-        const exprs = state_machine_parse(se);
-    
+    for (const exprs of body) {
         let values = [];
         for (const ex of exprs) {
             const e = ex.trim();
@@ -328,5 +333,5 @@ function make_ast(input) {
 }
 
 export {
-    make_ast
+    make_ast, state_machine_parse
 }
