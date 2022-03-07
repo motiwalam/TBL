@@ -1,5 +1,5 @@
 -- TBL provides a composition operator: .
--- the composition operator desugars f . g to l -> f @ [g @ i]
+-- the composition operator desugars f . g to i -> f @ [g @ i]
 
 -- thus to raise 2 to the power of the increment of x
 -- i.e f(x) = 2^(x + 1)
@@ -16,9 +16,31 @@ pow'2 . add'1;
 -- the first argument to the resulting function
 
 -- however, by supplying a list as the right operand, you can
--- specify slots with _ ; now, the resulting function will place its arguments in the slot
+-- specify slots with _ ; now, the resulting function will place its arguments in the slots
 
 -- for example, to make f(x) = (x+1)^2
 pow'[_, 2] . add'1;
 
 
+-- notice that in f . g . h
+-- it is necessary that f and g are functions that accept only one argument
+
+-- however, if you have a function that takes two arguments and another that produces two values
+-- it should be possible to compose them
+
+-- in TBL, functions receive their arguments in a list, so the above can be written as follows
+h: a -> [a, a^2]; -- h produces two values
+g: [a, b] -> a^(b-1); -- g receives two values
+
+-- g . h @ 9; -- an error
+
+-- l is a list, we use l as the argument list to supply to g
+(l -> g @ l) . h @ 9;
+
+-- to avoid having to write such wrappers constantly, TBL has the 'unwrapped composition' operator
+-- allowing the above to be rewritten as
+g .. h @ 9;
+
+-- thus:
+-- f . g desugars to i -> f @ [g @ i]
+-- f .. g desugars to i -> f @ (g @ i)
