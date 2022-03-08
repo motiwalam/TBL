@@ -14,7 +14,14 @@ function eval_application(f, a, env) {
 
     assert((f.params.length == a.length) 
             || (f.variadic && a.length >= f.params.length - 1), `Invalid number of arguments`);
-    const eval_env = {...env, ...f.closure};
+    const eval_env = {
+        ENV: {
+            ...env.ENV, ...f.closure.ENV
+        },
+        USER_DEFINED_OP: {
+            ...env.USER_DEFINED_OP, ...f.closure.USER_DEFINED_OP
+        }
+    };
 
     // update the environment
     for (let i = 0; i < f.params.length; i++) {
