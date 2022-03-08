@@ -367,6 +367,9 @@ define_expr("id", "x -> x");
 define_expr("uid", "x => x");
 
 define_expr("commute", `f -> f .. reverse . uid`);
+define_expr("fpower", `[f, n] -> reduce'[commute @ apply, repeat @ [f, n]]`);
+define_expr("afpower", `[f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]`);
+
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);

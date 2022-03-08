@@ -64,7 +64,7 @@ function state_machine_parse(text) {
                     state = "comment";
                 }
 
-                else if (LANG.OPCHARS.includes(c)) {
+                else if (LANG.OPCHARS().includes(c)) {
                     start = i;
                     state = "operator";
                 }
@@ -93,7 +93,7 @@ function state_machine_parse(text) {
                 break;
 
             case "operator":
-                if (!LANG.OPCHARS.includes(c)) {
+                if (!LANG.OPCHARS().includes(c)) {
                     state = "start";
                     results.push(text.slice(start, i));
                     i--;
@@ -304,7 +304,7 @@ function make_ast(input) {
                 values.push(parseNumber(e));
             }
     
-            else if (!LANG.OPERATORS.includes(e)) {
+            else if (!LANG.OPERATORS().includes(e)) {
                 values.push(new NodeIdentifier(e));
             }
     

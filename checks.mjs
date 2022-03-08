@@ -47,6 +47,18 @@ const isimag_fuzz = c => Math.abs(c.real) < LANG.TINY;
 const iszero_strict = c => isreal_strict(c) && isimag_strict(c);
 const iszero_fuzz = c => isreal_fuzz(c) && isimag_fuzz(c);
 
+const ivalid_opstring = c => 
+    Array.from(c).every(
+        e => [
+            !LANG.OPEN_GROUPS.reduce((a, b) => a.concat(b)).includes(e),
+            !LANG.CLOSE_GROUPS.reduce((a, b) => a.concat(b)).includes(e),
+            LANG.NUMBER_START.includes(e),
+            LANG.IDENTIFIER_BODY.includes(e),
+            [LANG.COMMENT_SEPARATOR, LANG.STATEMENT_SEPARATOR, LANG.LIST_SEPARATOR].includes(e),
+        ].every(b => b)
+    )
+;
+
 const assert_isreal_strict = (c, m) => assert(icomp(c) && isreal_strict(c), m);
 const assert_isimag_strict = (c, m) => assert(icomp(c) && isimag_strict(c), m);
 const assert_isreal_fuzz = (c, m) => assert(icomp(c) && isreal_fuzz(c), m);
@@ -54,6 +66,8 @@ const assert_isimag_fuzz = (c, m) => assert(icomp(c) && isimag_fuzz(c), m);
 const assert_integral = (n, m) => assert(n == Math.floor(n), m);
 
 const assert_le = (a, b) => (assert_list(a), assert_list(b), assert(a.length == b.length, ERRORS.UNEQUAL_LENGTH));
+
+const assert_valid_opstring = (o, m) => assert(ivalid_opstring(o), m);
 
 export {
     ilist,
@@ -98,4 +112,6 @@ export {
     assert_integral,
     iszero_strict,
     iszero_fuzz,
+    ivalid_opstring,
+    assert_valid_opstring
 }

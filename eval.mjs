@@ -6,9 +6,8 @@ import { LANG } from "./language.mjs";
 import assert from "assert";
 
 import {
-    assert_func, assert_list, ilist, ivfun, assert_value, ivalue,
+    assert_func, assert_list, ilist, ivfun, assert_value, ivalue, assert_vstring, assert_valid_opstring, ifunc
 } from "./checks.mjs";
-import { ifunc } from "./checks.mjs";
 
 function eval_application(f, a, env) {
     if (f instanceof BuiltinFunction) return f.apply(a, env);
@@ -86,6 +85,31 @@ function eval_ast(ast, env) {
             }
 
             return rv;
+        }
+
+        if (ast.operator == LANG.OPBIND) {
+            const op = eval_ast(ast.left, env);
+            const func = eval_ast(ast.right, env);
+
+            assert_vstring(op, "operator in operator defintion must be a string");
+            assert_func(func, `right operand to ${LANG.OPBIND} must be a function`);
+
+            assert(func instanceof BuiltinFunction || func.params.length == 2, `function must take exactly two arguments`);
+
+            assert_valid_opstring(op.value, "invalid operator string");
+
+            LANG.USER_DEFINED_OP[op.value] = func;
+
+            return func;
+        }
+
+        if (ast.operator in LANG.USER_DEFINED_OP) {
+            const a = eval_ast(ast.left, env);
+            const b = eval_ast(ast.right, env);
+
+            const func = LANG.USER_DEFINED_OP[ast.operator];
+
+            return eval_application(func, new List([a, b]), env);
         }
 
         // function definition

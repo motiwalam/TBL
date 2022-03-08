@@ -26,6 +26,7 @@ const CONDITIONAL = '?';
 const DEFINITION = '->';
 const VARIADIC_DEFINE = '=>';
 const BIND = ':';
+const OPBIND = "<<";
 const APPLICATION = '@';
 
 const WHILE = '!';
@@ -73,10 +74,13 @@ const COMPLEX = 'i';
 
 const COMMENT = '--';
 
-const PRECEDENCE = [
+const USER_DEFINED_OP = {};
+
+const PRECEDENCE = () => [
     [PARTIAL],
     [COMPOSITION, UNWRAPPED_COMPOSITION],
     [APPLICATION],
+    Object.keys(USER_DEFINED_OP),
     [EXPONENTIATION],
     [MULTIPLICATION, DIVISION],
     [MODULUS, ADDITION, SUBTRACTION],
@@ -84,11 +88,11 @@ const PRECEDENCE = [
     [CONDITIONAL],
     [WHILE, FOR],
     [DEFINITION, VARIADIC_DEFINE],
-    [BIND],
+    [BIND, OPBIND],
 ]
 
-const OPERATORS = PRECEDENCE.reduce((a, b) => a.concat(b))
-const OPCHARS = OPERATORS.reduce((a, b) => a.concat(b));
+const OPERATORS = () => PRECEDENCE().reduce((a, b) => a.concat(b))
+const OPCHARS = () => OPERATORS().reduce((a, b) => a.concat(b));
 
 const LANG = Object.freeze({
     EXPR_OPEN,
@@ -117,7 +121,7 @@ const LANG = Object.freeze({
 
     CONDITIONAL,
     DEFINITION, VARIADIC_DEFINE,
-    BIND,
+    BIND, OPBIND,
     APPLICATION,
 
     EXPONENTIATION,
@@ -155,6 +159,7 @@ const LANG = Object.freeze({
 
     COMMENT,
 
+    USER_DEFINED_OP,
     
 });
 

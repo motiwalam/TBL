@@ -1,6 +1,4 @@
-sz: concat'[[0]] . concat'[_, [0]];
-pw: nwise'[_, 2];
 fpower: [f, n] -> accumulate'[[f, g] -> g @ [f], repeat @ [f, n]];
-pascal: n -> fpower @ [map'sum . pw . sz, n] @ [[1]];
+pascal: n -> fpower @ [map'sum . nwise'[_, 2] . concat'[[0]] . concat'[_, [0]], n] @ [[1]];
 ppascal: join'[_, {\n}] . pascal;
 ppascal @ 10;
