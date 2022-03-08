@@ -3,7 +3,7 @@ encode @ [64, 2];
 
 -- 'decode' will take a list of digits and a base and return the decimal value represented by those digits
 -- the number 64
-decode @ [encode @ [64, 2]];
+decode @ [encode @ [64, 2], 2];
 
 -- 'bin' wraps 'encode' with a second argument of 2
 bin @ 64;

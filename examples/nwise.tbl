@@ -1,8 +1,8 @@
 -- chunk a list into nwise tuples;
 nwise: [l, n] ->
     map @ [
-      	i $ map @ [
-            get\[l] ' add\i, 
+      	i -> map @ [
+            get'[l] . add'i, 
             range @ [0, n-1]
         ],
         range @ [0, len @ [l] - n]
