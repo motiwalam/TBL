@@ -324,7 +324,7 @@ define_expr("encode", `
 [n, b] ->
     n = 0 ? [
         [],
-        concat @ [& @ [floor @ (n/b), b], [n % b]]
+        concat @ [$ @ [floor @ (n/b), b], [n % b]]
     ]
 ;
 `);
@@ -333,7 +333,7 @@ define_expr("decode", `
 [v, b] ->
     0 = len @ [v] ? [
         0,
-        pop @ [v] + b*& @ [v, b]
+        pop @ [v] + b*$ @ [v, b]
     ]
 ;
 `);

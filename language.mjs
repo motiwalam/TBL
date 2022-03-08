@@ -59,7 +59,7 @@ const NUMBER_START = digits + NEGATIVE;
 const NUMBER_BODY = digits + DECIMAL + "ie+-";
 const alpha = "abcdefghijklmnopqrstuvwxyz";
 
-const IDENTIFIER_START = alpha + alpha.toUpperCase() + "_&";
+const IDENTIFIER_START = alpha + alpha.toUpperCase() + "_";
 const IDENTIFIER_BODY = IDENTIFIER_START + digits;
 
 const IGNORE = /\s/g;
@@ -69,7 +69,7 @@ const TINY = 1e-10;
 const COMMENT_SEPARATOR = '\n';
 const LIST_SEPARATOR = ',';
 const STATEMENT_SEPARATOR = ';';
-const RECURSION = '&';
+const RECURSION = '$';
 const COMPLEX = 'i';
 
 const COMMENT = '--';

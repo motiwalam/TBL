@@ -3,8 +3,8 @@ qsort: a -> (
     l < h ? [
       (
           pi: part @ [a, l, h];
-          & @ [a, l, pi - 1];
-          & @ [a, pi + 1, h];  
+          $ @ [a, l, pi - 1];
+          $ @ [a, pi + 1, h];  
       ),
     ];
 

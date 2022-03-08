@@ -26,11 +26,11 @@ f @ [[1, 2, 3]];
 
 -- recursion can be accomplished in two ways
 --  1. by assigning the function to a name and using that name inside the function
---  2. by using the special symbol '&' inside the function to reference the function being defined
+--  2. by using the special symbol '$' inside the function to reference the function being defined
 
 -- the fibonacci function, defined recursively, in two ways
 fib1: n -> n < 2 ? [1, fib1 @ [n - 1] + fib1 @ [n - 2]];
-fib2: n -> n < 2 ? [1, & @ [n - 1] + & @ [n - 2]];
+fib2: n -> n < 2 ? [1, $ @ [n - 1] + $ @ [n - 2]];
 
 -- TBL has variadic functions as well
 -- variadic functions are functions defined with '=>' instead of '->'

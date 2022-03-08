@@ -2,7 +2,7 @@
 encode: [n, b] ->
     n = 0 ? [
         [],
-        concat @ [& @ [floor @ (n/b), b], [n % b]]
+        concat @ [$ @ [floor @ (n/b), b], [n % b]]
     ]
 ;
 
@@ -10,6 +10,6 @@ encode: [n, b] ->
 decode: [v, b] -> 
     0 = len @ [v] ? [
         0,
-        pop @ [v] + b*& @ [v, b]
+        pop @ [v] + b*$ @ [v, b]
     ]
 ;
