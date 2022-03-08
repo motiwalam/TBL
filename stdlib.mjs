@@ -376,6 +376,8 @@ define_expr("map", `{@@} << map`);
 define_expr("concat", `{++} << concat`);
 define_expr("floordiv", `{//} << floor . div`);
 
+define_expr("zip", `{<:>} << [a, b] -> map @ [i -> [a::i, b::i], range @ [0, min @ [len @ [a], len @ [b]] - 1]]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
