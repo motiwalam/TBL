@@ -48,14 +48,14 @@ const iszero_strict = c => isreal_strict(c) && isimag_strict(c);
 const iszero_fuzz = c => isreal_fuzz(c) && isimag_fuzz(c);
 
 const ivalid_opstring = c => 
-    Array.from(c).every(
+    !Array.from(c).every(
         e => [
-            !LANG.OPEN_GROUPS.reduce((a, b) => a.concat(b)).includes(e),
-            !LANG.CLOSE_GROUPS.reduce((a, b) => a.concat(b)).includes(e),
+            LANG.OPEN_GROUPS.reduce((a, b) => a.concat(b)).includes(e),
+            LANG.CLOSE_GROUPS.reduce((a, b) => a.concat(b)).includes(e),
             LANG.NUMBER_START.includes(e),
             LANG.IDENTIFIER_BODY.includes(e),
             [LANG.COMMENT_SEPARATOR, LANG.STATEMENT_SEPARATOR, LANG.LIST_SEPARATOR].includes(e),
-        ].every(b => b)
+        ].some(b => b)
     )
 ;
 

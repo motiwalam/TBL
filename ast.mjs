@@ -314,7 +314,7 @@ function make_ast(input) {
     
         }
     
-        for (const opgroup of LANG.PRECEDENCE) {
+        for (const opgroup of LANG.PRECEDENCE()) {
             while (opgroup.some(o => values.includes(o))) {
                 const idx = values.findIndex(e => opgroup.includes(e));
                 const [l, o, r] = values.splice(idx - 1, 3);
