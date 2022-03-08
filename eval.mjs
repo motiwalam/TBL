@@ -98,16 +98,17 @@ function eval_ast(ast, env) {
 
             assert_valid_opstring(op.value, "invalid operator string");
 
-            LANG.USER_DEFINED_OP[op.value] = func;
+            env.USER_DEFINED_OP = env.USER_DEFINED_OP ?? {};
+            env.USER_DEFINED_OP[op.value] = func;
 
             return func;
         }
 
-        if (ast.operator in LANG.USER_DEFINED_OP) {
+        if (ast.operator in (env.USER_DEFINED_OP ?? {})) {
             const a = eval_ast(ast.left, env);
             const b = eval_ast(ast.right, env);
 
-            const func = LANG.USER_DEFINED_OP[ast.operator];
+            const func = env.USER_DEFINED_OP[ast.operator];
 
             return eval_application(func, new List([a, b]), env);
         }
@@ -255,7 +256,7 @@ function eval_ast(ast, env) {
 }
 
 function eval_expr(expr, env) {
-    return eval_ast(make_ast(expr), env || {});
+    return eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || {});
 }
 
 export {

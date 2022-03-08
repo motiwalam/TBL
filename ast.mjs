@@ -25,10 +25,6 @@ function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim =
     return splitIndices(text, indices, includedelim);
 }
 
-function splitOnUncontainedDelim(text, og, cg, delim, includedelim = false) {
-    return splitOnMultipleUncontainedDelims(text, [og], [cg], [delim], includedelim)
-}
-
 function state_machine_parse(text) {
     const out = [];
 
@@ -64,7 +60,7 @@ function state_machine_parse(text) {
                     state = "comment";
                 }
 
-                else if (LANG.OPCHARS().includes(c)) {
+                else if (LANG.OPCHARS(udo).includes(c)) {
                     start = i;
                     state = "operator";
                 }
@@ -258,7 +254,7 @@ function parseText(text) {
 }
 
 
-function make_ast(input) {
+function make_ast(input, udo) {
     const body = state_machine_parse(input);
 
     const asts = [];
@@ -304,7 +300,7 @@ function make_ast(input) {
                 values.push(parseNumber(e));
             }
     
-            else if (!LANG.OPERATORS().includes(e)) {
+            else if (!LANG.OPERATORS(udo).includes(e)) {
                 values.push(new NodeIdentifier(e));
             }
     
@@ -314,7 +310,7 @@ function make_ast(input) {
     
         }
     
-        for (const opgroup of LANG.PRECEDENCE()) {
+        for (const opgroup of LANG.PRECEDENCE(udo)) {
             while (opgroup.some(o => values.includes(o))) {
                 const idx = values.findIndex(e => opgroup.includes(e));
                 const [l, o, r] = values.splice(idx - 1, 3);

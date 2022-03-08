@@ -74,10 +74,8 @@ const COMPLEX = 'i';
 
 const COMMENT = '--';
 
-const USER_DEFINED_OP = {};
-
-const PRECEDENCE = () => [
-    Object.keys(USER_DEFINED_OP),
+const PRECEDENCE = UDO => [
+    Object.keys(UDO),
     [PARTIAL],
     [APPLICATION],
     [COMPOSITION, UNWRAPPED_COMPOSITION],
@@ -91,8 +89,8 @@ const PRECEDENCE = () => [
     [BIND, OPBIND],
 ]
 
-const OPERATORS = () => PRECEDENCE().reduce((a, b) => a.concat(b))
-const OPCHARS = () => OPERATORS().reduce((a, b) => a.concat(b));
+const OPERATORS = UDO => PRECEDENCE(UDO).reduce((a, b) => a.concat(b))
+const OPCHARS = UDO => OPERATORS(UDO).reduce((a, b) => a.concat(b));
 
 const LANG = Object.freeze({
     EXPR_OPEN,
