@@ -77,7 +77,7 @@ function eval_ast(ast, env) {
                 bindings.pop();
                 const v = values[i];
                 if (ivfun(v)){
-                    v.closure[name] = [v];
+                    v.closure.ENV[name] = [v];
                 }
                 bindings.push(v);
                 env.ENV[name] = bindings;
