@@ -101,7 +101,7 @@ function eval_ast(ast, env) {
             assert_vstring(op, "operator in operator defintion must be a string");
             assert_func(func, `right operand to ${LANG.OPBIND} must be a function`);
 
-            assert(func instanceof BuiltinFunction || func.params.length == 2, `function must take exactly two arguments`);
+            assert(func instanceof BuiltinFunction || func.params.length == 2 || (func.variadic && [1, 2].includes(func.params.length) ), `function must take exactly two arguments`);
 
             assert_valid_opstring(op.value, "invalid operator string");
 
