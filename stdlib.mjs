@@ -20,23 +20,23 @@ import { ERRORS } from "./errors.mjs";
 import assert from "assert";
 import { assert_integral } from "./checks.mjs";
 
-const STDLIB = {};
+const STDLIB = {ENV: {}};
 
 const get_n = (p, n) => Array.from({ length: n }, (_, i) => p.get(i));
 
 const define_builtin = (n, f) => {
     const bf = new BuiltinFunction(f);
     if (n !== undefined) bf.name = n;
-    STDLIB[n] = [bf];
+    STDLIB.ENV[n] = [bf];
 }
 
-const define_expr = (n, expr) => (STDLIB[n] = [eval_expr(fix(expr), STDLIB)]);
+const define_expr = (n, expr) => (STDLIB.ENV[n] = [eval_expr(fix(expr), STDLIB)]);
 
 const define_const = (n, c) => {
-    if (typeof c === 'string') STDLIB[n] = [new VString(c)];
-    else if (typeof c === 'number') STDLIB[n] = [new Complex(c, 0)];
-    else if (c instanceof Array) STDLIB[n] = [new List(c)];
-    else if (ivalue(c)) STDLIB[n] = [c];
+    if (typeof c === 'string') STDLIB.ENV[n] = [new VString(c)];
+    else if (typeof c === 'number') STDLIB.ENV[n] = [new Complex(c, 0)];
+    else if (c instanceof Array) STDLIB.ENV[n] = [new List(c)];
+    else if (ivalue(c)) STDLIB.ENV[n] = [c];
     else throw `could not coerce ${c} to a value`;
 }
 

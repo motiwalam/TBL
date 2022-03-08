@@ -91,8 +91,8 @@ class NodeIdentifier {
     }
     
     eval(env) {
-        if (this.name in env && env[this.name].length > 0) {
-            const bindings = env[this.name];
+        if (this.name in env.ENV && env.ENV[this.name].length > 0) {
+            const bindings = env.ENV[this.name];
             return bindings[bindings.length - 1];
         } else throw `${this.name} is not defined`
     }

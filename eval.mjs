@@ -21,10 +21,10 @@ function eval_application(f, a, env) {
         const name = f.params[i];
         const val = (f.variadic && i == f.params.length - 1) ? a.slice(i) : a.get(i);
 
-        eval_env[name] = (eval_env[name] ?? []).concat(val);
+        eval_env.ENV[name] = (eval_env.ENV[name] ?? []).concat(val);
     }
 
-    eval_env[LANG.RECURSION] = [f];
+    eval_env.ENV[LANG.RECURSION] = [f];
     
     const result = eval_ast(f.body, eval_env);
 
@@ -73,14 +73,14 @@ function eval_ast(ast, env) {
 
             for (let i = 0; i < targets.length; i++) {
                 const name = targets[i];
-                const bindings = [...(env[name] ?? [])];
+                const bindings = [...(env.ENV[name] ?? [])];
                 bindings.pop();
                 const v = values[i];
                 if (ivfun(v)){
                     v.closure[name] = [v];
                 }
                 bindings.push(v);
-                env[name] = bindings;
+                env.ENV[name] = bindings;
 
             }
 
@@ -123,9 +123,9 @@ function eval_ast(ast, env) {
             
             const params = ast.left instanceof NodeList ? ast.left.subasts.map(e => e.subasts[0].name) : [ast.left.name];
             const body = ast.right;
-            const closure = {};
-            for (const [name, binding] of Object.entries(env)) {
-                closure[name] = [...binding];
+            const closure = {ENV: {}};
+            for (const [name, binding] of Object.entries(env.ENV)) {
+                closure.ENV[name] = [...binding];
             }
             return new VFunction(params, body, closure, ast.operator == LANG.VARIADIC_DEFINE);
         }
@@ -256,7 +256,7 @@ function eval_ast(ast, env) {
 }
 
 function eval_expr(expr, env) {
-    return eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || {});
+    return eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || {ENV: {}});
 }
 
 export {

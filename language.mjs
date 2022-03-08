@@ -157,8 +157,6 @@ const LANG = Object.freeze({
 
     COMMENT,
 
-    USER_DEFINED_OP,
-    
 });
 
 export {

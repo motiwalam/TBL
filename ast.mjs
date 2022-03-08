@@ -25,7 +25,7 @@ function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim =
     return splitIndices(text, indices, includedelim);
 }
 
-function state_machine_parse(text) {
+function state_machine_parse(text, udo) {
     const out = [];
 
     let sstart = 0;
@@ -89,7 +89,7 @@ function state_machine_parse(text) {
                 break;
 
             case "operator":
-                if (!LANG.OPCHARS().includes(c)) {
+                if (!LANG.OPCHARS(udo).includes(c)) {
                     state = "start";
                     results.push(text.slice(start, i));
                     i--;
@@ -199,7 +199,7 @@ function parseNumber(t) {
 
 }
 
-function parseText(text) {
+function parseText(text, udo) {
     const results = [];
 
     let startidx = null;
@@ -242,7 +242,7 @@ function parseText(text) {
                     type: "expr",
                     start: startidx,
                     end: i,
-                    ast: make_ast(text.slice(startidx + 1, i))
+                    ast: make_ast(text.slice(startidx + 1, i), udo)
                 });
 
                 startidx = null;
@@ -255,7 +255,7 @@ function parseText(text) {
 
 
 function make_ast(input, udo) {
-    const body = state_machine_parse(input);
+    const body = state_machine_parse(input, udo);
 
     const asts = [];
 
@@ -270,7 +270,7 @@ function make_ast(input, udo) {
     
                 if (li < 0) throw `Unmatched ${LANG.EXPR_OPEN}`;
     
-                values.push(make_ast(e.slice(1, li)));
+                values.push(make_ast(e.slice(1, li), udo));
             }
     
             else if (e.startsWith(LANG.LIST_OPEN)) {
@@ -283,7 +283,7 @@ function make_ast(input, udo) {
                 } else {
                     const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [LANG.LIST_SEPARATOR]);
     
-                    values.push(new NodeList(subexprs.map(t => make_ast(t))))
+                    values.push(new NodeList(subexprs.map(t => make_ast(t, udo))))
     
                 }
             }
@@ -292,7 +292,7 @@ function make_ast(input, udo) {
                 if (e[e.length - 1] != LANG.STRING_CLOSE) throw `Unmatched ${LANG.STRING_OPEN}`;
                 
                 const text = e.slice(1, -1);
-                const replacements = parseText(text);
+                const replacements = parseText(text, udo);
 
                 values.push(new NodeString(text, replacements));
             }
