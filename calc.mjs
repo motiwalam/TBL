@@ -4,7 +4,10 @@ import { STDLIB } from "./stdlib.mjs";
 
 export class Calculator {
     constructor() {
-        this.env = Object.assign({}, STDLIB);
+        this.env = {
+            ENV: {...STDLIB.ENV},
+            USER_DEFINED_OP: {...STDLIB.USER_DEFINED_OP},
+        }
     }
 
     eval(expr) {
@@ -12,6 +15,6 @@ export class Calculator {
     }
 
     defineBuiltin(name, func) {
-        this.env[name] = [new BuiltinFunction(func)];
+        this.env.ENV[name] = [new BuiltinFunction(func)];
     }
 }
