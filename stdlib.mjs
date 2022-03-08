@@ -374,6 +374,7 @@ define_expr("afpower", `{*|} << [f, n] -> accumulate'[commute @ apply, repeat @ 
 define_expr("get", `{::} << get`);
 define_expr("map", `{@@} << map`);
 define_expr("concat", `{++} << concat`);
+define_expr("floordiv", `{//} << floor . div`);
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
