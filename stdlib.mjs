@@ -112,7 +112,7 @@ define_builtin("filter", (params, env) => {
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
     assert_list(l, ERRORS.SEC_ARG_LIST);
 
-    return l.filter(e => bool(eval_application(f, new List([e]))), env)
+    return l.filter(e => bool(eval_application(f, new List([e]), env)))
 });
 
 define_builtin("reduce", (params, env) => {
