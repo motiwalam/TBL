@@ -59,7 +59,7 @@ const NUMBER_START = digits + NEGATIVE;
 const NUMBER_BODY = digits + DECIMAL + "ie+-";
 const alpha = "abcdefghijklmnopqrstuvwxyz";
 
-const IDENTIFIER_START = alpha + alpha.toUpperCase() + "_";
+const IDENTIFIER_START = alpha + alpha.toUpperCase() + "_$";
 const IDENTIFIER_BODY = IDENTIFIER_START + digits;
 
 const IGNORE = /\s/g;
