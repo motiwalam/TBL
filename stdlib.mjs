@@ -283,8 +283,9 @@ define_expr("repeat", `
 )
 `);
 
-define_expr("and", `[a, b] -> a ? [b ? [1, 0], 0]`);
-define_expr("or", `[a, b] -> a ? [1, b ? [1, 0]]`);
+define_expr("and", `{&&} << [a, b] -> a ? [b ? [1, 0], 0]`);
+define_expr("or", `{||} << [a, b] -> a ? [1, b ? [1, 0]]`);
+define_expr("xor", `{<>} << [a, b] -> (a && (not @ [b])) || (b && (not @ [a]))`)
 define_expr("all", `reduce'[and, _, 1]`);
 define_expr("any", `reduce'[or, _, 0]`);
 define_expr("bool", `a -> a ? [1, 0]`);
