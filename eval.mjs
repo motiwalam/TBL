@@ -211,21 +211,6 @@ function eval_ast(ast, env) {
             return value;
         }
 
-        if ([LANG.COMPOSITION, LANG.UNWRAPPED_COMPOSITION].includes(ast.operator)) {
-            const f = eval_ast(ast.left, env);
-            const g = eval_ast(ast.right, env);
-
-            assert_func(f, `Left argument to ${ast.operator} must be a function`);
-            assert_func(g, `Right argument to ${ast.operator} must be a function`);
-            
-            const t = x => x instanceof List && ast.operator == LANG.UNWRAPPED_COMPOSITION ? x : new List([x]);
-
-            const b = new BuiltinFunction(params => eval_application(f, t(eval_application(g, params, env)), env));
-            b.name = `${f} compose ${g}`;
-
-            return b;
-        }
-
         if (ast.operator == LANG.PARTIAL) {
             const f = eval_ast(ast.left, env);
 

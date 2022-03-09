@@ -77,7 +77,6 @@ const COMMENT = '--';
 const PRECEDENCE = UDO => {
     const result = [
         [PARTIAL],
-        [COMPOSITION, UNWRAPPED_COMPOSITION],
         [APPLICATION],
         [EXPONENTIATION],
         [MULTIPLICATION, DIVISION],

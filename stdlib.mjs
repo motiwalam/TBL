@@ -275,6 +275,9 @@ define_builtin("ptable", (params, env) => {
     return new List(pt.map(e => new List(e.map(e => new VString(e)))));
 });
 
+define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
+define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
+
 define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
 define_expr("maxl", `reduce'max`);
 define_expr("min", '[a, b] -> (a < b) ? [a, b]');
