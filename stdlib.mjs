@@ -356,7 +356,7 @@ define_expr("fhex", `decode'[_, 16]`);
 define_expr("polar", `[r, t] -> r * (cos @ t + 1i * sin @ t)`);
 define_expr("arg", `z -> atan @ [im @ z / re @ z]`);
 define_expr("rad", `mul'(PI/180)`);
-define_expr("deg", `mul'(80/PI)`);
+define_expr("deg", `mul'(180/PI)`);
 
 define_expr("includes", `
 [l, e] ->
