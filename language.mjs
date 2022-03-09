@@ -74,20 +74,31 @@ const COMPLEX = 'i';
 
 const COMMENT = '--';
 
-const PRECEDENCE = UDO => [
-    Object.keys(UDO),
-    [PARTIAL],
-    [COMPOSITION, UNWRAPPED_COMPOSITION],
-    [APPLICATION],
-    [EXPONENTIATION],
-    [MULTIPLICATION, DIVISION],
-    [MODULUS, ADDITION, SUBTRACTION],
-    [EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
-    [CONDITIONAL],
-    [WHILE, FOR],
-    [DEFINITION, VARIADIC_DEFINE],
-    [BIND, OPBIND],
-]
+const PRECEDENCE = UDO => {
+    const result = [
+        [PARTIAL],
+        [COMPOSITION, UNWRAPPED_COMPOSITION],
+        [APPLICATION],
+        [EXPONENTIATION],
+        [MULTIPLICATION, DIVISION],
+        [MODULUS, ADDITION, SUBTRACTION],
+        [EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
+        [CONDITIONAL],
+        [WHILE, FOR],
+        [DEFINITION, VARIADIC_DEFINE],
+        [BIND, OPBIND],
+    ];
+
+    for (const [op, [i]] of Object.entries(UDO)) {
+        if (i === Math.floor(i)) {
+            result[i] = [...(result[i] ?? []), op];
+        } else {
+            result.splice(Math.floor(i), 0, [op]);
+        }
+    }
+
+    return result;
+}
 
 const OPERATORS = UDO => PRECEDENCE(UDO).reduce((a, b) => a.concat(b))
 const OPCHARS = UDO => OPERATORS(UDO).reduce((a, b) => a.concat(b));
