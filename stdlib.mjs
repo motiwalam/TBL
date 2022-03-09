@@ -378,6 +378,15 @@ define_expr("floordiv", `{//} << floor . div`);
 
 define_expr("zip", `{<:>} << args => map @ [i -> (get'[_, i]) @@ args, range @ [0, minl @ [len @@ args] - 1]]`);
 
+define_expr("uniq", `l -> (
+    r: [];
+    map @ [
+        e -> not . includes @ [r, e] ? [push @ [r, e],],
+        l
+    ];
+    r
+)`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
