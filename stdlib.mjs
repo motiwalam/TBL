@@ -277,6 +277,7 @@ define_builtin("ptable", (params, env) => {
 
 define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
 define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
+define_expr("over", `{^^} << [1, [f, g] -> ([a, b] -> f @ [g @ [a], g @ [b]])]`)
 
 define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
 define_expr("maxl", `reduce'max`);
@@ -342,7 +343,7 @@ define_expr("decode", `
 [v, b] ->
     0 = len @ [v] ? [
         0,
-        pop @ [v] + b*$ @ [v, b]
+        pop @ [v] + b * $ @ [v, b]
     ]
 ;
 `);
@@ -394,6 +395,16 @@ define_expr("uniq", `l -> (
     ];
     r
 )`);
+
+define_expr("find", `[l, f] -> (
+    i: ~1;
+    [j: 0, j < len @ [l], j: j + 1] # (
+        and'(i = ~1) . f . get'[l] @ j ? [i: j,]
+    );
+    i;
+);`)
+
+define_expr("indexOf", `[l, e] -> find @ [l, eq'e]`);
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
