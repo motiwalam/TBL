@@ -18,7 +18,7 @@ import {
 
 import { ERRORS } from "./errors.mjs";
 import assert from "assert";
-import { assert_integral } from "./checks.mjs";
+import { LANG } from "./language.mjs";
 
 const STDLIB = {ENV: {}};
 
@@ -270,6 +270,11 @@ mathfun(Math.log2);
 define_builtin("random", () => new Complex(Math.random(), 0));
 define_builtin("abs", params => abs(...get_n(params, 1)));
 
+define_builtin("ptable", (params, env) => {
+    const pt = LANG.PRECEDENCE(env.USER_DEFINED_OP);
+    return new List(pt.map(e => new List(e.map(e => new VString(e)))));
+});
+
 define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
 define_expr("maxl", `reduce'max`);
 define_expr("min", '[a, b] -> (a < b) ? [a, b]');
@@ -283,9 +288,9 @@ define_expr("repeat", `
 )
 `);
 
-define_expr("and", `{&&} << [a, b] -> a ? [b ? [1, 0], 0]`);
-define_expr("or", `{||} << [a, b] -> a ? [1, b ? [1, 0]]`);
-define_expr("xor", `{<>} << [a, b] -> (a && (not @ [b])) || (b && (not @ [a]))`)
+define_expr("and", `{&&} << [7.5, [a, b] -> a ? [b ? [1, 0], 0]]`);
+define_expr("or", `{||} << [7, [a, b] -> a ? [1, b ? [1, 0]]]`);
+define_expr("xor", `{<>} << [7, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
 define_expr("all", `reduce'[and, _, 1]`);
 define_expr("any", `reduce'[or, _, 0]`);
 define_expr("bool", `a -> a ? [1, 0]`);
@@ -368,15 +373,15 @@ define_expr("id", "x -> x");
 define_expr("uid", "x => x");
 
 define_expr("commute", `f -> f .. reverse . uid`);
-define_expr("fpower", `{**} << [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]`);
-define_expr("afpower", `{*|} << [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]`);
+define_expr("fpower", `{**} << [2.5, [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]]`)
+define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
 
-define_expr("get", `{::} << get`);
-define_expr("map", `{@@} << map`);
-define_expr("concat", `{++} << concat`);
-define_expr("floordiv", `{//} << floor . div`);
+define_expr("get", `{::} << [0.5, get]`);
+define_expr("map", `{@@} << [4, map]`);
+define_expr("concat", `{++} << [6, concat]`);
+define_expr("floordiv", `{//} << [6, floor . div]`);
 
-define_expr("zip", `{<:>} << args => map @ [i -> (get'[_, i]) @@ args, range @ [0, minl @ [len @@ args] - 1]]`);
+define_expr("zip", `{<:>} << [6, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
 
 define_expr("uniq", `l -> (
     r: [];
