@@ -72,9 +72,16 @@ TBL supports functions and higher order functions.
 
 Functions are defined with the definition operator, `->`. The parameters of the function are given as a list on the left of the operator, and the body of the function is given on the right. 
 
-Inside of a function, you can use the special symbol `&` to denote the function currently being defined, thus enabling recursion for anonymous functions. Alternatively, assigning the function to a name that is then used inside of the function also does the same thing.
+There is also a variadic definition operator, `=>`. The semantics are identical to that of the normal definition, except the last parameter is a list that catches all excess arguments.
+
+Inside of a function, you can use the special symbol `$` to denote the function currently being defined, thus enabling recursion for anonymous functions. Alternatively, assigning the function to a name that is then used inside of the function also does the same thing.
 
 Functions are applied with the application operator, `@`. The function appears on the left of the operator, and the arguments are passed as a list on the right of the operator.
+
+Functions can be partially applied with the `'` operator. 
+
+This operator takes a single value, thereby transforming `f(x, y)` to `f(C, y)` where `C` is the supplied single value.
+The operator can also take a literal list, where the slots to be left empty are specified with an `_`, so that `f'[_, 6]` transforms `f(x, y)` to `f(x, 6)`.
 
 ## Assignment
 A name can be associated with a value through the assignment operator, `:`.
@@ -115,6 +122,26 @@ The for loop operator, `#`, takes a list of three expressions on its left and a 
  * less than or equal to: `<=`
  * greater than or equal to: `>=`
 
+## User Defined Operators
+
+In, TBL, a binary function can be associated with an operator with the operator binding operator `<<`.
+
+The operator is passed as a string on the left, and the function is on the right. The precedence for the operator can also be specified by instead passing a list of two elements, the first the precedence index and the second the function, on the right of the operator binding operator.
+
+The TBL standard library provides a number of these operators:
+  * and: `&&`
+  * or: `||`
+  * xor: `<>`
+  * index: `::`
+  * function power: `**`
+  * accumulated function power: `*|`
+  * map: `@@`
+  * concat: `++`
+  * floor division: `//`
+  * compose: `.`
+  * unwrapped compose: `..`
+  * over: `^^`
+  * zip: `<:>`
 
 ## Standard Library
 
