@@ -15,6 +15,8 @@ export class Calculator {
     }
 
     defineBuiltin(name, func) {
-        this.env.ENV[name] = [new BuiltinFunction(func)];
+        const b = new BuiltinFunction(func);
+        b.name = name;
+        this.env.ENV[name] = [b];
     }
 }
