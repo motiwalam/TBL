@@ -156,10 +156,8 @@ The above website also contains examples to help acquaint yourself with the lang
 
 You can also run it locally:
 
-Inside of a Node shell in the root of this repository, run:
-```js
-const { Calculator } = await import('./calc.mjs');
-const c = new Calculator();
-c.eval('1 + 1');
-// use c.eval() to evaluate new expressions
-```
+In the root of this repository, run `node repl.mjs`.
+
+This will start up a TBL repl, where you can type in TBL expressions and see what they evaluate to.
+
+This repl comes with a builtin function `load` which you can use to load the examples.
