@@ -25,7 +25,11 @@ c.defineBuiltin('log', params => {
 const shell = repl.start({
 	prompt: 'tbl> ',
 	ignoreUndefined: true,
-	eval: (cmd, ctx, fn, callback) => callback(null, cmd !== '\n' ? c.eval(cmd)?.toString() : undefined)
+	eval: (cmd, ctx, fn, callback) => {
+		const e = cmd !== '\n' && c.eval(cmd);
+		
+		callback(null, e ? console.log(e.toString()) : undefined);
+	}
 });
 
 
