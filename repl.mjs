@@ -20,14 +20,12 @@ c.defineBuiltin('load', params => {
 
 c.defineBuiltin('log', params => {
 	console.log(...params.values.map(e => e.toString()));
-
-	return new Complex(1, 0);
 })
 
 const shell = repl.start({
 	prompt: 'tbl> ',
 	ignoreUndefined: true,
-	eval: (cmd, ctx, fn, callback) => callback(null, c.eval(cmd).toString())
+	eval: (cmd, ctx, fn, callback) => callback(null, c.eval(cmd)?.toString())
 });
 
 
