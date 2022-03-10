@@ -330,7 +330,7 @@ define_expr("nwise", `
     ]
 `);
 
-define_expr("encode", `<%> << [
+define_expr("encode", `{<%>} << [
 5, 
 [n, b] ->
     n = 0 ? [
