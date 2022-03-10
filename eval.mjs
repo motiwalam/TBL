@@ -234,7 +234,7 @@ function eval_ast(ast, env) {
             }
 
             const b = new BuiltinFunction(params => eval_application(f, transform(params), env));
-            b.name = `${f}\\${vals}`;
+            b.name = `${f}'${vals}`;
 
             return b;
         }
