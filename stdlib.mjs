@@ -382,7 +382,7 @@ define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repea
 
 define_expr("get", `{::} << [0.5, get]`);
 define_expr("map", `{@@} << [4, map]`);
-define_expr("concat", `{++} << [6, concat]`);
+define_expr("concat", `{++} << [7, concat]`);
 define_expr("floordiv", `{//} << [6, floor . div]`);
 
 define_expr("zip", `{<:>} << [6, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
