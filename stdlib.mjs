@@ -330,22 +330,24 @@ define_expr("nwise", `
     ]
 `);
 
-define_expr("encode", `
+define_expr("encode", `<%> << [
+5, 
 [n, b] ->
     n = 0 ? [
         [],
         concat @ [$ @ [floor @ (n/b), b], [n % b]]
     ]
-;
+];
 `);
 
-define_expr("decode", `
+define_expr("decode", `{<*>} << [
+5,
 [v, b] ->
     0 = len @ [v] ? [
         0,
         pop @ [v] + b * $ @ [v, b]
     ]
-;
+];
 `);
 
 define_expr("bin", `encode'[_, 2]`);
