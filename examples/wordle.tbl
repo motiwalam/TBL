@@ -12993,7 +12993,7 @@ wordle: [] -> (
   
   args => (
     0 = len @ [args] ? [
-      join'guess_fb @ {\n},
+      guess_fb,
       (
         c: get'args @ 0;
         c = {solution} ? [
@@ -13018,6 +13018,6 @@ wordle: [] -> (
   )
 );
 
--- game: wordle @ [];
--- game @ {hotel};
--- game @ {daisy};
+game: wordle @ [];
+game @ {hotel};
+game @ {daisy};
