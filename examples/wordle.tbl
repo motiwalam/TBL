@@ -12987,6 +12987,10 @@ get_fb: [soln, guess] -> (
   join'fb @ {};
 );
 
+fb_to_emoji: f -> (
+  f = {g} ? [{🟩}, f = {y} ? [{🟨}, f = {b} ? [{⬛}, f]]]
+);
+
 wordle: [] -> (
   guess_fb: [];
   soln: get'solns . floor . mul'(len @ [solns]) . random @ [];
@@ -13007,7 +13011,10 @@ wordle: [] -> (
                   push'guess_fb @ [
                     [c, get_fb'soln @ c]
                   ];
-                  join'guess_fb @ {\n}
+                  join @ [
+                    (fb -> [fb :: 0, join'[_, {}] . map'fb_to_emoji . split'[_, {}] @ fb::1]) @@ guess_fb,
+                    {\n}
+                  ]
                 )
               ]
             ]
@@ -13021,3 +13028,5 @@ wordle: [] -> (
 game: wordle @ [];
 game @ {hotel};
 game @ {daisy};
+
+
