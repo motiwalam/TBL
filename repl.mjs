@@ -42,3 +42,4 @@ const shell = repl.start({
 });
 
 
+shell.setupHistory(process.env.TBL_REPL_HISTORY ?? `${process.env.HOME}/.tbl_repl_history`, (err, repl) => {})
