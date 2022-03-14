@@ -337,6 +337,10 @@ define_builtin("ptable", (params, env) => {
     return new List(pt.map(e => new List(e.map(e => new VString(e)))));
 });
 
+define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new VString(n))));
+
+define_expr("env", `[] -> [defined @ [], ptable @ []]`)
+
 define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
 define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
 define_expr("over", `{^^} << [1, [f, g] -> ([a, b] -> f @ [g @ [a], g @ [b]])]`)
