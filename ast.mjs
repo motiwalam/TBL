@@ -1,4 +1,4 @@
-import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation, NodeString } from "./nodes.mjs";
+import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation, NodeString, NodeAst } from "./nodes.mjs";
 
 import { LANG } from "./language.mjs";
 import assert from "assert"
@@ -38,10 +38,12 @@ function state_machine_parse(text, udo) {
         
         switch (state) {
             case "start":
-                if (c == LANG.STRING_OPEN) {
+                if (c == LANG.STRING_OPEN || (c === LANG.QUOTE && text[i+1] === LANG.STRING_OPEN)) {
                     start = i;
                     ctxt.sdepth = 1;
                     state = "string";
+
+                    if (c === LANG.QUOTE) i++
                 }
 
                 else if (c == LANG.LIST_OPEN) {
@@ -296,6 +298,11 @@ function make_ast(input, udo) {
 
                 values.push(new NodeString(text, replacements));
             }
+
+            else if (e.startsWith(LANG.QUOTE + LANG.STRING_OPEN)) {
+                values.push(new NodeAst(make_ast(e.slice(2, -1), udo)));
+            }
+            
             else if (LANG.NUMBER_START.includes(e[0])) {
                 values.push(parseNumber(e));
             }

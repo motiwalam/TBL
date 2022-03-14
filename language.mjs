@@ -74,6 +74,8 @@ const COMPLEX = 'i';
 
 const COMMENT = '--';
 
+const QUOTE = '`';
+
 const PRECEDENCE = UDO => {
     const result = [
         [PARTIAL],
@@ -166,6 +168,8 @@ const LANG = Object.freeze({
     RECURSION,
 
     COMMENT,
+
+    QUOTE,
 
 });
 

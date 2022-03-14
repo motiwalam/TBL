@@ -1,7 +1,18 @@
 import { 
     icomp, ivfun, ibfun, ilist, ivstr,
     isreal_fuzz, isimag_fuzz, iszero_fuzz,
+    inast, incomp, inexpr, inident, instring, inlist, inop
 } from "./checks.mjs";
+
+import {
+    NodeAst,
+    NodeComplex,
+    NodeExprBody,
+    NodeIdentifier,
+    NodeString,
+    NodeList,
+    NodeOperation,
+} from "./nodes.mjs";
 
 class BuiltinFunction {
     apply;
@@ -186,30 +197,71 @@ class VString {
         return new VString(this.value.slice(start, end));
     }
 
+    splice(start, amt) {
+        const v = this.value.split('');
+        const o = v.splice(start, amt).join('');
+        this.value = v.join('');
+        return new VString(o);
+    }
+
+    map(f) {
+        return this.split(new VString('')).map(f);
+    }
+
+    filter(f) {
+        return this.split(new VString('')).filter(f);
+    }
+
+    reduce(f, i) {
+        const values = this.split(new VString(''));
+        if (i == undefined) return values.reduce(f);
+        return values.reduce(f, i);
+    }
+
+    accum(f, i) {
+        const values = this.split(new VString(''));
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = values.get(0);
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new List(results);
+    }
 
 }
 
 function duplicate(v) {
-    if (ibfun(v)) {
-        return new BuiltinFunction(f.apply);
-    }
+    if (ibfun(v)) return new BuiltinFunction(f.apply);
 
-    if (icomp(v)) {
-        return new Complex(v.real, v.imag);
-    }
+    if (icomp(v)) return new Complex(v.real, v.imag);
 
-    if (ivfun(v)) {
-        // not really a proper clone
-        return new VFunction(v.params, v.body, v.closure);
-    }
+    if (ivfun(v)) return new VFunction(v.params, v.body, v.closure);
 
-    if (ilist(v)) {
-        return new List(v.values.map(duplicate))
-    }
+    if (ilist(v)) return new List(v.values.map(duplicate))
 
-    if (ivstr(v)) {
-    	return new VString(v.value);
-    }
+    if (ivstr(v)) return new VString(v.value);
+
+    if (inast(v)) return new NodeAst(duplicate(v.ast));
+
+    if (instring(v)) return new NodeString(v.text, v.replacements);
+
+    if (incomp(v)) return new NodeComplex(v.re, v.im);
+
+    if (inexpr(v)) return new NodeExprBody(v.subasts.map(duplicate));
+
+    if (inlist(v)) return new NodeList(v.subasts.map(duplicate));
+
+    if (inop(v)) return new NodeOperation(v.operator, duplicate(v.left), duplicate(v.right));
+
+    if (inident(v)) return new NodeIdentifier(v.name);
 }
 
 export {

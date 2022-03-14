@@ -255,8 +255,9 @@ function eval_ast(ast, env) {
             [LANG.MODULUS]: mod,
         }[ast.operator];
 
-        return f(eval_ast(ast.left, env), eval_ast(ast.right, env))
+        if (f) return f(eval_ast(ast.left, env), eval_ast(ast.right, env))
 
+        throw `Unrecognized operator ${ast.operator}`
     } else {
         return ast.eval(env);
     }

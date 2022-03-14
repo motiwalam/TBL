@@ -1,7 +1,11 @@
 import { List, Complex, VFunction, BuiltinFunction, VString } from "./values.mjs";
+import { NodeExprBody, NodeList, NodeComplex, NodeString, NodeIdentifier, NodeOperation, NodeAst } from "./nodes.mjs";
 import { LANG } from "./language.mjs";
 import { ERRORS } from "./errors.mjs";
 import assert from "assert";
+
+const and = (...fs) => o => fs.every(f => f(o));
+const or = (...fs) => o => fs.some(f => f(o));
 
 const ilist = o => o instanceof List;
 const icomp = o => o instanceof Complex;
@@ -9,9 +13,8 @@ const ivfun = o => o instanceof VFunction;
 const ibfun = o => o instanceof BuiltinFunction;
 const ivstr = o => o instanceof VString;
 
-const ilors = o => [ivstr, ilist].some(f => f(o));
-const ifunc = o => [ivfun, ibfun].some(f => f(o));
-const ivalue = o => [ilist, icomp, ivfun, ibfun, ivstr].some(f => f(o));
+const ilors = or(ivstr, ilist);
+const ifunc = or(ivfun, ibfun);
 
 const icc = (a, b) => icomp(a) && icomp(b);
 const icl = (a, b) => icomp(a) && ilist(b);
@@ -30,7 +33,6 @@ const assert_vstring = (o, m) => assert(ivstr(o), m);
 
 const assert_lors = (o, m) => assert(ilors(o), m);
 const assert_func = (o, m) => assert(ifunc(o), m);
-const assert_value = (o, m) => assert(ivalue(o), m);
 
 const assert_cc = (a, b, m) => assert(icc(a, b), m);
 const assert_cl = (a, b, m) => assert(icl(a, b), m);
@@ -44,8 +46,8 @@ const isimag_strict = c => c.real == 0;
 const isreal_fuzz = c => Math.abs(c.imag) < LANG.TINY;
 const isimag_fuzz = c => Math.abs(c.real) < LANG.TINY;
 
-const iszero_strict = c => isreal_strict(c) && isimag_strict(c);
-const iszero_fuzz = c => isreal_fuzz(c) && isimag_fuzz(c);
+const iszero_strict = and(isreal_strict, isimag_strict);
+const iszero_fuzz = and(isreal_fuzz, isimag_fuzz);
 
 const ivalid_opstring = c => 
     !Array.from(c).every(
@@ -59,6 +61,18 @@ const ivalid_opstring = c =>
     )
 ;
 
+const inexpr = c => c instanceof NodeExprBody;
+const inlist = c => c instanceof NodeList;
+const incomp = c => c instanceof NodeComplex;
+const instring = c => c instanceof NodeString;
+const inident = c => c instanceof NodeIdentifier;
+const inast = c => c instanceof NodeAst;
+const inop = c => c instanceof NodeOperation;
+const inoper = o => inop(o) && o.operator == o;
+const inopers = Object.fromEntries(LANG.OPERATORS({}).map(o => [o, inoper(o)]));
+
+const inode = or(inexpr, inlist, incomp, instring, inident, inast, inop);
+
 const assert_isreal_strict = (c, m) => assert(icomp(c) && isreal_strict(c), m);
 const assert_isimag_strict = (c, m) => assert(icomp(c) && isimag_strict(c), m);
 const assert_isreal_fuzz = (c, m) => assert(icomp(c) && isreal_fuzz(c), m);
@@ -68,6 +82,15 @@ const assert_integral = (n, m) => assert(n == Math.floor(n), m);
 const assert_le = (a, b) => (assert_list(a), assert_list(b), assert(a.length == b.length, ERRORS.UNEQUAL_LENGTH));
 
 const assert_valid_opstring = (o, m) => assert(ivalid_opstring(o), m);
+
+const assert_op = (a, m) => assert(inop(a), m);
+const assert_node = (a, m) => assert(inode(a), m);
+
+const is_indexable = o => or(ilist, ivstr, inlist, inexpr, instring);
+const assert_indexable = (a, m) => assert(is_indexable(a), m);
+
+const ivalue = or(ilist, icomp, ivfun, ibfun, ivstr, inode);
+const assert_value = (o, m) => assert(ivalue(o), m);
 
 export {
     ilist,
@@ -113,5 +136,18 @@ export {
     iszero_strict,
     iszero_fuzz,
     ivalid_opstring,
-    assert_valid_opstring
+    assert_valid_opstring,
+    inexpr,
+    inlist,
+    incomp,
+    instring,
+    inident,
+    inop,
+    inast,
+    inoper, inopers,
+    inode,
+    assert_op,
+    assert_node,
+    is_indexable,
+    assert_indexable,
 }

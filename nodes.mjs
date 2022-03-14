@@ -10,6 +10,46 @@ class NodeExprBody {
     toString() {
         return `{ ${this.subasts.map(e => e.toString()).join('; ')} }`
     }
+
+    get length() { return this.subasts.length }
+    get(i) { return this.subasts[i] }
+    set(i, v) { this.subasts[i] = v; return v}
+    map(f) { return new NodeExprBody(this.subasts.map(f)); }
+    filter(f) { return new NodeExprBody(this.subasts.filter(f)); }
+    slice(s, e) { return new NodeExprBody(this.subasts.slice(s, e)) }
+    pop() { return this.subasts.pop() }
+    push(v) { this.subasts.push(v); return v; }
+    
+    reduce(f, i) {
+        if (i == undefined) return this.subasts.reduce(f);
+        return this.subasts.reduce(f, i);
+    }
+
+    accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.subasts[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new NodeExprBody(results);
+    }
+
+    splice(s, a) {
+        return new NodeExprBody(this.subasts.splice(s, a));
+    }
+
+    concat(e2) {
+        return new NodeExprBody(this.subasts.concat(e2.subasts))
+    }
+
 }
 
 class NodeList {
@@ -24,6 +64,45 @@ class NodeList {
 
     toString() {
         return `[ ${this.subasts.map(e => e.toString()).join(', ')} ]`
+    }
+    
+    get length() { return this.subasts.length }
+    get(i) { return this.subasts[i] }
+    set(i, v) { this.subasts[i] = v; return v}
+    map(f) { return new NodeList(this.subasts.map(f)) }
+    filter(f) { return new NodeList(this.subasts.filter(f)) }
+    slice(s, e) { return new NodeList(this.subasts.slice(s, e)) }
+    pop() { return this.subasts.pop() }
+    push(v) { this.subasts.push(v); return v }
+
+    reduce(f, i) {
+        if (i == undefined) return this.subasts.reduce(f);
+        return this.subasts.reduce(f, i);
+    }
+
+    accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.subasts[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new NodeList(results);
+    }
+
+    splice(s, a) {
+        return new NodeList(this.subasts.splice(s, a))
+    }
+
+    concat(e2) {
+        return new NodeList(this.subasts.concat(e2.subasts))
     }
 }
 
@@ -41,7 +120,7 @@ class NodeComplex {
     }
 
     toString() {
-        return `${this.re} + ${this.im}i`
+        return `${this.re}+${this.im}i`
     }
 }
 
@@ -98,7 +177,7 @@ class NodeIdentifier {
     }
 
     toString() {
-        return this.name;
+        return `:${this.name}`;
     }
 }
 
@@ -118,6 +197,22 @@ class NodeOperation {
     }
 }
 
+class NodeAst {
+    ast;
+
+    constructor(ast) {
+        this.ast = ast;
+    }
+
+    eval(env) {
+        return this.ast;
+    }
+
+    toString() {
+        return `AST: ${this.ast}`;
+    }
+}
+
 export {
-    NodeExprBody, NodeList, NodeComplex, NodeIdentifier, NodeOperation, NodeString
+    NodeExprBody, NodeList, NodeComplex, NodeIdentifier, NodeOperation, NodeString, NodeAst
 }

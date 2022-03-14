@@ -1,12 +1,23 @@
 import { BuiltinFunction, List, Complex, duplicate, VString } from "./values.mjs";
-import { eval_application, eval_expr } from "./eval.mjs";
+import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
 import {
     assert_value, assert_func, assert_list,
     assert_isreal_strict,
     assert_complex,
     ivstr, assert_lors, assert_vstring,
     ivalue,
-    ilist, icomp, ifunc
+    ilist, icomp, ifunc,
+    inast,
+    incomp,
+    inexpr,
+    inident,
+    inlist,
+    inop,
+    instring,
+    inoper,
+    assert_node,
+    assert_op,
+    assert_indexable,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -41,7 +52,7 @@ const define_const = (n, c) => {
 }
 
 function assert_valid_index(l, i) {
-    assert_lors(l, `Can not index non-lists`);
+    assert_indexable(l, `Can not index non-lists`);
     assert_isreal_strict(i, `Can not index by ${i}`);
 
     const idx = i.real;
@@ -72,7 +83,7 @@ define_builtin("set", params => {
 define_builtin("push", params => {
     const [l, v] = get_n(params, 2);
 
-    assert_lors(l, `Can not push on non lists`);
+    assert_indexable(l, `Can not push on non lists`);
     assert_value(v, `Invalid value`);
 
     l.push(v);
@@ -83,7 +94,7 @@ define_builtin("push", params => {
 define_builtin("len", params => {
     const [l] = get_n(params, 1);
 
-    assert_lors(l, `Can not get length of non list`);
+    assert_indexable(l, `Can not get length of non list`);
 
     return new Complex(l.length, 0);
 });
@@ -91,7 +102,7 @@ define_builtin("len", params => {
 define_builtin("pop", params => {
     const [l] = get_n(params, 1);
 
-    assert_lors(l, `Can not pop non lists`);
+    assert_indexable(l, `Can not pop non lists`);
     assert(l.length > 0, `Can not pop empty list`)
 
     return l.pop();
@@ -101,7 +112,7 @@ define_builtin("map", (params, env) => {
     const [f, l] = get_n(params, 2);
 
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_list(l, ERRORS.SEC_ARG_LIST);
+    assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
     return l.map(e => eval_application(f, new List([e]), env));
 });
@@ -110,7 +121,7 @@ define_builtin("filter", (params, env) => {
     const [f, l] = get_n(params, 2);
     
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_list(l, ERRORS.SEC_ARG_LIST);
+    assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
     return l.filter(e => bool(eval_application(f, new List([e]), env)))
 });
@@ -119,7 +130,7 @@ define_builtin("reduce", (params, env) => {
     const [f, l, i] = get_n(params, 3);
 
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_list(l, ERRORS.SEC_ARG_LIST);
+    assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
     if (i != undefined) assert_value(i, 'initial argument must be a value');
 
@@ -130,7 +141,7 @@ define_builtin("accumulate", (params, env) => {
     const [f, l, i] = get_n(params, 3);
 
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_list(l, ERRORS.SEC_ARG_LIST);
+    assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
     if (i != undefined) assert_value(i, 'initial argument must be a value');
 
@@ -158,7 +169,7 @@ define_builtin("join", params => {
 define_builtin("slice", params => {
     const [l, s, e] = get_n(params, 3);
 
-    assert_lors(l, `Can only slice a list or a string`);
+    assert_indexable(l, `Can only slice a list or a string`);
     assert_isreal_strict(s, `Start index must be a real number`);
     e && assert_isreal_strict(e, `End index must be a real number`);
 
@@ -168,7 +179,7 @@ define_builtin("slice", params => {
 define_builtin("splice", params => {
     const [l, s, e] = get_n(params, 3);
 
-    assert_list(l, `Can only splice lists`);
+    assert_indexable(l, `Can only splice lists`);
     assert_isreal_strict(s, `Start index must be a real number`);
     assert_isreal_strict(e, `Amount to splice must be a real number`);
 
@@ -186,8 +197,8 @@ define_builtin("dup", params => {
 define_builtin("concat", params => {
     const [l1, l2] = get_n(params, 2);
     
-    assert_lors(l1, `can only concat lists`);
-    assert_lors(l2, `can only concat lists`);
+    assert_indexable(l1, `can only concat lists`);
+    assert_indexable(l2, `can only concat lists`);
 
     return l1.concat(l2);
 });
@@ -224,12 +235,55 @@ define_builtin("re", params => {
     return new Complex(c.real, 0);
 });
 
+
+const nodeopgetter = (n, f) => define_builtin(n, (params, env) => {
+    const [c] = get_n(params, 1);
+
+    assert_op(c, `can not apply ${n} to non operator ast`);
+
+    return f(c, env);
+});
+
+nodeopgetter("left", c => c.left);
+nodeopgetter("right", c => c.right);
+nodeopgetter("op", c => new VString(c.op));
+
+const nodeopsetter = (n, f) => define_builtin(n, (params, env) => {
+    const [c, v] = get_n(params, 2);
+
+    assert_op(c, `can not apply ${n} to non operator ast`);
+    assert_node(v, `can not set non node as element of ast`);
+
+    return f(c, v);
+});
+
+nodeopsetter("setleft", (c, l) => (c.left = l, c));
+nodeopsetter("setright", (c, l) => (c.right = l, c));
+
+define_builtin("setop", params => {
+    const [c, s] = get_n(params, 2);
+
+    assert_op(c);
+    assert_vstring(s, `operator needs to be a string`);
+
+    c.operator = s.value;
+
+    return c;
+});
 define_builtin("eval", (params, env) => {
     const [c] = get_n(params, 1);
 
     assert_value(c, "can not evaluate non value");
     if (ivstr(c)) return eval_expr(c.toString(), env);
     else return c;
+});
+
+define_builtin("eval_ast", (params, env) => {
+    const [c] = get_n(params, 1);
+
+    assert_node(c, `argument not an ast`);
+    
+    return eval_ast(c, env);
 });
 
 const predfun = (n, f) => define_builtin(n, params => {
@@ -241,6 +295,14 @@ predfun("islist", ilist);
 predfun("isnum", icomp);
 predfun("isfun", ifunc);
 predfun("isstr", ivstr);
+predfun("isnodeast", inast);
+predfun("isnodestr", instring);
+predfun("isnodelist", inlist);
+predfun("isnodenum", incomp);
+predfun("isnodeexpr", inexpr);
+predfun("isnodeident", inident);
+predfun("isnodeop", inop);
+
 
 const mathfun = f => define_builtin(f.name, params => {
     const [c] = get_n(params, 1);
@@ -330,24 +392,22 @@ define_expr("nwise", `
     ]
 `);
 
-define_expr("encode", `{<%>} << [
-5, 
+define_expr("encode", `
 [n, b] ->
     n = 0 ? [
         [],
         concat @ [$ @ [floor @ (n/b), b], [n % b]]
     ]
-];
+;
 `);
 
-define_expr("decode", `{<*>} << [
-5,
+define_expr("decode", `
 [v, b] ->
     0 = len @ [v] ? [
         0,
         pop @ [v] + b * $ @ [v, b]
     ]
-];
+;
 `);
 
 define_expr("bin", `encode'[_, 2]`);
@@ -384,7 +444,7 @@ define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repea
 
 define_expr("get", `{::} << [0.5, get]`);
 define_expr("map", `{@@} << [4, map]`);
-define_expr("concat", `{++} << [7, concat]`);
+define_expr("concat", `{++} << [6, concat]`);
 define_expr("floordiv", `{//} << [6, floor . div]`);
 
 define_expr("zip", `{<:>} << [6, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
