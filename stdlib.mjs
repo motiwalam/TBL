@@ -489,6 +489,22 @@ define_expr("nodelist", `l => (
     o;
 )`);
 
+define_expr("cond", `
+l -> (
+    len @ l = 0 ? [
+      \`{0},
+      nodeop @ [
+        l::0::0,
+        {?},
+        nodelist @ [
+          l::0::1,
+          cond @ [slice @ [l, 1]]
+        ]
+      ]
+    ]
+  );
+`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
