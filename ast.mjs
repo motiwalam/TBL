@@ -331,7 +331,7 @@ function make_ast(input, udo) {
         asts.push(values[0]);
     }
 
-    return new NodeExprBody(asts);
+    return 1 == asts.length ? asts[0] : new NodeExprBody(asts);
 
 }
 

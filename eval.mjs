@@ -59,7 +59,7 @@ function eval_ast(ast, env) {
                 values = [rv];
             } else if (target instanceof NodeList) {
                 
-                assert(target.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
+                assert(target.subasts.every(e => e instanceof NodeIdentifier),
                       "Invalid assignment: target list can only contain identifiers");
                 
                 rv = eval_ast(value, env);
@@ -75,7 +75,7 @@ function eval_ast(ast, env) {
                     values = Array.from({length: target.subasts.length}, () => duplicate(rv));
                 }
 
-                targets = target.subasts.map(e => e.subasts[0].name);
+                targets = target.subasts.map(e => e.name);
             } else throw `Invalid assignment to ${ast.left}`;
 
             for (let i = 0; i < targets.length; i++) {
@@ -139,11 +139,11 @@ function eval_ast(ast, env) {
         if ([LANG.DEFINITION, LANG.VARIADIC_DEFINE].includes(ast.operator)) {
             assert(ast.left instanceof NodeList || ast.left instanceof NodeIdentifier, `Invalid function head.`);
             if (ast.left instanceof NodeList) {
-                assert(ast.left.subasts.every(e => e.subasts.length == 1 && e.subasts[0] instanceof NodeIdentifier),
+                assert(ast.left.subasts.every(e => e instanceof NodeIdentifier),
                         `All params need to be identifiers`);
             }
             
-            const params = ast.left instanceof NodeList ? ast.left.subasts.map(e => e.subasts[0].name) : [ast.left.name];
+            const params = ast.left instanceof NodeList ? ast.left.subasts.map(e => e.name) : [ast.left.name];
             const body = ast.right;
             const closure = {ENV: {}};
             for (const [name, binding] of Object.entries(env.ENV)) {
@@ -223,7 +223,7 @@ function eval_ast(ast, env) {
                 let idx = 0;
 
                 for (const s of vals.subasts) {
-                    if (s instanceof NodeExprBody && s.subasts.length == 1 && s.subasts[0] instanceof NodeIdentifier && s.subasts[0].name == LANG.SLOT) {
+                    if (s instanceof NodeIdentifier && s.name == LANG.SLOT) {
                         const v = params.get(idx++);
                         assert_value(v, `Invalid argument: ${v}`);
                         out.push(v);
