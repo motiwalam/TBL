@@ -86,7 +86,7 @@ const assert_valid_opstring = (o, m) => assert(ivalid_opstring(o), m);
 const assert_op = (a, m) => assert(inop(a), m);
 const assert_node = (a, m) => assert(inode(a), m);
 
-const is_indexable = o => or(ilist, ivstr, inlist, inexpr, instring);
+const is_indexable = or(ilist, ivstr, inlist, inexpr, instring);
 const assert_indexable = (a, m) => assert(is_indexable(a), m);
 
 const ivalue = or(ilist, icomp, ivfun, ibfun, ivstr, inode);
