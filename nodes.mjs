@@ -1,4 +1,4 @@
-import { List, Complex, VString } from "./values.mjs";
+import { List, Complex, VString, duplicate } from "./values.mjs";
 import { eval_ast } from "./eval.mjs";
 
 class NodeExprBody {
@@ -205,7 +205,7 @@ class NodeAst {
     }
 
     eval(env) {
-        return this.ast;
+        return duplicate(this.ast);
     }
 
     toString() {
