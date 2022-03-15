@@ -246,7 +246,7 @@ const nodeopgetter = (n, f) => define_builtin(n, (params, env) => {
 
 nodeopgetter("left", c => c.left);
 nodeopgetter("right", c => c.right);
-nodeopgetter("op", c => new VString(c.op));
+nodeopgetter("op", c => new VString(c.operator));
 
 const nodeopsetter = (n, f) => define_builtin(n, (params, env) => {
     const [c, v] = get_n(params, 2);
