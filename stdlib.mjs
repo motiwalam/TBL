@@ -341,6 +341,8 @@ define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new
 
 define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
+define_expr("macro_apply", `{@|} <<< [1, [f, g] -> eval_ast @ [(eval_ast @ [f]) @ [g]]]`);
+
 define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
 define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
 define_expr("over", `{^^} << [1, [f, g] -> ([a, b] -> f @ [g @ [a], g @ [b]])]`)
@@ -448,10 +450,10 @@ define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repea
 
 define_expr("get", `{::} << [0.5, get]`);
 define_expr("map", `{@@} << [4, map]`);
-define_expr("concat", `{++} << [6, concat]`);
+define_expr("concat", `{++} << [7, concat]`);
 define_expr("floordiv", `{//} << [6, floor . div]`);
 
-define_expr("zip", `{<:>} << [6, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
+define_expr("zip", `{<:>} << [7, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
 
 define_expr("uniq", `l -> (
     r: [];
