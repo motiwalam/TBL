@@ -472,6 +472,21 @@ define_expr("find", `[l, f] -> (
 
 define_expr("indexOf", `[l, e] -> find @ [l, eq'e]`);
 
+define_expr("nodeop", `[l, o, r] -> (
+    a: \`{x ? y};
+
+    setleft @ [a, l];
+    setright @ [a, r];
+    setop @ [a, o];
+    a;
+)`);
+
+define_expr("nodelist", `l => (
+    o: \`{[]};
+    map @ [push'o, l];
+    o;
+)`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
