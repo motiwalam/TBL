@@ -94,7 +94,7 @@ function eval_ast(ast, env) {
             return rv;
         }
 
-        if (ast.operator == LANG.OPBIND) {
+        if ([LANG.OPBIND, LANG.ASTOPBIND].includes(ast.operator)) {
             const op = eval_ast(ast.left, env);
             const right = eval_ast(ast.right, env);
 
@@ -121,14 +121,16 @@ function eval_ast(ast, env) {
             assert_valid_opstring(op.value, "invalid operator string");
 
             env.USER_DEFINED_OP = env.USER_DEFINED_OP ?? {};
-            env.USER_DEFINED_OP[op.value] = [i, func];
+            env.USER_DEFINED_OP[op.value] = [i, func, ast.operator == LANG.OPBIND];
 
             return func;
         }
 
         if (ast.operator in (env.USER_DEFINED_OP ?? {})) {
-            const a = eval_ast(ast.left, env);
-            const b = eval_ast(ast.right, env);
+            const t = env.USER_DEFINED_OP[ast.operator][2] ? eval_ast : x => x;
+            
+            const a = t(ast.left, env);
+            const b = t(ast.right, env);
 
             const func = env.USER_DEFINED_OP[ast.operator][1];
 

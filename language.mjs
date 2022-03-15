@@ -27,6 +27,7 @@ const DEFINITION = '->';
 const VARIADIC_DEFINE = '=>';
 const BIND = ':';
 const OPBIND = "<<";
+const ASTOPBIND = "<<<";
 const APPLICATION = '@';
 
 const WHILE = '!';
@@ -87,7 +88,7 @@ const PRECEDENCE = UDO => {
         [CONDITIONAL],
         [WHILE, FOR],
         [DEFINITION, VARIADIC_DEFINE],
-        [BIND, OPBIND],
+        [BIND, OPBIND, ASTOPBIND],
     ];
 
     for (const [op, [i]] of Object.entries(UDO)) {
@@ -131,7 +132,7 @@ const LANG = Object.freeze({
 
     CONDITIONAL,
     DEFINITION, VARIADIC_DEFINE,
-    BIND, OPBIND,
+    BIND, OPBIND, ASTOPBIND,
     APPLICATION,
 
     EXPONENTIATION,
