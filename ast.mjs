@@ -1,340 +1,218 @@
-import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation, NodeString, NodeAst } from "./nodes.mjs";
+import { List, Complex, VString, duplicate } from "./values.mjs";
+import { eval_ast } from "./eval.mjs";
 
-import { LANG } from "./language.mjs";
-import assert from "assert"
-
-function splitIndices(text, indices, includeidx = false) {
-    let pairs = [[0, indices[0]], ...indices.map((v, i) => [v + 1, indices[i+1]])];
-    if (includeidx) pairs = pairs.concat(indices.map(i => [i, i + 1])).sort(([a], [b]) => a - b)
-    const out = pairs.map(([i1, i2]) => text.slice(i1, i2));
-
-    return out;
-}
-
-function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim = false) {
-    const indices = [];
-    
-    let depths = 0;
-    for (const [i, c] of Object.entries(text)) {
-        ogs.includes(c) && depths++;
-        cgs.includes(c) && depths--;
-
-        delims.includes(c) && depths == 0 && indices.push(parseInt(i));
+class NodeExprBody {
+    subasts;
+    constructor(subasts) {
+        this.subasts = subasts;
     }
 
-    return splitIndices(text, indices, includedelim);
-}
+    toString() {
+        return `{ ${this.subasts.map(e => e.toString()).join('; ')} }`
+    }
 
-function state_machine_parse(text, udo) {
-    const out = [];
+    get length() { return this.subasts.length }
+    get(i) { return this.subasts[i] }
+    set(i, v) { this.subasts[i] = v; return v}
+    map(f) { return new NodeExprBody(this.subasts.map(f)); }
+    filter(f) { return new NodeExprBody(this.subasts.filter(f)); }
+    slice(s, e) { return new NodeExprBody(this.subasts.slice(s, e)) }
+    pop() { return this.subasts.pop() }
+    push(v) { this.subasts.push(v); return v; }
+    
+    reduce(f, i) {
+        if (i == undefined) return this.subasts.reduce(f);
+        return this.subasts.reduce(f, i);
+    }
 
-    let sstart = 0;
-    let results = [];
-    let start = 0;
-    const ctxt = {};
-    let state = "start";
-    for (let i = 0; i < text.length; i++) {
-        const c = text[i];
+    accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.subasts[0];
+            start = 1;
+        }
         
-        switch (state) {
-            case "start":
-                if (c == LANG.STRING_OPEN || (c === LANG.QUOTE && text[i+1] === LANG.STRING_OPEN)) {
-                    start = i;
-                    ctxt.sdepth = 1;
-                    state = "string";
-
-                    if (c === LANG.QUOTE) i++
-                }
-
-                else if (c == LANG.LIST_OPEN) {
-                    start = i;
-                    ctxt.ldepth = 1;
-                    state = "list";
-                }
-
-                else if (c == LANG.EXPR_OPEN) {
-                    start = i;
-                    ctxt.edepth = 1;
-                    state = "expression";
-                }
-
-                else if (c + text[i + 1] == LANG.COMMENT) {
-                    state = "comment";
-                }
-
-                else if (LANG.OPCHARS(udo).includes(c)) {
-                    start = i;
-                    state = "operator";
-                }
-
-                else if (LANG.NUMBER_START.includes(c)) {
-                    start = i;
-                    state = "number";
-                    delete ctxt.pnum;
-                }
-
-                else if (LANG.IDENTIFIER_START.includes(c)) {
-                    start = i;
-                    state = "identifier";
-                }
-
-                else if (LANG.CLOSE_GROUPS.includes(c)) {
-                    throw `Unmatched ${c}`;
-                }
-
-                else if (c == LANG.STATEMENT_SEPARATOR) {
-                    results.length > 0 && out.push(results);
-                    results = [];
-                    sstart = i + 1;
-                }
-
-                break;
-
-            case "operator":
-                if (!LANG.OPCHARS(udo).includes(c)) {
-                    state = "start";
-                    results.push(text.slice(start, i));
-                    i--;
-                }
-                break;
-
-            case "number":
-                if (!LANG.NUMBER_BODY.includes(c) || (ctxt.pnum != 'e' && [LANG.ADDITION, LANG.SUBTRACTION].includes(c))) {
-                    state = "start";
-                    results.push(text.slice(start, i));
-                    i--;
-                } else {
-                    ctxt.pnum = c;
-                }
-                break;
-
-            case "identifier":
-                if (!LANG.IDENTIFIER_BODY.includes(c)) {
-                    state = "start";
-                    results.push(text.slice(start, i));
-                    i--;
-                }
-                break;
-
-            case "expression":
-                if (c == LANG.EXPR_OPEN) {
-                    ctxt.edepth++;
-                }
-                if (c == LANG.EXPR_CLOSE) {
-                    ctxt.edepth--;
-                    if (0 == ctxt.edepth) {
-                        state = "start";
-                        results.push(text.slice(start, i + 1));
-                    }
-                }
-                break;
-
-            case "list":
-                if (c == LANG.LIST_OPEN) {
-                    ctxt.ldepth++;
-                }
-                if (c == LANG.LIST_CLOSE) {
-                    ctxt.ldepth--;
-                    if (0 == ctxt.ldepth) {
-                        state = "start";
-                        results.push(text.slice(start, i + 1));
-                    }
-                }
-                break;
-
-            case "string":
-                if (ctxt.escape) {
-                    ctxt.escape = false;
-                    continue;
-                }
-                if (c == LANG.ESCAPE) {
-                    ctxt.escape = true;
-                }
-
-
-                if (c == LANG.STRING_OPEN) {
-                    ctxt.sdepth++;
-                }
-
-                if (c == LANG.STRING_CLOSE) {
-                    ctxt.sdepth--;
-                    if (0 == ctxt.sdepth) {
-                        state = "start";
-                        results.push(text.slice(start, i + 1));
-                    }
-                }
-                break;
-
-            case "comment":
-                if (c == LANG.COMMENT_SEPARATOR) {
-                    state = "start";
-                }
-                break;
-            
+        const results = [acc];
+        while (start < this.length) {
+            acc = f(acc, this.get(start++));
+            results.push(acc);
         }
 
+        return new NodeExprBody(results);
     }
 
-    
-
-    assert(!["list", "expression", "string"].includes(state), "incomplete group");
-    !["start", "comment"].includes(state) && results.push(text.slice(start));
-
-    results.length > 0 && out.push(results);
-    return out;
-
-}
-
-function parseNumber(t) {
-    let n;
-    if (t.startsWith(LANG.NEGATIVE)) {
-        n = -parseFloat(t.slice(1));
-    } else {
-        n = parseFloat(t);
+    splice(s, a) {
+        return new NodeExprBody(this.subasts.splice(s, a));
     }
-    
-    if (t.endsWith(LANG.COMPLEX)) {
-        return new NodeComplex(0, n);
-    } else {
-        return new NodeComplex(n, 0);
+
+    concat(e2) {
+        return new NodeExprBody(this.subasts.concat(e2.subasts))
     }
 
 }
 
-function parseText(text, udo) {
-    const results = [];
-
-    let startidx = null;
-    let depth = 0;
-    let esflag = false;
-    for (let i = 0; i < text.length; i++) {
-        let c = text[i];
-        if (esflag) {
-            let v;
-            if (c in LANG.WHITESPACE_ESCAPES) {
-                v = LANG.WHITESPACE_ESCAPES[c];
-            } else {
-                v = c;
-            }
-            results.push({
-                type: "escape",
-                start: i - 1,
-                end: i,
-                value: v
-            });
-            esflag = false;
-            continue;
-        }
-
-        if (c == LANG.ESCAPE) {
-            esflag = true;
-            continue;
-        }
-
-        if (c == LANG.INTERP_OPEN) {
-            ++depth;
-            if (startidx == null)
-                startidx = i;
-        }
-
-        if (c == LANG.INTERP_CLOSE && depth > 0) {
-            --depth;
-            if (depth == 0 && startidx != null) {
-                results.push({
-                    type: "expr",
-                    start: startidx,
-                    end: i,
-                    ast: make_ast(text.slice(startidx + 1, i), udo)
-                });
-
-                startidx = null;
-            }
-        }
+class NodeList {
+    subasts;
+    constructor(subasts) {
+        this.subasts = subasts;
     }
 
-    return results;
+    eval(env) {
+        return new List(this.subasts.map(t => eval_ast(t, env)))
+    }
+
+    toString() {
+        return `[ ${this.subasts.map(e => e.toString()).join(', ')} ]`
+    }
+    
+    get length() { return this.subasts.length }
+    get(i) { return this.subasts[i] }
+    set(i, v) { this.subasts[i] = v; return v}
+    map(f) { return new NodeList(this.subasts.map(f)) }
+    filter(f) { return new NodeList(this.subasts.filter(f)) }
+    slice(s, e) { return new NodeList(this.subasts.slice(s, e)) }
+    pop() { return this.subasts.pop() }
+    push(v) { this.subasts.push(v); return v }
+
+    reduce(f, i) {
+        if (i == undefined) return this.subasts.reduce(f);
+        return this.subasts.reduce(f, i);
+    }
+
+    accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.subasts[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new NodeList(results);
+    }
+
+    splice(s, a) {
+        return new NodeList(this.subasts.splice(s, a))
+    }
+
+    concat(e2) {
+        return new NodeList(this.subasts.concat(e2.subasts))
+    }
 }
 
+class NodeComplex {
+    re;
+    im;
+    
+    constructor(re, im) {
+        this.re = re;
+        this.im = im;
+    }
 
-function make_ast(input, udo) {
-    const body = state_machine_parse(input, udo);
+    eval() {
+        return new Complex(this.re, this.im);
+    }
 
-    const asts = [];
+    toString() {
+        return `${this.re}+${this.im}i`
+    }
+}
 
-    for (const exprs of body) {
-        let values = [];
-        for (const ex of exprs) {
-            const e = ex.trim();
-            if (e === '') continue;
-            let li;
-            if (e.startsWith(LANG.EXPR_OPEN)) {
-                li = e.lastIndexOf(LANG.EXPR_CLOSE);
-    
-                if (li < 0) throw `Unmatched ${LANG.EXPR_OPEN}`;
-    
-                values.push(make_ast(e.slice(1, li), udo));
-            }
-    
-            else if (e.startsWith(LANG.LIST_OPEN)) {
-                li = e.lastIndexOf(LANG.LIST_CLOSE);
-    
-                if (li < 0) throw `Unmatched ${LANG.LIST_OPEN}`;
-    
-                if (e.slice(1, li).length == 0) {
-                    values.push(new NodeList([]))
-                } else {
-                    const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [LANG.LIST_SEPARATOR]);
-    
-                    values.push(new NodeList(subexprs.map(t => make_ast(t, udo))))
-    
-                }
-            }
-            
-            else if (e.startsWith(LANG.STRING_OPEN)) {
-                if (e[e.length - 1] != LANG.STRING_CLOSE) throw `Unmatched ${LANG.STRING_OPEN}`;
+class NodeString {
+    text;
+    replacements;
+
+    constructor(text, replacements) {
+        this.text = text;
+        this.replacements = replacements;
+    }
+
+    eval(env) {
+        let string = "";
+
+        let base = 0;
+        for (const r of this.replacements) {
+            const {start, end} = r;
+            string += this.text.slice(base, start);
+            switch (r.type) {
+                case "escape":
+                    string += r.value;
+                    break;
                 
-                const text = e.slice(1, -1);
-                const replacements = parseText(text, udo);
-
-                values.push(new NodeString(text, replacements));
+                case "expr":
+                    string += eval_ast(r.ast, env).toString();
+                    break;
             }
-
-            else if (e.startsWith(LANG.QUOTE + LANG.STRING_OPEN)) {
-                values.push(new NodeAst(make_ast(e.slice(2, -1), udo)));
-            }
-            
-            else if (LANG.NUMBER_START.includes(e[0])) {
-                values.push(parseNumber(e));
-            }
-    
-            else if (!LANG.OPERATORS(udo).includes(e)) {
-                values.push(new NodeIdentifier(e));
-            }
-    
-            else {
-                values.push(e)
-            }
-    
+            base = end + 1;
         }
-    
-        for (const opgroup of LANG.PRECEDENCE(udo)) {
-            while (opgroup.some(o => values.includes(o))) {
-                const idx = values.findIndex(e => opgroup.includes(e));
-                const [l, o, r] = values.splice(idx - 1, 3);
-                const opr = new NodeOperation(o, l, r);
-                values = values.slice(0, idx - 1).concat(opr).concat(values.slice(idx - 1))
-            }
-        }
-        
-        if (values.length == 0) continue;
-        assert(values.length == 1, 'AST is malformed');
-        asts.push(values[0]);
+
+        string += this.text.slice(base);
+
+        return new VString(string);
     }
 
-    return 1 == asts.length ? asts[0] : new NodeExprBody(asts);
+    toString() {
+        return `"${this.text}"`;
+    }
+}
 
+class NodeIdentifier {
+    name;
+
+    constructor(name) {
+        this.name = name;
+    }
+    
+    eval(env) {
+        if (this.name in env.ENV && env.ENV[this.name].length > 0) {
+            const bindings = env.ENV[this.name];
+            return bindings[bindings.length - 1];
+        } else throw `${this.name} is not defined`
+    }
+
+    toString() {
+        return `:${this.name}`;
+    }
+}
+
+class NodeOperation {
+    operator;
+    left;
+    right;
+
+    constructor(operator, left, right) {
+        this.operator = operator;
+        this.left = left;
+        this.right = right;
+    }
+
+    toString() {
+        return `${this.left} ${this.operator} ${this.right}`
+    }
+}
+
+class NodeAst {
+    ast;
+
+    constructor(ast) {
+        this.ast = ast;
+    }
+
+    eval(env) {
+        return duplicate(this.ast);
+    }
+
+    toString() {
+        return `AST: ${this.ast}`;
+    }
 }
 
 export {
-    make_ast, state_machine_parse
+    NodeExprBody, NodeList, NodeComplex, NodeIdentifier, NodeOperation, NodeString, NodeAst
 }
