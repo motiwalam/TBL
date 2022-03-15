@@ -5,6 +5,8 @@ import { assert_vstring } from './checks.mjs';
 import { LANG } from './language.mjs';
 import { Complex, VString } from './values.mjs';
 
+const JS_PREFIX = '!js ';
+
 const c = new Calculator();
 
 c.defineBuiltin('load', params => {
@@ -27,9 +29,12 @@ const shell = repl.start({
 	prompt: 'tbl> ',
 	ignoreUndefined: true,
 	eval: (cmd, ctx, fn, callback) => {
-		const e = cmd !== '\n' && c.eval(cmd);
-		
-		callback(null, e ? console.log(e.toString()) : undefined);
+		if (cmd.startsWith(JS_PREFIX)) {
+			callback(null, eval(cmd.slice(JS_PREFIX.length)))
+		} else {
+			const e = cmd !== '\n' && c.eval(cmd);
+			callback(null, e ? console.log(e.toString()) : undefined);
+		}
 	},
 	completer: s => {
 		const opc = LANG.OPCHARS(c.env.USER_DEFINED_OP);
