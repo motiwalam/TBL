@@ -1,17 +1,3 @@
-uniq: l -> (
-  r: [];
-  map @ [e -> not . includes'r @ e ? [push @ [r, e],], l];
-  r
-);
-
-find: [l, f] -> (
-  i: ~1;
-  [j: 0, j < len @ [l], j: j + 1] # (
-    and'(i = ~1) . f . get'[l] @ j ? [i: j,]
-  );
-  i;
-);
-
 count: [w, c] -> sum . map'(eq'c) . split'w @ {};
 
 get_filter: [guess, feedback] -> (
@@ -30,26 +16,18 @@ get_filter: [guess, feedback] -> (
     range @ [0, len @ feedback - 1]
   ];
   
-  counts;
-  
   cfilters: map @ [
     i -> (
       s: get'feedback @ i;
       gc: get'guess @ i;
       cc: get'[_, 1] . get'[counts] . find'[counts] @ (eq'(get'guess @ i) . get'[_, 0]);
-	  s = A ? [
-        w -> and @ [get'w @ i != gc, count'w @ gc <= cc],
-      s = P ? [
-        w -> all @ [
-          [includes @ [split'w @ {}, gc], get'w @ i != gc, count'w @ gc >= cc]
-        ],
-      s = C ? [
-        w -> and @ [get'w @ i = gc, count'w @ gc >= cc],
-      	
-      w -> 1
+      switch @| [
+        s,
+        [A, w -> get'w @ i != gc && count'w @ gc <= cc],
+        [P, w -> includes @ [split'w @ {}, gc] && get'w @ i != gc && count'w @ gc >= cc],
+        [C, w -> get'w @ i = gc && count'w @ gc >= cc],
+        [s, 1]
       ]
-      ]
-      ];
     ),
     range @ [0, len @ feedback - 1]
   ];
@@ -69,3 +47,4 @@ filter_c: [w, c] -> (
     filter_w @ [w, map'(split'[_, {+}]) . split'c @ { }]
 );
 
+filter_c @ [words, {adieu+bbbbb}]
