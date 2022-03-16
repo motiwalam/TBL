@@ -21,7 +21,7 @@ c.defineBuiltin('load', params => {
 	}
 });
 
-c.defineBuiltin('log', params => {
+c.defineBuiltin('clog', params => {
 	console.log(...params.values.map(e => e.toString()));
 })
 
