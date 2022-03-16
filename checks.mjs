@@ -85,6 +85,7 @@ const assert_valid_opstring = (o, m) => assert(ivalid_opstring(o), m);
 
 const assert_op = (a, m) => assert(inop(a), m);
 const assert_node = (a, m) => assert(inode(a), m);
+const assert_ident = (a, m) => assert(inident(a), m);
 
 const is_indexable = or(ilist, ivstr, inlist, inexpr, instring);
 const assert_indexable = (a, m) => assert(is_indexable(a), m);
@@ -148,6 +149,7 @@ export {
     inode,
     assert_op,
     assert_node,
+    assert_ident,
     is_indexable,
     assert_indexable,
 }

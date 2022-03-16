@@ -18,6 +18,7 @@ import {
     assert_node,
     assert_op,
     assert_indexable,
+    assert_ident,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -30,6 +31,7 @@ import {
 import { ERRORS } from "./errors.mjs";
 import assert from "assert";
 import { LANG } from "./language.mjs";
+import { NodeIdentifier } from "./nodes.mjs";
 
 const STDLIB = {ENV: {}};
 
@@ -235,6 +237,27 @@ define_builtin("re", params => {
     return new Complex(c.real, 0);
 });
 
+define_builtin("gensym", (_, env) => {
+
+    let n;
+    do {
+        n = Array.from({length: 15}, 
+            () => LANG.IDENTIFIER_START[Math.floor(Math.random() * LANG.IDENTIFIER_START.length)])
+            .join('');
+    } while (n in env.ENV);
+
+    return new NodeIdentifier(n);
+});
+
+define_builtin("del", (params, env) => {
+    for (let i = 0; i < params.length; i++) {
+        const n = params.get(i);
+        assert_ident(n, "can only delete identifiers");
+        delete env.ENV[n.name];
+    }
+
+    return new Complex(1, 0);
+});
 
 const nodeopgetter = (n, f) => define_builtin(n, (params, env) => {
     const [c] = get_n(params, 1);
