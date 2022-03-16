@@ -514,6 +514,10 @@ l -> (
   );  
 `);
 
+define_expr("ifelse", `ast -> nodeop @ [ast::0, {?}, slice @ [ast, 1]];`)
+define_expr("if", `ast -> ifelse @ [nodelist @ [ast::0, ast::1, \`{0}]];`)
+
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
