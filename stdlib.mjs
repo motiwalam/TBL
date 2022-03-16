@@ -547,6 +547,27 @@ l -> (
 define_expr("ifelse", `ast -> nodeop @ [ast::0, {?}, slice @ [ast, 1]];`)
 define_expr("if", `ast -> ifelse @ [nodelist @ [ast::0, ast::1, \`{0}]];`)
 
+define_expr("for", `ast -> nodeop @ [slice @ [ast, 0, 3], {#}, ast::3]`);
+define_expr("forin", `
+ast -> (
+    i: gensym @ [];
+    c: gensym @ [];
+    v: ast::0;
+    
+    nodeexpr @ [
+      nodeop @ [c, {:}, ast::1],
+      for . nodelist @ [
+          nodeop @ [i, {:}, \`{0}],
+          nodeop @ [i, {<}, nodeop @ [\`{len}, {@}, nodelist @ c]],
+          nodeop @ [i, {:}, nodeop @ [i, {+}, \`{1}]],
+          nodeexpr @ [
+            nodeop @ [v, {:}, nodeop @ [c, {::}, i]],
+            ast::2
+          ]
+        ]
+    ]
+  );
+`)
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
