@@ -12947,16 +12947,6 @@ zygon
 zymes
 zymic} @ {\n};
 
-indexOf: [l, e] -> (
-  i: ~1;
-  
-  [j: 0, j < len @ [l], j: j + 1] # (
-    and @ [i = ~1, get @ [l, j] = e] ? [i: j,]
-  );
-  
-  i;
-);
-
 get_fb: [soln, guess] -> (
   fb: repeat @ [0, 5];
   ids: range @ [0, 4];
@@ -12987,46 +12977,42 @@ get_fb: [soln, guess] -> (
   join'fb @ {};
 );
 
-fb_to_emoji: f -> (
-  f = {g} ? [{🟩}, f = {y} ? [{🟨}, f = {b} ? [{⬛}, f]]]
+fb_to_emoji: fb -> (
+  switch @| [
+    fb,
+    [{g}, {🟩}],
+    [{y}, {🟨}],
+    [{b}, {⬛}],
+    [fb, fb]
+  ]
 );
+
 
 wordle: [] -> (
   guess_fb: [];
   soln: get'solns . floor . mul'(len @ [solns]) . random @ [];
   
-  args => (
+  args =>
     0 = len @ [args] ? [
       guess_fb,
       (
-        c: get'args @ 0;
-        c = {solution} ? [
-          soln,
-          (
-            len @ c != 5 ? [
-              {invalid number of letters},
-              not . (w -> or @ [includes'solns @ w, includes'gwords @ w]) @ c ? [
-                {guess not in word list},
-                (
-                  push'guess_fb @ [
-                    [c, get_fb'soln @ c]
-                  ];
-                  join @ [
-                    (fb -> [fb :: 0, join'[_, {}] . map'fb_to_emoji . split'[_, {}] @ fb::1]) @@ guess_fb,
-                    {\n}
-                  ]
-                )
-              ]
+        c: args::0;
+        cond @| [
+          [c = {solution}, soln],
+          [len @ c != 5, {invalid number of letters}],
+          [not . (w -> includes'solns @ w || includes'gwords @ w) @ c, {guess not in word list}],
+          [1, (
+            push'guess_fb @ [[c, get_fb'soln @ c]];
+            join @ [
+              (fb -> [fb :: 0, join'[_, {}] . map'fb_to_emoji . split'[_, {}] @ fb::1]) @@ guess_fb,
+              {\n}
             ]
-          )
+          )]
         ]
       )
     ]
-  )
 );
 
-game: wordle @ [];
-game @ {hotel};
-game @ {daisy};
-
-
+-- game: wordle @ [];
+-- game @ {hotel};
+-- game @ {daisy};
