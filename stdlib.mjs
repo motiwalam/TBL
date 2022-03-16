@@ -569,6 +569,15 @@ ast -> (
   );
 `)
 
+define_expr("while", `ast -> nodeop @ [ast::0, {!}, ast::1]`);
+define_expr("dowhile", `
+ast -> nodeexpr @ [
+    ast::0,
+    while . nodelist @ [ast::1, ast::0]
+  ]
+`);
+
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
