@@ -505,6 +505,15 @@ l -> (
   );
 `);
 
+define_expr("switch", `
+l -> (
+    cond . map @ [
+      i -> [nodeop @ [l::0, {=}, i::0], i::1],
+      slice @ [l, 1]
+    ]
+  );  
+`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
