@@ -489,6 +489,13 @@ define_expr("nodelist", `l => (
     o;
 )`);
 
+define_expr("nodeexpr", `l => (
+    o: \`{0;0};
+    pop @ o; pop @ o;
+    map @ [push'o, l];
+    o
+)`);
+
 define_expr("cond", `
 l -> (
     len @ l = 0 ? [
