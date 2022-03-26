@@ -21,7 +21,7 @@ get_filter: [guess, feedback] -> (
       s: get'feedback @ i;
       gc: get'guess @ i;
       cc: get'[_, 1] . get'[counts] . find'[counts] @ (eq'(get'guess @ i) . get'[_, 0]);
-      switch @| [
+      switch @! [
         s,
         [A, w -> get'w @ i != gc && count'w @ gc <= cc],
         [P, w -> includes @ [split'w @ {}, gc] && get'w @ i != gc && count'w @ gc >= cc],

@@ -19,6 +19,7 @@ import {
     assert_op,
     assert_indexable,
     assert_ident,
+    assert_vfunc,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -259,40 +260,42 @@ define_builtin("del", (params, env) => {
     return new Complex(1, 0);
 });
 
-const nodeopgetter = (n, f) => define_builtin(n, (params, env) => {
+const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(n, params => {
     const [c] = get_n(params, 1);
-
-    assert_op(c, `can not apply ${n} to non operator ast`);
-
-    return f(c, env);
+    verifier(c);
+    return transformer(c[n]);
 });
 
-nodeopgetter("left", c => c.left);
-nodeopgetter("right", c => c.right);
-nodeopgetter("op", c => new VString(c.operator));
-
-const nodeopsetter = (n, f) => define_builtin(n, (params, env) => {
+const setter = (n, cverifier = x => x, vverifier = x => x, transformer = x => x) => define_builtin(`set${n}`, params => {
     const [c, v] = get_n(params, 2);
+    cverifier(c);
+    vverifier(v);
 
-    assert_op(c, `can not apply ${n} to non operator ast`);
-    assert_node(v, `can not set non node as element of ast`);
-
-    return f(c, v);
+    c[n] = transformer(v);
+    return v;
 });
 
-nodeopsetter("setleft", (c, l) => (c.left = l, c));
-nodeopsetter("setright", (c, l) => (c.right = l, c));
+const opgetter = (n, ...rest) => getter(n, c => assert_op(c, `can not get ${n} of non-operator`), ...rest);
+opgetter("left");
+opgetter("right");
+opgetter("op", v => new VString(v));
 
-define_builtin("setop", params => {
-    const [c, s] = get_n(params, 2);
+const opsetter = (n, ...rest) => setter(n, c => assert_op(c, `can not set ${n} of non-operator`), ...rest);
+opsetter("left", x => assert_node(x, `can not set left of operator to non-node`));
+opsetter("right", x => assert_node(x, `can not set right of operator to non-node`));
+opsetter("op", x => assert_vstring(x, `new op must be a string`), x => x.value);
 
-    assert_op(c);
-    assert_vstring(s, `operator needs to be a string`);
+getter("name", x => assert_ident(x, `can not get name of non-identifer`), v => new VString(v));
+setter("name", x => assert_ident(x, `can not set name of non-identifer`), x => assert_vstring(x, `new name must be a string`), v => v.value);
 
-    c.operator = s.value;
+const funcgetter = (n, ...rest) => getter(
+    n,
+    c => (assert_func(c, `can not get ${n} of non-function`), assert_vfunc(c, `can not get ${n} of builtins`)),
+    ...rest
+);
+funcgetter("body");
+funcgetter("params", v => new List(v.map(e => new VString(e))));
 
-    return c;
-});
 define_builtin("eval", (params, env) => {
     const [c] = get_n(params, 1);
 
@@ -364,11 +367,11 @@ define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new
 
 define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
-define_expr("macro_apply", `{@|} <<< [1, [f, g] -> eval_ast @ [(eval_ast @ [f]) @ [g]]]`);
+define_expr("macro_apply", `{@!} <<< [1, [f, g] -> eval_ast @ [(eval_ast @ [f]) @ [g]]]`);
 
 define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
 define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
-define_expr("over", `{^^} << [1, [f, g] -> ([a, b] -> f @ [g @ [a], g @ [b]])]`)
+define_expr("over", `{.|} << [1, [f, g] -> (i => f .. map @ [f -> f @ i, g])]`);
 
 define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
 define_expr("maxl", `reduce'max`);
@@ -467,12 +470,15 @@ define_expr("neg", `mul'~1`);
 define_expr("id", "x -> x");
 define_expr("uid", "x => x");
 
+define_expr("unwrap", `f -> f .. id`);
 define_expr("commute", `f -> f .. reverse . uid`);
 define_expr("fpower", `{**} << [2.5, [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]]`)
 define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
 
 define_expr("get", `{::} << [0.5, get]`);
 define_expr("map", `{@@} << [4, map]`);
+define_expr("filter", `{@|} << [4, filter]`);
+define_expr("reduce", `{@>} << [4, reduce]`);
 define_expr("concat", `{++} << [7, concat]`);
 define_expr("floordiv", `{//} << [6, floor . div]`);
 
