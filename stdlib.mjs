@@ -598,6 +598,26 @@ ast -> nodeexpr @ [
   ]
 `);
 
+define_expr("ast_to_tbl", `
+ast_to_tbl: AST -> (
+    cond @! [
+      [isnodeident @ AST, getname @ AST],
+      [isnodeop @ AST, {({ast_to_tbl . getleft @ AST}) {getop @ AST} ({ast_to_tbl . getright @ AST})}],
+        [isnodelist @ AST, {[{join'[_, {,}] . map'ast_to_tbl . getsubasts @ AST}]}],
+      [isnodeexpr @ AST, {({join'[_, {;}] . map'ast_to_tbl . getsubasts @ AST})}],
+        [isnodeast @ AST, {\`\\{{ast_to_tbl . getast @ AST}\\}}],
+        [isnodenum @ AST, (
+        n: eval_ast @ AST;
+        cond @! [
+          [eq'0 . im @ n, {{re @ n}}],
+          [eq'0 . re @ n, {{im @ n}i}],
+          [1, {{re @ n}+{im @ n}i}]
+        ]
+      )],
+        [isnodestr @ AST, {\\{{gettext @ AST}\\}}]
+    ]
+  )
+`)
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
