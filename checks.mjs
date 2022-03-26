@@ -96,6 +96,8 @@ const assert_indexable = (a, m) => assert(is_indexable(a), m);
 const ivalue = or(idata, inode);
 const assert_value = (o, m) => assert(ivalue(o), m);
 
+const assert_nstring = (o, m) => assert(instring(o), m);
+
 export {
     ilist,
     icomp,
@@ -157,4 +159,5 @@ export {
     assert_data,
     is_indexable,
     assert_indexable,
+    assert_nstring
 }
