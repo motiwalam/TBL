@@ -21,6 +21,7 @@ import {
     assert_ident,
     assert_vfunc,
     assert_nstring,
+    assert_ncomp,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -273,29 +274,31 @@ const setter = (n, cverifier = x => x, vverifier = x => x, transformer = x => x)
     vverifier(v);
 
     c[n] = transformer(v);
-    return v;
+    return c;
 });
 
-const opgetter = (n, ...rest) => getter(n, c => assert_op(c, `can not get ${n} of non-operator`), ...rest);
+const opverifier = (o, n) => c => assert_op(c, `can not ${o} ${n} of non-operator`);
+const opgetter = (n, ...rest) => getter(n, opverifier('get', n), ...rest);
 opgetter("left");
 opgetter("right");
 opgetter("op", v => new VString(v));
 
-const opsetter = (n, ...rest) => setter(n, c => assert_op(c, `can not set ${n} of non-operator`), ...rest);
+const opsetter = (n, ...rest) => setter(n, opverifier('set', n), ...rest);
 opsetter("left", x => assert_node(x, `can not set left of operator to non-node`));
 opsetter("right", x => assert_node(x, `can not set right of operator to non-node`));
 opsetter("op", x => assert_vstring(x, `new op must be a string`), x => x.value);
 
-getter("name", x => assert_ident(x, `can not get name of non-identifer`), v => new VString(v));
-setter("name", x => assert_ident(x, `can not set name of non-identifer`), x => assert_vstring(x, `new name must be a string`), v => v.value);
+const identverifier = (o, n) => c => assert_ident(c, `can not ${o} ${n} of non-identifier`);
+getter("name", x => identverifier('get', 'name'), v => new VString(v));
+setter("name", identverifier('set', 'name'), x => assert_vstring(x, `new name must be a string`), v => v.value);
 
-const funcgetter = (n, ...rest) => getter(
-    n,
-    c => (assert_func(c, `can not get ${n} of non-function`), assert_vfunc(c, `can not get ${n} of builtins`)),
-    ...rest
-);
+const funcverifier = (o, n) => c => (assert_func(c, `can not ${o} ${n} of non-function`), assert_vfunc(c, `can not ${o} ${n} of builtins`));
+const funcgetter = (n, ...rest) => getter(n, funcverifier('get', n), ...rest);
 funcgetter("body");
 funcgetter("params", v => new List(v.map(e => new VString(e))));
+
+const funcsetter = (n, ...rest) => setter(n, funcverifier('set', n), ...rest);
+funcsetter("body", x => assert_node(x, `can not set body of function to non node`));
 
 const nstringgetter = (n, ...rest) => getter(n, c => assert_nstring(c, `can not get ${n} of non-nodestring`), ...rest);
 nstringgetter("text", v => new VString(v));
@@ -307,6 +310,22 @@ getter(
 );
 
 getter("ast", x => assert(inast(x), `can not get ast of non-ast`));
+
+const ncompverifier = (o, n) => c => assert_ncomp(c, `can not ${o} ${n} of non-complex-node`);
+const ncompgetter = n => getter(n, ncompverifier('get', n), v => new Complex(v, 0));
+ncompgetter('re');
+ncompgetter('im');
+
+const ncompsetter = n => setter(
+    n, ncompverifier('set', n),
+    v => (
+        assert(icomp(v) || incomp(v), `can not set ${n} to non-complex number`),
+        assert(v.im === 0, `can not set ${n} to complex number`)
+    ),
+    v => v.re
+);
+ncompsetter('re');
+ncompsetter('im');
 
 define_builtin("eval", (params, env) => {
     const [c] = get_n(params, 1);
@@ -539,6 +558,12 @@ define_expr("nodeexpr", `l => (
     map @ [push'o, l];
     o
 )`);
+
+define_expr("nodenum", `n => (
+    o: \`{0};
+    setre @ [o, re @ n];
+    setim @ [o, im @ n];
+)`)
 
 define_expr("cond", `
 l -> (
