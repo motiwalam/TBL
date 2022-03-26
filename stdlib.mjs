@@ -330,9 +330,9 @@ predfun("isnodeident", inident);
 predfun("isnodeop", inop);
 
 
-const mathfun = f => define_builtin(f.name, params => {
+const mathfun = (f, n) => define_builtin(n ?? f.name, params => {
     const [c] = get_n(params, 1);
-    assert_isreal_strict(c, `Can only take the ${f.name} of real numbers`);
+    assert_isreal_strict(c, `Can only take the ${n ?? f.name} of real numbers`);
     return new Complex(f(c.real), 0);
 });
 
@@ -352,6 +352,7 @@ mathfun(Math.asinh);
 mathfun(Math.acosh);
 mathfun(Math.atanh);
 mathfun(Math.log);
+mathfun(Math.log, "ln");
 mathfun(Math.log10);
 mathfun(Math.log2);
 
