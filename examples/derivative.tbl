@@ -1,0 +1,185 @@
+-- a program to compute the derivative
+
+isrenum: n -> (AST -> isnodenum @ AST ? [eq'n . getre @ AST,]);
+isimnum: n -> (AST -> isnodenum @ AST ? [eq'n . getim @ AST,]);
+
+isnum: n -> and .| [isrenum @ n, isimnum @ n];
+
+iszero: isnum @ 0;
+isone: isnum @ 1;
+
+-- remove superfluous operations from an expression
+-- simplifies:
+--  a + 0 -> a
+--  0 + a -> a
+--  a - 0 -> a
+--  a * 1 -> a
+--  a ^ 1 -> a
+--  1 ^ a -> 1
+--  a ^ 0 -> 1
+--  0 ^ a -> 0
+--  a / 1 -> a
+-- evaluates constant expressions
+
+optimize: AST -> (
+  cond @! [
+    [isnodelist @ AST, optimize @@ AST],
+    [isnodeexpr @ AST, optimize @@ AST],
+    [isnodeident @ AST, AST],
+    [isnodeop @ AST, (
+      l: optimize . getleft @ AST;
+      r: optimize . getright @ AST;
+      o: getop @ AST;
+      
+      NAST: nodeop @ [l, o, r];
+      
+      lc: isnodenum @ l;
+      rc: isnodenum @ r;
+      cond @! [
+        [lc && rc, nodenum . eval_ast @ NAST],
+        [1, switch @! [
+          o,
+          [{+}, cond @! [
+            [iszero @ l, r],
+            [iszero @ r, l],
+            [1, NAST]
+          ]],
+          [{-}, cond @! [
+            [iszero @ r, l],
+            [1, NAST]
+          ]],
+          [{*}, cond @! [
+            [iszero @ l || iszero @ r, `{0}],
+            [isrenum @ 1 @ l, r],
+            [isrenum @ 1 @ r, l],
+            [1, NAST]
+          ]],
+          [{/}, cond @! [
+            [isrenum @ 1 @ r, l],
+            [1, NAST]
+          ]],
+          [{^}, cond @! [
+            [iszero @ r, `{1}],
+            [iszero @ l, `{0}],
+            [isrenum @ 1 @ l, `{1}],
+            [isrenum @ 1 @ r, l],
+            [1, NAST]
+          ]],
+          [o, NAST]
+        ]]
+      ]
+    )],
+    [1, AST]
+  ]
+);
+
+-- takes an expression and returns an expression that is the derivative 
+derivative: [x, AST] -> (
+  
+  cond @! [
+    [isnodeident @ AST, eq'x . getname @ AST ? [`{1}, `{0}]], -- assume all names other than x are constants
+    [isnodenum @ AST, `{0}],
+    [isnodeop @ AST, (
+      l: getleft @ AST;
+      r: getright @ AST;
+      o: getop @ AST;
+      
+      switch @! [
+        o,
+        [{+}, nodeop @ [derivative @ [x, l], {+}, derivative @ [x, r]]],
+        [{-}, nodeop @ [derivative @ [x, l], {-}, derivative @ [x, r]]],
+        [{*}, (
+          nodeop @ [
+            nodeop @ [
+              derivative @ [x, l],
+              {*},
+              r
+            ],
+            {+},
+            nodeop @ [
+              l,
+              {*},
+              derivative @ [x, r]
+            ]
+          ]
+        )], -- product rule
+        [{/}, (
+          nodeop @ [
+            nodeop @ [
+              nodeop @ [
+                derivative @ [x, l], {*}, r
+              ],
+              {-},
+              nodeop @ [
+                l, {*}, derivative @ [x, r]
+              ]
+            ],
+            {/},
+            nodeop @ [r, {^}, `{2}]
+          ]
+        )], -- quotient rule
+        [{^}, (
+          rc: isnodenum @ r;
+          isnodeident @ r ? [rc: neq'x . getname @ r,];
+          
+          lc: isnodenum @ l;
+          isnodeident @ l ? [lc: neq'x . getname @ l,];
+          
+          -- derivative of constant to the power of a function
+          dcpf: nodeop @ [
+            derivative @ [x, r],
+            {*},
+            nodeop @ [
+              nodeop @ [l, {^}, r],
+              {*},
+              nodeop @ [`{log}, {@}, l]
+            ]
+          ];
+          
+          -- derivative of function to the power of a constant
+          dfpc: nodeop @ [
+            derivative @ [x, l],
+            {*},
+            nodeop @ [
+              r,
+              {*},
+              nodeop @ [l, {^}, rc ? [nodenum @ [eval_ast @ r - 1], nodeop @ [r, {-}, `{1}]]]
+            ]
+          ];
+          
+          -- derivative of function the power of a function
+          general: nodeop @ [dcpf, {+}, dfpc];
+          
+          cond @! [
+            [lc && rc, `{0}], -- constant to the power of a constant
+            [lc, dcpf], -- constant to the power of a function
+            [rc, dfpc], -- function to the power of a constant
+            [1, general] -- function to the power of a function
+          ]
+        )], -- generalized power rule
+        [{@}, (
+          f: eval_ast @ l; -- function that is being applied
+          fp: derive @ f; -- derivative of the function
+          
+          t: isnodelist @ r ? [r::0, r];
+          
+          tc: isnodenum @ t;
+          isnodeident @ t ? [tc: neq'x . getname @ t,];
+          
+          tc ? [`{0}, nodeop @ [fp, {@}, r]];
+        )]
+      ]
+    )]
+
+  ]
+  
+);
+
+-- takes f(x) and returns f'(x)
+derive: f -> (
+  x: (getparams @ f)::0;
+  newbody: optimize . derivative @ [x, getbody @ f];
+  eval_ast . nodeop @ [
+    nodeident @ x, {->}, newbody
+  ];
+);
