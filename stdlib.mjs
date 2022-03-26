@@ -300,6 +300,14 @@ funcgetter("params", v => new List(v.map(e => new VString(e))));
 const nstringgetter = (n, ...rest) => getter(n, c => assert_nstring(c, `can not get ${n} of non-nodestring`), ...rest);
 nstringgetter("text", v => new VString(v));
 
+getter(
+    "subasts",
+    x => assert(inlist(x) || inexpr(x), `can not get subasts of non-list or non-expression body`),
+    l => new List(l),
+);
+
+getter("ast", x => assert(inast(x), `can not get ast of non-ast`));
+
 define_builtin("eval", (params, env) => {
     const [c] = get_n(params, 1);
 
