@@ -300,8 +300,12 @@ funcgetter("params", v => new List(v.map(e => new VString(e))));
 const funcsetter = (n, ...rest) => setter(n, funcverifier('set', n), ...rest);
 funcsetter("body", x => assert_node(x, `can not set body of function to non node`));
 
-const nstringgetter = (n, ...rest) => getter(n, c => assert_nstring(c, `can not get ${n} of non-nodestring`), ...rest);
+const nstringverifier = (o, n) => c => assert_nstring(c, `can not ${o} ${n} of non-nodestring`);
+const nstringgetter = (n, ...rest) => getter(n, nstringverifier('get', n), ...rest);
 nstringgetter("text", v => new VString(v));
+
+const nstringsetter = (n, ...rest) => setter(n, nstringverifier('set', n), ...rest);
+nstringsetter('text', v => assert_vstring(v, `can not set text to nonstring`), v => v.value);
 
 getter(
     "subasts",
@@ -563,7 +567,12 @@ define_expr("nodenum", `n => (
     o: \`{0};
     setre @ [o, re @ n];
     setim @ [o, im @ n];
-)`)
+)`);
+
+define_expr("nodestring", `n -> (
+    o: \`{{}};
+    settext @ [o, n];
+)`);
 
 define_expr("cond", `
 l -> (
