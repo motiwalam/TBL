@@ -20,6 +20,7 @@ import {
     assert_indexable,
     assert_ident,
     assert_vfunc,
+    assert_nstring,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -260,7 +261,7 @@ define_builtin("del", (params, env) => {
     return new Complex(1, 0);
 });
 
-const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(n, params => {
+const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
     const [c] = get_n(params, 1);
     verifier(c);
     return transformer(c[n]);
@@ -295,6 +296,9 @@ const funcgetter = (n, ...rest) => getter(
 );
 funcgetter("body");
 funcgetter("params", v => new List(v.map(e => new VString(e))));
+
+const nstringgetter = (n, ...rest) => getter(n, c => assert_nstring(c, `can not get ${n} of non-nodestring`), ...rest);
+nstringgetter("text", v => new VString(v));
 
 define_builtin("eval", (params, env) => {
     const [c] = get_n(params, 1);
