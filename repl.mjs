@@ -23,6 +23,7 @@ c.defineBuiltin('load', params => {
 
 c.defineBuiltin('clog', params => {
 	console.log(...params.values.map(e => e.toString()));
+	return new Complex(0, 0);
 })
 
 const shell = repl.start({
