@@ -569,6 +569,11 @@ define_expr("nodenum", `n => (
     setim @ [o, im @ n];
 )`);
 
+define_expr("nodeident", `n -> (
+    o: \`{x};
+    setname @ [o, n];
+)`);
+
 define_expr("nodestring", `n -> (
     o: \`{{}};
     settext @ [o, n];
