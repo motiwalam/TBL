@@ -8,10 +8,7 @@ Functions can take anything as an argument, including other functions.
 Lists can contain anything, including functions and other lists.
 
 ## Literals
-The literal types are numbers (which are complex), lists, and strings.
-The literal syntax for numbers is quite simplistic. Any thing that matches the regular expression `^(([0-9])|(\.[0-9])|(~(([0-9])|(\.[0-9]))))` is passed into `parseFloat`. 
-
-This results in some funny behaviour where `134jfdfjdkjgkdfjgdkfgj` is just `134`.
+The literal types are numbers (which are complex), lists, strings, and code.
 
 Since `-` is taken as the binary subtraction operator, negative literals are done by prefixing a number with `~`. This is *not* negation, it is part of the literal syntax only.
 
@@ -34,6 +31,18 @@ Some example lists:
  * `[a $ 3*a, 4, [7]]` <- a list that contains a function, a number, and a list
 
 Strings are denoted by `{` and `}`, Anything inside the curly brackets is treated as the contents of the string.
+The results of expressions can be interpolated inside of strings with further curly brackets.
+
+For example: 
+ * the string "Hello world!": `{Hello world!}`
+ * the string "Hello world!" but fancy: `obj: {world}; {Hello {obj}!}`
+
+Finally, the parsed syntax tree of an expression is given by wrapping the expression in curly brackets and prefixing it with a `` ` ``
+
+For example:
+ * the number 8: `5 + 3`
+ * the expression 5 + 3: `` `{5 + 3} ``
+
 
 ## List manipulation
 
@@ -142,6 +151,49 @@ The TBL standard library provides a number of these operators:
   * unwrapped compose: `..`
   * over: `^^`
   * zip: `<:>`
+
+`<<` creates an operator that receives its left and right operands after being evaluated.
+
+In contrast, one can create operators that receive their left and right operands as syntax trees with the `<<<` operator.
+
+For example, consider the following:
+```
+{^^} << [f, g] -> f ^ g ^ g;
+{^^^} <<< [f, g] -> f ^ g ^ g;
+```
+
+Now, in the expression `(5 + 3) ^^ (7 + 2)`, the `^^` operator "sees" the values 8 and 9.
+
+In contrast, in the expression `(5 + 3) ^^^ (7 + 2)`, the `^^^` operator "sees" the expressions "5 + 3" and "7 + 2". These expressions have not been evaluated. It is up to the operator to decide when, if at all, to evaluate the expressions.
+
+## Macros
+
+This allows us to understand the macro application operator, `@!`.
+It evaluates the expression on its left and expects it to be a function.
+It then calls the function with the syntax tree it recieved on its right.
+It expects the result of this call to be a new syntax tree, which it then evaluates.
+
+Many of the built in operators are also available as macros.
+For example, `?` is available as the macro `ifelse`, so that `C ? [X, Y]` is equivalent to `ifelse @! [C, X, Y]`.
+
+Similar macros exist for the while and for loop operators.
+
+Some of the more interesting and useful macros are the `cond`, `switch`, and `forin` macros.
+
+For example, using the `forin` macro to create a list of squares:
+```
+squares: [];
+
+forin @! [
+  i, range @ [1, 10],
+  push @ [squares, i*i]
+];
+
+squares
+```
+
+Examples of the `cond` macro can be found in `examples/primes.tbl`.
+Examples of the `switch` macro can be found in `examples/wordle.tbl`.
 
 ## Standard Library
 
