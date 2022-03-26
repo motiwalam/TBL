@@ -599,11 +599,19 @@ ast -> nodeexpr @ [
 `);
 
 define_expr("ast_to_tbl", `
-ast_to_tbl: AST -> (
+ast_to_tbl: AST ->
     cond @! [
       [isnodeident @ AST, getname @ AST],
-      [isnodeop @ AST, {({ast_to_tbl . getleft @ AST}) {getop @ AST} ({ast_to_tbl . getright @ AST})}],
-        [isnodelist @ AST, {[{join'[_, {,}] . map'ast_to_tbl . getsubasts @ AST}]}],
+      [isnodeop @ AST, (
+        l: ast_to_tbl . getleft @ AST;
+        r: ast_to_tbl . getright @ AST;
+        
+        sl: isnodeop . getleft @ AST ? [{({l})}, l];
+        sr: isnodeop . getright @ AST ? [{({r})}, r];
+        
+        {{sl} {getop @ AST} {sr}}
+      )],
+      [isnodelist @ AST, {[{join'[_, {,}] . map'ast_to_tbl . getsubasts @ AST}]}],
       [isnodeexpr @ AST, {({join'[_, {;}] . map'ast_to_tbl . getsubasts @ AST})}],
         [isnodeast @ AST, {\`\\{{ast_to_tbl . getast @ AST}\\}}],
         [isnodenum @ AST, (
@@ -614,9 +622,8 @@ ast_to_tbl: AST -> (
           [1, {{re @ n}+{im @ n}i}]
         ]
       )],
-        [isnodestr @ AST, {\\{{gettext @ AST}\\}}]
+      [isnodestr @ AST, {\\{{text @ AST}\\}}]
     ]
-  )
 `)
 
 define_const("PI", Math.PI);
