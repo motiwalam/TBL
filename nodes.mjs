@@ -186,6 +186,8 @@ class NodeOperation {
     left;
     right;
 
+    get op() { return this.operator }
+    set op(v) { this.operator = v }
     constructor(operator, left, right) {
         this.operator = operator;
         this.left = left;
@@ -193,7 +195,7 @@ class NodeOperation {
     }
 
     toString() {
-        return `${this.left} ${this.operator} ${this.right}`
+        return `(${this.left}) ${this.operator} (${this.right})`
     }
 }
 
