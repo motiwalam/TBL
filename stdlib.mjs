@@ -483,6 +483,8 @@ define_expr("concat", `{++} << [7, concat]`);
 define_expr("floordiv", `{//} << [6, floor . div]`);
 
 define_expr("zip", `{<:>} << [7, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
+define_expr("encode", `{<%>} << [7, encode]`);
+define_expr("encode", `{<*>} << [7, decode]`);
 
 define_expr("uniq", `l -> (
     r: [];
