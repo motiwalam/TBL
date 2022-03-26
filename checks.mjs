@@ -13,6 +13,9 @@ const ivfun = o => o instanceof VFunction;
 const ibfun = o => o instanceof BuiltinFunction;
 const ivstr = o => o instanceof VString;
 
+const idata = or(ilist, icomp, ivfun, ibfun, ivstr);
+const assert_data = (o, m) => assert(idata(o), m);
+
 const ilors = or(ivstr, ilist);
 const ifunc = or(ivfun, ibfun);
 
@@ -90,7 +93,7 @@ const assert_ident = (a, m) => assert(inident(a), m);
 const is_indexable = or(ilist, ivstr, inlist, inexpr, instring);
 const assert_indexable = (a, m) => assert(is_indexable(a), m);
 
-const ivalue = or(ilist, icomp, ivfun, ibfun, ivstr, inode);
+const ivalue = or(idata, inode);
 const assert_value = (o, m) => assert(ivalue(o), m);
 
 export {
@@ -109,6 +112,7 @@ export {
     isc,
     ilors,
     ifunc,
+    idata,
     ivalue,
     assert_list,
     assert_complex,
@@ -150,6 +154,7 @@ export {
     assert_op,
     assert_node,
     assert_ident,
+    assert_data,
     is_indexable,
     assert_indexable,
 }
