@@ -77,33 +77,50 @@ const COMMENT = '--';
 
 const QUOTE = '`';
 
+const ASSOCIATE_LEFT = 'left';
+const ASSOCIATE_RIGHT = 'right';
+
 const PRECEDENCE = UDO => {
     const result = [
-        [PARTIAL],
-        [APPLICATION],
-        [EXPONENTIATION],
-        [MULTIPLICATION, DIVISION],
-        [MODULUS, ADDITION, SUBTRACTION],
-        [EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ],
-        [CONDITIONAL],
-        [WHILE, FOR],
-        [DEFINITION, VARIADIC_DEFINE],
-        [BIND, OPBIND, ASTOPBIND],
+        [[PARTIAL], ASSOCIATE_LEFT],
+        [[APPLICATION], ASSOCIATE_LEFT],
+        [[EXPONENTIATION], ASSOCIATE_LEFT],
+        [[MULTIPLICATION, DIVISION], ASSOCIATE_LEFT],
+        [[MODULUS, ADDITION, SUBTRACTION], ASSOCIATE_LEFT],
+        [[EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQ, GREATER_THAN, GREATER_THAN_EQ], ASSOCIATE_LEFT],
+        [[CONDITIONAL], ASSOCIATE_LEFT],
+        [[WHILE, FOR], ASSOCIATE_LEFT],
+        [[DEFINITION, VARIADIC_DEFINE], ASSOCIATE_RIGHT],
+        [[BIND, OPBIND, ASTOPBIND], ASSOCIATE_LEFT],
     ];
 
-    for (const [op, [i]] of Object.entries(UDO)) {
-        if (i === Math.floor(i)) {
-            result[i] = [...(result[i] ?? []), op];
+    for (const [op, {precedence, associativity}] of Object.entries(UDO)) {
+        if (precedence === Math.floor(precedence)) {
+            const e = result[precedence] ?? [[], ''];
+            e[0].push(op);
+            e[1] = associativity
         } else {
-            result.splice(Math.floor(i), 0, [op]);
+            result.splice(Math.floor(precedence), 0, [[op], associativity]);
         }
     }
 
     return result;
 }
 
-const OPERATORS = UDO => PRECEDENCE(UDO).reduce((a, b) => a.concat(b))
+const OPERATORS = UDO => PRECEDENCE(UDO).map(e => e[0]).reduce((a, b) => a.concat(b))
 const OPCHARS = UDO => OPERATORS(UDO).reduce((a, b) => a.concat(b));
+
+// the associativity function dictates how operators are found and grouped in a list of tokens
+const ASSOC_FUNC = assoc => ({
+    [ASSOCIATE_LEFT]: (arr, func) => arr.findIndex(func),
+    [ASSOCIATE_RIGHT]: (arr, func) => {
+        let n = arr.length;
+        while (n --> 0) {
+            if (func(arr[n], n, arr)) return n
+        }
+        return -1;
+    },
+}[assoc] ?? ASSOC_FUNC(ASSOCIATE_LEFT))
 
 const LANG = Object.freeze({
     EXPR_OPEN,
@@ -172,6 +189,10 @@ const LANG = Object.freeze({
 
     QUOTE,
 
+    ASSOCIATE_LEFT,
+    ASSOCIATE_RIGHT,
+
+    ASSOC_FUNC,
 });
 
 export {

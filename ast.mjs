@@ -316,10 +316,10 @@ function make_ast(input, udo) {
             }
     
         }
-    
-        for (const opgroup of LANG.PRECEDENCE(udo)) {
+        
+        for (const [opgroup, assoc] of LANG.PRECEDENCE(udo)) {
             while (opgroup.some(o => values.includes(o))) {
-                const idx = values.findIndex(e => opgroup.includes(e));
+                const idx = LANG.ASSOC_FUNC(assoc)(values, e => opgroup.includes(e));
                 const [l, o, r] = values.splice(idx - 1, 3);
                 const opr = new NodeOperation(o, l, r);
                 values = values.slice(0, idx - 1).concat(opr).concat(values.slice(idx - 1))

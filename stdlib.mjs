@@ -396,7 +396,12 @@ define_builtin("abs", params => abs(...get_n(params, 1)));
 
 define_builtin("ptable", (params, env) => {
     const pt = LANG.PRECEDENCE(env.USER_DEFINED_OP);
-    return new List(pt.map(e => new List(e.map(e => new VString(e)))));
+    return new List(
+        pt.map(([op, a]) => new List([
+            new List(op.map(e => new VString(e))),
+            new VString(a)
+        ]))
+    )
 });
 
 define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new VString(n))));

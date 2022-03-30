@@ -98,12 +98,18 @@ function eval_ast(ast, env) {
             const op = eval_ast(ast.left, env);
             const right = eval_ast(ast.right, env);
 
-            let i = 0, func;
+            let i = 0, assoc = LANG.ASSOCIATE_LEFT, unsafe = false, func;
             if (right instanceof List) {
-                assert(right.length == 2, `operator binding can only accept a list of length 2`);
+                assert([2, 3, 5].includes(right.length), `operator binding can only accept a list of length 2 or 3`);
                 const idx = right.get(0);
-                func = right.get(1);
+                if (right.length > 2) {
+                    const a = right.get(1);
+                    assert_vstring(a, `associativity must be a string`);
+                    assoc = a.value;
+                }
+                func = right.get(right.length > 2 ? 2 : 1);
 
+                unsafe = right.length === 5;
                 assert(idx instanceof Complex, `precedence index must be a number`);
                 assert_isreal_strict(idx, `precedence index must be a real number`);
                 assert(idx.real > 0, `precedence index can not be negative`);
@@ -121,18 +127,30 @@ function eval_ast(ast, env) {
             assert_valid_opstring(op.value, "invalid operator string");
 
             env.USER_DEFINED_OP = env.USER_DEFINED_OP ?? {};
-            env.USER_DEFINED_OP[op.value] = [i, func, ast.operator == LANG.OPBIND];
+
+            if (i === Math.floor(i)) {
+                const cassoc = LANG.PRECEDENCE(env.USER_DEFINED_OP)[i][1]
+                !unsafe && assert(assoc === cassoc,
+                       `Currently, operators of precedence ${i} associate ${cassoc}, not ${assoc}. This binding would force all operators of precedence ${i} to associate ${assoc}. If you are sure about this, try binding again with a list of five elements`);
+            }
+
+            env.USER_DEFINED_OP[op.value] = {
+                precedence: i,
+                func,
+                evalargs: ast.operator == LANG.OPBIND,
+                associativity: assoc
+            }
 
             return func;
         }
 
         if (ast.operator in (env.USER_DEFINED_OP ?? {})) {
-            const t = env.USER_DEFINED_OP[ast.operator][2] ? eval_ast : x => x;
+            const t = env.USER_DEFINED_OP[ast.operator].evalargs ? eval_ast : x => x;
             
             const a = t(ast.left, env);
             const b = t(ast.right, env);
 
-            const func = env.USER_DEFINED_OP[ast.operator][1];
+            const {func} = env.USER_DEFINED_OP[ast.operator];
 
             return eval_application(func, new List([a, b]), env);
         }
