@@ -118,13 +118,7 @@ derivative: [x, AST] -> (
             nodeop @ [r, {^}, `{2}]
           ]
         )], -- quotient rule
-        [{^}, (
-          rc: isnodenum @ r;
-          isnodeident @ r ? [rc: neq'x . getname @ r,];
-          
-          lc: isnodenum @ l;
-          isnodeident @ l ? [lc: neq'x . getname @ l,];
-          
+        [{^}, (          
           -- derivative of constant to the power of a function
           dcpf: nodeop @ [
             derivative @ [x, r],
@@ -143,19 +137,13 @@ derivative: [x, AST] -> (
             nodeop @ [
               r,
               {*},
-              nodeop @ [l, {^}, rc ? [nodenum @ [eval_ast @ r - 1], nodeop @ [r, {-}, `{1}]]]
+              nodeop @ [l, {^}, nodeop @ [r, {-}, `{1}]]
             ]
           ];
           
           -- derivative of function the power of a function
           general: nodeop @ [dcpf, {+}, dfpc];
           
-          cond @! [
-            [lc && rc, `{0}], -- constant to the power of a constant
-            [lc, dcpf], -- constant to the power of a function
-            [rc, dfpc], -- function to the power of a constant
-            [1, general] -- function to the power of a function
-          ]
         )], -- generalized power rule
         [{@}, (
           f: eval_ast @ l; -- function that is being applied
