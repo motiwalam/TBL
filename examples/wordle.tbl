@@ -12978,7 +12978,7 @@ get_fb: [soln, guess] -> (
 );
 
 fb_to_emoji: fb -> (
-  switch @! [
+  switch @- [
     fb,
     [{g}, {🟩}],
     [{y}, {🟨}],
@@ -12997,7 +12997,7 @@ wordle: [] -> (
       guess_fb,
       (
         c: args::0;
-        cond @! [
+        cond @- [
           [c = {solution}, soln],
           [len @ c != 5, {invalid number of letters}],
           [not . (w -> includes'solns @ w || includes'gwords @ w) @ c, {guess not in word list}],

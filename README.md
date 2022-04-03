@@ -168,13 +168,13 @@ In contrast, in the expression `(5 + 3) ^^^ (7 + 2)`, the `^^^` operator "sees" 
 
 ## Macros
 
-This allows us to understand the macro application operator, `@!`.
+This allows us to understand the macro application operator, `@-`.
 It evaluates the expression on its left and expects it to be a function.
 It then calls the function with the syntax tree it recieved on its right.
 It expects the result of this call to be a new syntax tree, which it then evaluates.
 
 Many of the built in operators are also available as macros.
-For example, `?` is available as the macro `ifelse`, so that `C ? [X, Y]` is equivalent to `ifelse @! [C, X, Y]`.
+For example, `?` is available as the macro `ifelse`, so that `C ? [X, Y]` is equivalent to `ifelse @- [C, X, Y]`.
 
 Similar macros exist for the while and for loop operators.
 
@@ -184,7 +184,7 @@ For example, using the `forin` macro to create a list of squares:
 ```
 squares: [];
 
-forin @! [
+forin @- [
   i, range @ [1, 10],
   push @ [squares, i*i]
 ];

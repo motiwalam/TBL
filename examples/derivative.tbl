@@ -22,7 +22,7 @@ isone: isnum @ 1;
 -- evaluates constant expressions
 
 optimize: AST -> (
-  cond @! [
+  cond @- [
     [isnodelist @ AST, optimize @@ AST],
     [isnodeexpr @ AST, optimize @@ AST],
     [isnodeident @ AST, AST],
@@ -35,30 +35,30 @@ optimize: AST -> (
       
       lc: isnodenum @ l;
       rc: isnodenum @ r;
-      cond @! [
+      cond @- [
         [lc && rc, nodenum . eval_ast @ NAST],
-        [1, switch @! [
+        [1, switch @- [
           o,
-          [{+}, cond @! [
+          [{+}, cond @- [
             [iszero @ l, r],
             [iszero @ r, l],
             [1, NAST]
           ]],
-          [{-}, cond @! [
+          [{-}, cond @- [
             [iszero @ r, l],
             [1, NAST]
           ]],
-          [{*}, cond @! [
+          [{*}, cond @- [
             [iszero @ l || iszero @ r, `{0}],
             [isrenum @ 1 @ l, r],
             [isrenum @ 1 @ r, l],
             [1, NAST]
           ]],
-          [{/}, cond @! [
+          [{/}, cond @- [
             [isrenum @ 1 @ r, l],
             [1, NAST]
           ]],
-          [{^}, cond @! [
+          [{^}, cond @- [
             [iszero @ r, `{1}],
             [iszero @ l, `{0}],
             [isrenum @ 1 @ l, `{1}],
@@ -76,7 +76,7 @@ optimize: AST -> (
 -- takes an expression and returns an expression that is the derivative 
 derivative: [x, AST] -> (
   
-  cond @! [
+  cond @- [
     [isnodeident @ AST, eq'x . getname @ AST ? [`{1}, `{0}]], -- assume all names other than x are constants
     [isnodenum @ AST, `{0}],
     [isnodeop @ AST, (
@@ -84,7 +84,7 @@ derivative: [x, AST] -> (
       r: getright @ AST;
       o: getop @ AST;
       
-      switch @! [
+      switch @- [
         o,
         [{+}, nodeop @ [derivative @ [x, l], {+}, derivative @ [x, r]]],
         [{-}, nodeop @ [derivative @ [x, l], {-}, derivative @ [x, r]]],
