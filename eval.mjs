@@ -6,22 +6,24 @@ import { LANG } from "./language.mjs";
 import assert from "assert";
 
 import {
-    assert_func, assert_list, ilist, ivfun, assert_value, ivalue, assert_vstring, assert_valid_opstring, ifunc, assert_isreal_strict
+    assert_func, assert_list, ilist, ivfun, assert_value, ivalue, assert_vstring, assert_valid_opstring, ifunc, assert_isreal_strict, isreal_strict
 } from "./checks.mjs";
 
-function eval_application(f, a, env) {
+function eval_application(f, a, env, makenew = true) {
     if (f instanceof BuiltinFunction) return f.apply(a, env);
 
     assert((f.params.length == a.length) 
             || (f.variadic && a.length >= f.params.length - 1), `Invalid number of arguments`);
-    const eval_env = {
+
+    const eval_env = makenew ? {
         ENV: {
             ...env.ENV, ...f.closure.ENV
         },
         USER_DEFINED_OP: {
             ...env.USER_DEFINED_OP, ...f.closure.USER_DEFINED_OP
-        }
-    };
+        },
+        UPPER: env
+    } : env;
 
     // update the environment
     for (let i = 0; i < f.params.length; i++) {
@@ -31,9 +33,17 @@ function eval_application(f, a, env) {
         eval_env.ENV[name] = (eval_env.ENV[name] ?? []).concat(val);
     }
 
-    eval_env.ENV[LANG.RECURSION] = [f];
+    eval_env.ENV[LANG.RECURSION] = (eval_env.ENV[LANG.RECURSION] ?? []).concat(f);
     
     const result = eval_ast(f.body, eval_env);
+
+    // reset the environment
+    // necessary because eval_env may be the same as env
+    for (const n of f.params) {
+        eval_env.ENV[n].pop();
+    }
+
+    eval_env.ENV[LANG.RECURSION].pop();
 
     return result;
 }
@@ -173,14 +183,19 @@ function eval_ast(ast, env) {
         }
 
         // function application
-        if (ast.operator == LANG.APPLICATION) {
+        if (ast.operator == LANG.APPLICATION || LANG.IS_SCOPED_APPLICATION(ast.operator)) {
             const f = eval_ast(ast.left, env);
-            assert_func(f, `Left argument to ${LANG.APPLICATION} must be a function`);
+            assert_func(f, `Left argument to ${ast.operator} must be a function`);
+            
             
             let a = eval_ast(ast.right, env);
             if (!ilist(a)) a = new List([a]);
+            
+            const n = ast.operator.slice(1).length - 1;
+            for (let i = 0; i < n; i++) env = env.UPPER || env;
+            const makenew = n < 0;
 
-            return eval_application(f, a, env);
+            return eval_application(f, a, env, makenew);
                 
         }
 

@@ -408,7 +408,7 @@ define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new
 
 define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
-define_expr("macro_apply", `{@!} <<< [1, [f, g] -> eval_ast @ [(eval_ast @ [f]) @ [g]]]`);
+define_expr("macro_apply", `{@-} <<< [1, [f, g] -> eval_ast @!! [(eval_ast @ [f]) @ [g]]]`);
 
 define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
 define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
@@ -644,7 +644,7 @@ ast -> nodeexpr @ [
 
 define_expr("ast_to_tbl", `
 ast_to_tbl: AST ->
-    cond @! [
+    cond @- [
       [isnodeident @ AST, getname @ AST],
       [isnodeop @ AST, (
         l: ast_to_tbl . getleft @ AST;
@@ -660,7 +660,7 @@ ast_to_tbl: AST ->
         [isnodeast @ AST, {\`\\{{ast_to_tbl . getast @ AST}\\}}],
         [isnodenum @ AST, (
         n: eval_ast @ AST;
-        cond @! [
+        cond @- [
           [eq'0 . im @ n, {{re @ n}}],
           [eq'0 . re @ n, {{im @ n}i}],
           [1, {{re @ n}+{im @ n}i}]

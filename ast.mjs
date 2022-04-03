@@ -306,20 +306,28 @@ function make_ast(input, udo) {
             else if (LANG.NUMBER_START.includes(e[0])) {
                 values.push(parseNumber(e));
             }
-    
-            else if (!LANG.OPERATORS(udo).includes(e)) {
-                values.push(new NodeIdentifier(e));
+
+            else if (LANG.OPERATORS(udo).includes(e) || LANG.IS_SCOPED_APPLICATION(e)) {
+                values.push(e)
             }
     
             else {
-                values.push(e)
+                values.push(new NodeIdentifier(e));
             }
     
         }
         
         for (const [opgroup, assoc] of LANG.PRECEDENCE(udo)) {
-            while (opgroup.some(o => values.includes(o))) {
-                const idx = LANG.ASSOC_FUNC(assoc)(values, e => opgroup.includes(e));
+            let vf = o => values.includes(o);
+            let ef = e => opgroup.includes(e);
+            
+            if (opgroup.includes(LANG.SCOPED_APPLICATION)) {
+                vf = o => values.includes(o) || values.some(LANG.IS_SCOPED_APPLICATION);
+                ef = e => LANG.IS_SCOPED_APPLICATION(e) || opgroup.includes(e);
+            }
+
+            while (opgroup.some(vf)) {
+                const idx = LANG.ASSOC_FUNC(assoc)(values, ef);
                 const [l, o, r] = values.splice(idx - 1, 3);
                 const opr = new NodeOperation(o, l, r);
                 values = values.slice(0, idx - 1).concat(opr).concat(values.slice(idx - 1))

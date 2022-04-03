@@ -29,6 +29,12 @@ const BIND = ':';
 const OPBIND = "<<";
 const ASTOPBIND = "<<<";
 const APPLICATION = '@';
+const SCOPED_APPLICATION = '@!';
+const IS_SCOPED_APPLICATION = e => typeof e === 'string' 
+                                   && e.startsWith(SCOPED_APPLICATION)
+                                   && [...e.slice(SCOPED_APPLICATION.length)]
+                                      .every(e => e === SCOPED_APPLICATION[1])
+
 
 const WHILE = '!';
 const FOR = '#';
@@ -83,7 +89,7 @@ const ASSOCIATE_RIGHT = 'right';
 const PRECEDENCE = UDO => {
     const result = [
         [[PARTIAL], ASSOCIATE_LEFT],
-        [[APPLICATION], ASSOCIATE_LEFT],
+        [[APPLICATION, SCOPED_APPLICATION], ASSOCIATE_LEFT],
         [[EXPONENTIATION], ASSOCIATE_LEFT],
         [[MULTIPLICATION, DIVISION], ASSOCIATE_LEFT],
         [[MODULUS, ADDITION, SUBTRACTION], ASSOCIATE_LEFT],
@@ -150,7 +156,7 @@ const LANG = Object.freeze({
     CONDITIONAL,
     DEFINITION, VARIADIC_DEFINE,
     BIND, OPBIND, ASTOPBIND,
-    APPLICATION,
+    APPLICATION, SCOPED_APPLICATION, IS_SCOPED_APPLICATION,
 
     EXPONENTIATION,
     MULTIPLICATION,
