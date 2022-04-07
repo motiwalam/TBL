@@ -12998,7 +12998,18 @@ wordle: [] -> (
       (
         c: args::0;
         cond @- [
-          [c = {solution}, soln],
+          [c = {!solution}, soln],
+          [c = {!unused}, (
+            l: map'(get'[_, 0]) 
+               .filter'(eq'{b} 
+               .get'[_, 1]) 
+               .uniq 
+               .reduce'concat 
+               .map'(reduce'zip) 
+               @ [guess_fb];
+
+            filter @ [c -> not . includes @ [l, c], ASCII_LOWER]
+          )],
           [len @ c != 5, {invalid number of letters}],
           [not . (w -> includes'solns @ w || includes'gwords @ w) @ c, {guess not in word list}],
           [1, (
