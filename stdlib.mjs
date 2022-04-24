@@ -517,6 +517,7 @@ define_expr("fpower", `{**} << [2.5, [f, n] -> reduce'[commute @ apply, repeat @
 define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
 
 define_expr("get", `{::} << [0.5, get]`);
+define_expr("wrapped_apply", `{@.} << [4, [f, g] -> f @ [g]]`);
 define_expr("map", `{@@} << [4, map]`);
 define_expr("filter", `{@|} << [4, filter]`);
 define_expr("reduce", `{@>} << [4, reduce]`);
