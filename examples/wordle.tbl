@@ -13010,6 +13010,7 @@ wordle: [] -> (
 
             filter @ [c -> not . includes @ [l, c], ASCII_LOWER]
           )],
+	  [c = {!bot}, {$wordle {join'[_, { }] . map'(join'[_, {+}]) @. guess_fb}}],
           [len @ c != 5, {invalid number of letters}],
           [not . (w -> includes'solns @ w || includes'gwords @ w) @ c, {guess not in word list}],
           [1, (
