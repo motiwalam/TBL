@@ -9,12 +9,12 @@ const JS_PREFIX = '!js ';
 
 const c = new Calculator();
 
-c.defineBuiltin('load', params => {
+c.defineBuiltin('load', async params => {
 	const s = params.get(0);
 	assert_vstring(s, `path needs to be a string`);
 
 	try {
-		c.eval(readFileSync(s.value).toString());
+		await c.eval(readFileSync(s.value).toString());
 		return new VString('success');
 	} catch (err) {
 		return new VString(`Could not read ${s.value}. Error: ${err}`);
@@ -29,11 +29,11 @@ c.defineBuiltin('clog', params => {
 const shell = repl.start({
 	prompt: 'tbl> ',
 	ignoreUndefined: true,
-	eval: (cmd, ctx, fn, callback) => {
+	eval: async (cmd, ctx, fn, callback) => {
 		if (cmd.startsWith(JS_PREFIX)) {
 			callback(null, eval(cmd.slice(JS_PREFIX.length)))
 		} else {
-			const e = cmd !== '\n' && c.eval(cmd);
+			const e = cmd !== '\n' && await c.eval(cmd);
 			callback(null, e ? console.log(e.toString()) : undefined);
 		}
 	},

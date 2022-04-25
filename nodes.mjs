@@ -50,6 +50,51 @@ class NodeExprBody {
         return new NodeExprBody(this.subasts.concat(e2.subasts))
     }
 
+    async async_map(f) {
+        return new NodeExprBody(await Promise.all(this.subasts.map(f)));
+    }
+
+    async async_filter(f) {
+        const out = [];
+        for (const e of this.subasts) {
+            if (await f(e)) out.push(e);
+        }
+
+        return new NodeExprBody(out);
+    }
+
+    async async_reduce(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.get(0);
+            start = 1;
+        }
+
+        while (start < this.length) {
+            acc = await f(acc, this.get(start++));
+        }
+
+        return acc;
+    }
+
+    async async_accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.subasts[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = await f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new NodeExprBody(results);
+    }
+
 }
 
 class NodeList {
@@ -58,8 +103,8 @@ class NodeList {
         this.subasts = subasts;
     }
 
-    eval(env) {
-        return new List(this.subasts.map(t => eval_ast(t, env)))
+    async eval(env) {
+        return new List(await Promise.all(this.subasts.map(t => eval_ast(t, env))))
     }
 
     toString() {
@@ -104,6 +149,51 @@ class NodeList {
     concat(e2) {
         return new NodeList(this.subasts.concat(e2.subasts))
     }
+
+    async async_map(f) {
+        return new NodeList(await Promise.all(this.subasts.map(f)));
+    }
+
+    async async_filter(f) {
+        const out = [];
+        for (const e of this.subasts) {
+            if (await f(e)) out.push(e);
+        }
+
+        return new NodeList(out);
+    }
+
+    async async_reduce(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.get(0);
+            start = 1;
+        }
+
+        while (start < this.length) {
+            acc = await f(acc, this.get(start++));
+        }
+
+        return acc;
+    }
+
+    async async_accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.subasts[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = await f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new NodeList(results);
+    }
 }
 
 class NodeComplex {
@@ -133,7 +223,7 @@ class NodeString {
         this.replacements = replacements;
     }
 
-    eval(env) {
+    async eval(env) {
         let string = "";
 
         let base = 0;
@@ -146,7 +236,7 @@ class NodeString {
                     break;
                 
                 case "expr":
-                    string += eval_ast(r.ast, env).toString();
+                    string += (await eval_ast(r.ast, env)).toString();
                     break;
             }
             base = end + 1;

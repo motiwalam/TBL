@@ -9,8 +9,8 @@ import {
     assert_func, assert_list, ilist, ivfun, assert_value, ivalue, assert_vstring, assert_valid_opstring, ifunc, assert_isreal_strict, isreal_strict
 } from "./checks.mjs";
 
-function eval_application(f, a, env, makenew = true) {
-    if (f instanceof BuiltinFunction) return f.apply(a, env);
+export async function eval_application(f, a, env, makenew = true) {
+    if (f instanceof BuiltinFunction) return await f.apply(a, env);
 
     assert((f.params.length == a.length) 
             || (f.variadic && a.length >= f.params.length - 1), `Invalid number of arguments`);
@@ -35,7 +35,7 @@ function eval_application(f, a, env, makenew = true) {
 
     eval_env.ENV[LANG.RECURSION] = (eval_env.ENV[LANG.RECURSION] ?? []).concat(f);
     
-    const result = eval_ast(f.body, eval_env);
+    const result = await eval_ast(f.body, eval_env);
 
     // reset the environment
     // necessary because eval_env may be the same as env
@@ -48,11 +48,11 @@ function eval_application(f, a, env, makenew = true) {
     return result;
 }
 
-function eval_ast(ast, env) {
+export async function eval_ast(ast, env) {
     if (ast instanceof NodeExprBody) {
         let value = new Complex(0, 0);
         for (const e of ast.subasts) {
-            value = eval_ast(e, env);
+            value = await eval_ast(e, env);
         }
         return value;
     }
@@ -64,7 +64,7 @@ function eval_ast(ast, env) {
             
             let targets, values, rv;
             if (target instanceof NodeIdentifier ) {
-                rv = eval_ast(value, env);
+                rv = await eval_ast(value, env);
                 targets = [target.name];
                 values = [rv];
             } else if (target instanceof NodeList) {
@@ -72,7 +72,7 @@ function eval_ast(ast, env) {
                 assert(target.subasts.every(e => e instanceof NodeIdentifier),
                       "Invalid assignment: target list can only contain identifiers");
                 
-                rv = eval_ast(value, env);
+                rv = await eval_ast(value, env);
                 if (rv instanceof List) {
                     assert(rv.length == target.subasts.length || rv.length == 1, `Expected ${target.subasts.length}; receieved ${rv.length}`);
 
@@ -105,8 +105,8 @@ function eval_ast(ast, env) {
         }
 
         if ([LANG.OPBIND, LANG.ASTOPBIND].includes(ast.operator)) {
-            const op = eval_ast(ast.left, env);
-            const right = eval_ast(ast.right, env);
+            const op = await eval_ast(ast.left, env);
+            const right = await eval_ast(ast.right, env);
 
             let i = 0, assoc = LANG.ASSOCIATE_LEFT, unsafe = false, func;
             if (right instanceof List) {
@@ -157,12 +157,12 @@ function eval_ast(ast, env) {
         if (ast.operator in (env.USER_DEFINED_OP ?? {})) {
             const t = env.USER_DEFINED_OP[ast.operator].evalargs ? eval_ast : x => x;
             
-            const a = t(ast.left, env);
-            const b = t(ast.right, env);
+            const a = await t(ast.left, env);
+            const b = await t(ast.right, env);
 
             const {func} = env.USER_DEFINED_OP[ast.operator];
 
-            return eval_application(func, new List([a, b]), env);
+            return await eval_application(func, new List([a, b]), env);
         }
 
         // function definition
@@ -184,24 +184,24 @@ function eval_ast(ast, env) {
 
         // function application
         if (ast.operator == LANG.APPLICATION || LANG.IS_SCOPED_APPLICATION(ast.operator)) {
-            const f = eval_ast(ast.left, env);
+            const f = await eval_ast(ast.left, env);
             assert_func(f, `Left argument to ${ast.operator} must be a function`);
             
             
-            let a = eval_ast(ast.right, env);
+            let a = await eval_ast(ast.right, env);
             if (!ilist(a)) a = new List([a]);
             
             const n = ast.operator.slice(1).length - 1;
             for (let i = 0; i < n; i++) env = env.UPPER || env;
             const makenew = n < 0;
 
-            return eval_application(f, a, env, makenew);
+            return await eval_application(f, a, env, makenew);
                 
         }
 
         // conditional
         if (ast.operator == LANG.CONDITIONAL) {
-            const c = eval_ast(ast.left, env);
+            const c = await eval_ast(ast.left, env);
             
             const bs = ast.right;
             assert(bs instanceof NodeList, `Branches of a conditional must be a list.`);
@@ -209,17 +209,17 @@ function eval_ast(ast, env) {
             const [tb, fb] = bs.subasts;
 
             if (bool(c)) {
-                return eval_ast(tb, env);
+                return await eval_ast(tb, env);
             } else {
-                return eval_ast(fb, env);
+                return await eval_ast(fb, env);
             }
         }
 
         // while
         if (ast.operator == LANG.WHILE) {
             let value = null;
-            while (bool(eval_ast(ast.left, env))) {
-                value = eval_ast(ast.right, env);
+            while (bool(await eval_ast(ast.left, env))) {
+                value = await eval_ast(ast.right, env);
             }
 
             if (value == null) return new Complex(0, 0);
@@ -236,10 +236,10 @@ function eval_ast(ast, env) {
 
             const [init, cond, update] = initializer.subasts;
 
-            value = eval_ast(init, env);
-            while (bool(eval_ast(cond, env))) {
-                value = eval_ast(body, env);
-                eval_ast(update, env);
+            value = await eval_ast(init, env);
+            while (bool(await eval_ast(cond, env))) {
+                value = await eval_ast(body, env);
+                await eval_ast(update, env);
             }
 
             if (value == null) return new Complex(0, 0);
@@ -247,13 +247,18 @@ function eval_ast(ast, env) {
         }
 
         if (ast.operator == LANG.PARTIAL) {
-            const f = eval_ast(ast.left, env);
+            const f = await eval_ast(ast.left, env);
 
             assert_func(f, `left argument to ${LANG.PARTIAL} must be a function`);
 
             const vals = ast.right instanceof NodeList ? ast.right : new NodeList([ast.right]);
 
-            const transform = params => {
+            const closure = {...env, ENV: {}};
+            for (const [name, binding] of Object.entries(env.ENV)) {
+                closure.ENV[name] = [...binding];
+            }
+
+            const transform = async params => {
                 const out = [];
                 let idx = 0;
 
@@ -262,13 +267,13 @@ function eval_ast(ast, env) {
                         const v = params.get(idx++);
                         assert_value(v, `Invalid argument: ${v}`);
                         out.push(v);
-                    } else out.push(eval_ast(s, env));
+                    } else out.push(await eval_ast(s, closure));
                 }
 
                 return new List(out).concat(params.slice(idx));
             }
 
-            const b = new BuiltinFunction(params => eval_application(f, transform(params), env));
+            const b = new BuiltinFunction(async params => await eval_application(f, await transform(params), closure));
             b.name = `${f}'${vals}`;
 
             return b;
@@ -290,20 +295,14 @@ function eval_ast(ast, env) {
             [LANG.MODULUS]: mod,
         }[ast.operator];
 
-        if (f) return f(eval_ast(ast.left, env), eval_ast(ast.right, env))
+        if (f) return f(await eval_ast(ast.left, env), await eval_ast(ast.right, env))
 
         throw `Unrecognized operator ${ast.operator}`
     } else {
-        return ast.eval(env);
+        return await ast.eval(env);
     }
 }
 
-function eval_expr(expr, env) {
-    return eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || {ENV: {}});
-}
-
-export {
-    eval_ast,
-    eval_application,
-    eval_expr
+export async function eval_expr(expr, env) {
+    return await eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || {ENV: {}});
 }

@@ -10,8 +10,8 @@ export class Calculator {
         }
     }
 
-    eval(expr) {
-        return eval_expr(expr, this.env);
+    async eval(expr) {
+        return await eval_expr(expr, this.env);
     }
 
     defineBuiltin(name, func) {

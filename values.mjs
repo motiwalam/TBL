@@ -80,13 +80,41 @@ class List {
         return new List(this.values.map(f));
     }
 
+    async async_map(f) {
+        return new List(await Promise.all(this.values.map(f)));
+    }
+
     filter(f) {
         return new List(this.values.filter(f));
+    }
+    
+    async async_filter(f) {
+        const out = [];
+        for (const e of this.values) {
+            if (await f(e)) out.push(e);
+        }
+
+        return new List(out);
     }
 
     reduce(f, i) {
         if (i == undefined) return this.values.reduce(f);
         return this.values.reduce(f, i);
+    }
+
+    async async_reduce(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.get(0);
+            start = 1;
+        }
+
+        while (start < this.length) {
+            acc = await f(acc, this.get(start++));
+        }
+
+        return acc;
     }
 
     every(f) {
@@ -108,6 +136,23 @@ class List {
         const results = [acc];
         while (start < this.length) {
             acc = f(acc, this.get(start++));
+            results.push(acc);
+        }
+
+        return new List(results);
+    }
+
+    async async_accum(f, i) {
+        let acc = i;
+        let start = 0;
+        if (i == undefined) {
+            acc = this.values[0];
+            start = 1;
+        }
+        
+        const results = [acc];
+        while (start < this.length) {
+            acc = await f(acc, this.get(start++));
             results.push(acc);
         }
 
@@ -213,27 +258,27 @@ class VString {
     }
 
     reduce(f, i) {
-        const values = this.split(new VString(''));
-        if (i == undefined) return values.reduce(f);
-        return values.reduce(f, i);
+        return this.split(new VString('')).reduce(f, i);
     }
 
     accum(f, i) {
-        const values = this.split(new VString(''));
-        let acc = i;
-        let start = 0;
-        if (i == undefined) {
-            acc = values.get(0);
-            start = 1;
-        }
-        
-        const results = [acc];
-        while (start < this.length) {
-            acc = f(acc, this.get(start++));
-            results.push(acc);
-        }
+        return this.split(new VString('')).accum(f, i);
+    }
 
-        return new List(results);
+    async async_map(f) {
+        return this.split(new VString('')).async_map(f)
+    }
+
+    async async_filter(f) {
+        return this.split(new VString('')).async_filter(f);
+    }
+
+    async async_reduce(f, i) {
+        return this.split(new VString('')).async_reduce(f, i);
+    }
+
+    async async_accum(f, i) {
+        return this.split(new VString('')).async_accum,(f, i);
     }
 
 }

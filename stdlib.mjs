@@ -46,7 +46,7 @@ const define_builtin = (n, f) => {
     STDLIB.ENV[n] = [bf];
 }
 
-const define_expr = (n, expr) => (STDLIB.ENV[n] = [eval_expr(fix(expr), STDLIB)]);
+const define_expr = async (n, expr) => (STDLIB.ENV[n] = [await eval_expr(fix(expr), STDLIB)]);
 
 const define_const = (n, c) => {
     if (typeof c === 'string') STDLIB.ENV[n] = [new VString(c)];
@@ -113,25 +113,25 @@ define_builtin("pop", params => {
     return l.pop();
 });
 
-define_builtin("map", (params, env) => {
+define_builtin("map", async (params, env) => {
     const [f, l] = get_n(params, 2);
 
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
     assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
-    return l.map(e => eval_application(f, new List([e]), env));
+    return await l.async_map(e => eval_application(f, new List([e]), env));
 });
 
-define_builtin("filter", (params, env) => {
+define_builtin("filter", async (params, env) => {
     const [f, l] = get_n(params, 2);
     
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
     assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
-    return l.filter(e => bool(eval_application(f, new List([e]), env)))
+    return await l.async_filter(async e => bool(await eval_application(f, new List([e]), env)));
 });
 
-define_builtin("reduce", (params, env) => {
+define_builtin("reduce", async (params, env) => {
     const [f, l, i] = get_n(params, 3);
 
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
@@ -139,10 +139,10 @@ define_builtin("reduce", (params, env) => {
 
     if (i != undefined) assert_value(i, 'initial argument must be a value');
 
-    return l.reduce((a, b) => eval_application(f, new List([a, b]), env), i);
+    return await l.async_reduce((a, b) => eval_application(f, new List([a, b]), env), i);
 });
 
-define_builtin("accumulate", (params, env) => {
+define_builtin("accumulate", async (params, env) => {
     const [f, l, i] = get_n(params, 3);
 
     assert_func(f, ERRORS.FIRST_ARG_FUNC);
@@ -150,7 +150,7 @@ define_builtin("accumulate", (params, env) => {
 
     if (i != undefined) assert_value(i, 'initial argument must be a value');
 
-    return l.accum((a, b) => eval_application(f, new List([a, b]), env), i);
+    return await l.async_accum((a, b) => eval_application(f, new List([a, b]), env), i);
 });
 
 define_builtin("split", params => {
@@ -331,20 +331,20 @@ const ncompsetter = n => setter(
 ncompsetter('re');
 ncompsetter('im');
 
-define_builtin("eval", (params, env) => {
+define_builtin("eval", async (params, env) => {
     const [c] = get_n(params, 1);
 
     assert_value(c, "can not evaluate non value");
-    if (ivstr(c)) return eval_expr(c.toString(), env);
+    if (ivstr(c)) return await eval_expr(c.toString(), env);
     else return c;
 });
 
-define_builtin("eval_ast", (params, env) => {
+define_builtin("eval_ast", async (params, env) => {
     const [c] = get_n(params, 1);
 
     assert_node(c, `argument not an ast`);
     
-    return eval_ast(c, env);
+    return await eval_ast(c, env);
 });
 
 const predfun = (n, f) => define_builtin(n, params => {
@@ -406,19 +406,19 @@ define_builtin("ptable", (params, env) => {
 
 define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new VString(n))));
 
-define_expr("env", `[] -> [defined @ [], ptable @ []]`)
+await define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
-define_expr("macro_apply", `{@-} <<< [1, [f, g] -> eval_ast @!! [(eval_ast @ [f]) @ [g]]]`);
+await define_expr("macro_apply", `{@-} <<< [1, [f, g] -> eval_ast @!! [(eval_ast @ [f]) @ [g]]]`);
 
-define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
-define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
-define_expr("over", `{.|} << [1, [f, g] -> (i => f .. map @ [f -> f @ i, g])]`);
+await define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
+await define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
+await define_expr("over", `{.|} << [1, [f, g] -> (i => f .. map @ [f -> f @ i, g])]`);
 
-define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
-define_expr("maxl", `reduce'max`);
-define_expr("min", '[a, b] -> (a < b) ? [a, b]');
-define_expr("minl", `reduce'min`);
-define_expr("repeat", `
+await define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
+await define_expr("maxl", `reduce'max`);
+await define_expr("min", '[a, b] -> (a < b) ? [a, b]');
+await define_expr("minl", `reduce'min`);
+await define_expr("repeat", `
 [v, n] -> (
     map @ [
         x -> v,
@@ -427,34 +427,34 @@ define_expr("repeat", `
 )
 `);
 
-define_expr("and", `{&&} << [7.5, [a, b] -> a ? [b ? [1, 0], 0]]`);
-define_expr("or", `{||} << [7, [a, b] -> a ? [1, b ? [1, 0]]]`);
-define_expr("xor", `{<>} << [7, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
-define_expr("all", `reduce'[and, _, 1]`);
-define_expr("any", `reduce'[or, _, 0]`);
-define_expr("bool", `a -> a ? [1, 0]`);
-define_expr("not", `a -> a ? [0, 1]`);
+await define_expr("and", `{&&} << [7.5, [a, b] -> a ? [b ? [1, 0], 0]]`);
+await define_expr("or", `{||} << [7, [a, b] -> a ? [1, b ? [1, 0]]]`);
+await define_expr("xor", `{<>} << [7, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
+await define_expr("all", `reduce'[and, _, 1]`);
+await define_expr("any", `reduce'[or, _, 0]`);
+await define_expr("bool", `a -> a ? [1, 0]`);
+await define_expr("not", `a -> a ? [0, 1]`);
 
-define_expr("apply", `[a, b] -> a @ [b]`);
-define_expr("pow", `[a, b] -> a ^ b`);
-define_expr("mul", `[a, b] -> a * b`);
-define_expr("div", `[a, b] -> a / b`);
-define_expr("add", `[a, b] -> a + b`);
-define_expr("sub", `[a, b] -> a - b`);
-define_expr("mod", `[a, b] -> a % b`);
-define_expr("eq", `[a, b] -> a = b`);
-define_expr("neq", `[a, b] -> a != b`);
-define_expr("lt", `[a, b] -> a < b`);
-define_expr("gt", `[a, b] -> a > b`);
-define_expr("lte", `[a, b] -> a <= b`);
-define_expr("gte", `[a, b] -> a >= b`);
+await define_expr("apply", `[a, b] -> a @ [b]`);
+await define_expr("pow", `[a, b] -> a ^ b`);
+await define_expr("mul", `[a, b] -> a * b`);
+await define_expr("div", `[a, b] -> a / b`);
+await define_expr("add", `[a, b] -> a + b`);
+await define_expr("sub", `[a, b] -> a - b`);
+await define_expr("mod", `[a, b] -> a % b`);
+await define_expr("eq", `[a, b] -> a = b`);
+await define_expr("neq", `[a, b] -> a != b`);
+await define_expr("lt", `[a, b] -> a < b`);
+await define_expr("gt", `[a, b] -> a > b`);
+await define_expr("lte", `[a, b] -> a <= b`);
+await define_expr("gte", `[a, b] -> a >= b`);
 
-define_expr("sum", `reduce'[add, _, 0]`);
-define_expr("prod", `reduce'[mul, _, 1]`);
-define_expr("fact", `n -> n > 1 ? [prod @ [range @ [2, n]], 1]`);
+await define_expr("sum", `reduce'[add, _, 0]`);
+await define_expr("prod", `reduce'[mul, _, 1]`);
+await define_expr("fact", `n -> n > 1 ? [prod @ [range @ [2, n]], 1]`);
 
 
-define_expr("nwise", `
+await define_expr("nwise", `
 [l, n] ->
     map @ [
         i -> map @ [
@@ -465,7 +465,7 @@ define_expr("nwise", `
     ]
 `);
 
-define_expr("encode", `
+await define_expr("encode", `
 [n, b] ->
     n = 0 ? [
         [],
@@ -474,7 +474,7 @@ define_expr("encode", `
 ;
 `);
 
-define_expr("decode", `
+await define_expr("decode", `
 [v, b] ->
     0 = len @ [v] ? [
         0,
@@ -483,52 +483,52 @@ define_expr("decode", `
 ;
 `);
 
-define_expr("bin", `encode'[_, 2]`);
-define_expr("fbin", `decode'[_, 2]`);
+await define_expr("bin", `encode'[_, 2]`);
+await define_expr("fbin", `decode'[_, 2]`);
 
-define_expr("hex", `encode'[_, 16]`);
-define_expr("fhex", `decode'[_, 16]`);
+await define_expr("hex", `encode'[_, 16]`);
+await define_expr("fhex", `decode'[_, 16]`);
 
-define_expr("polar", `[r, t] -> r * (cos @ t + 1i * sin @ t)`);
-define_expr("arg", `z -> atan @ [im @ z / re @ z]`);
-define_expr("rad", `mul'(PI/180)`);
-define_expr("deg", `mul'(180/PI)`);
+await define_expr("polar", `[r, t] -> r * (cos @ t + 1i * sin @ t)`);
+await define_expr("arg", `z -> atan @ [im @ z / re @ z]`);
+await define_expr("rad", `mul'(PI/180)`);
+await define_expr("deg", `mul'(180/PI)`);
 
-define_expr("includes", `
+await define_expr("includes", `
 [l, e] ->
 any @ [map @ [
   i -> (r: e = i; islist @ [r] ? [0, r]),
   l
 ]];`);
 
-define_expr("reverse", `l -> map @ [get'[l], range @ [len @ [l] - 1, 0, ~1]]`)
+await define_expr("reverse", `l -> map @ [get'[l], range @ [len @ [l] - 1, 0, ~1]]`)
 
 
-define_expr("every", `[l, f] -> all @ [map @ [f, l]]`);
-define_expr("some", `[l, f] -> any @ [map @ [f, l]]`);
+await define_expr("every", `[l, f] -> all @ [map @ [f, l]]`);
+await define_expr("some", `[l, f] -> any @ [map @ [f, l]]`);
 
-define_expr("neg", `mul'~1`);
-define_expr("id", "x -> x");
-define_expr("uid", "x => x");
+await define_expr("neg", `mul'~1`);
+await define_expr("id", "x -> x");
+await define_expr("uid", "x => x");
 
-define_expr("unwrap", `f -> f .. id`);
-define_expr("commute", `f -> f .. reverse . uid`);
-define_expr("fpower", `{**} << [2.5, [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]]`)
-define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
+await define_expr("unwrap", `f -> f .. id`);
+await define_expr("commute", `f -> f .. reverse . uid`);
+await define_expr("fpower", `{**} << [2.5, [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]]`)
+await define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
 
-define_expr("get", `{::} << [0.5, get]`);
-define_expr("wrapped_apply", `{@.} << [4, [f, g] -> f @ [g]]`);
-define_expr("map", `{@@} << [4, map]`);
-define_expr("filter", `{@|} << [4, filter]`);
-define_expr("reduce", `{@>} << [4, reduce]`);
-define_expr("concat", `{++} << [7, concat]`);
-define_expr("floordiv", `{//} << [6, floor . div]`);
+await define_expr("get", `{::} << [0.5, get]`);
+await define_expr("wrapped_apply", `{@.} << [4, [f, g] -> f @ [g]]`);
+await define_expr("map", `{@@} << [4, map]`);
+await define_expr("filter", `{@|} << [4, filter]`);
+await define_expr("reduce", `{@>} << [4, reduce]`);
+await define_expr("concat", `{++} << [7, concat]`);
+await define_expr("floordiv", `{//} << [6, floor . div]`);
 
-define_expr("zip", `{<:>} << [7, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
-define_expr("encode", `{<%>} << [7, encode]`);
-define_expr("encode", `{<*>} << [7, decode]`);
+await define_expr("zip", `{<:>} << [7, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
+await define_expr("encode", `{<%>} << [7, encode]`);
+await define_expr("encode", `{<*>} << [7, decode]`);
 
-define_expr("uniq", `l -> (
+await define_expr("uniq", `l -> (
     r: [];
     map @ [
         e -> not . includes @ [r, e] ? [push @ [r, e],],
@@ -537,7 +537,7 @@ define_expr("uniq", `l -> (
     r
 )`);
 
-define_expr("find", `[l, f] -> (
+await define_expr("find", `[l, f] -> (
     i: ~1;
     [j: 0, j < len @ [l], j: j + 1] # (
         and'(i = ~1) . f . get'[l] @ j ? [i: j,]
@@ -545,9 +545,9 @@ define_expr("find", `[l, f] -> (
     i;
 );`)
 
-define_expr("indexOf", `[l, e] -> find @ [l, eq'e]`);
+await define_expr("indexOf", `[l, e] -> find @ [l, eq'e]`);
 
-define_expr("nodeop", `[l, o, r] -> (
+await define_expr("nodeop", `[l, o, r] -> (
     a: \`{x ? y};
 
     setleft @ [a, l];
@@ -556,36 +556,36 @@ define_expr("nodeop", `[l, o, r] -> (
     a;
 )`);
 
-define_expr("nodelist", `l => (
+await define_expr("nodelist", `l => (
     o: \`{[]};
     map @ [push'o, l];
     o;
 )`);
 
-define_expr("nodeexpr", `l => (
+await define_expr("nodeexpr", `l => (
     o: \`{0;0};
     pop @ o; pop @ o;
     map @ [push'o, l];
     o
 )`);
 
-define_expr("nodenum", `n => (
+await define_expr("nodenum", `n => (
     o: \`{0};
     setre @ [o, re @ n];
     setim @ [o, im @ n];
 )`);
 
-define_expr("nodeident", `n -> (
+await define_expr("nodeident", `n -> (
     o: \`{x};
     setname @ [o, n];
 )`);
 
-define_expr("nodestring", `n -> (
+await define_expr("nodestring", `n -> (
     o: \`{{}};
     settext @ [o, n];
 )`);
 
-define_expr("cond", `
+await define_expr("cond", `
 l -> (
     len @ l = 0 ? [
       \`{0},
@@ -601,7 +601,7 @@ l -> (
   );
 `);
 
-define_expr("switch", `
+await define_expr("switch", `
 l -> (
     cond . map @ [
       i -> [nodeop @ [l::0, {=}, i::0], i::1],
@@ -610,11 +610,11 @@ l -> (
   );  
 `);
 
-define_expr("ifelse", `ast -> nodeop @ [ast::0, {?}, slice @ [ast, 1]];`)
-define_expr("if", `ast -> ifelse @ [nodelist @ [ast::0, ast::1, \`{0}]];`)
+await define_expr("ifelse", `ast -> nodeop @ [ast::0, {?}, slice @ [ast, 1]];`)
+await define_expr("if", `ast -> ifelse @ [nodelist @ [ast::0, ast::1, \`{0}]];`)
 
-define_expr("for", `ast -> nodeop @ [slice @ [ast, 0, 3], {#}, ast::3]`);
-define_expr("forin", `
+await define_expr("for", `ast -> nodeop @ [slice @ [ast, 0, 3], {#}, ast::3]`);
+await define_expr("forin", `
 ast -> (
     i: gensym @ [];
     c: gensym @ [];
@@ -635,15 +635,15 @@ ast -> (
   );
 `)
 
-define_expr("while", `ast -> nodeop @ [ast::0, {!}, ast::1]`);
-define_expr("dowhile", `
+await define_expr("while", `ast -> nodeop @ [ast::0, {!}, ast::1]`);
+await define_expr("dowhile", `
 ast -> nodeexpr @ [
     ast::0,
     while . nodelist @ [ast::1, ast::0]
   ]
 `);
 
-define_expr("ast_to_tbl", `
+await define_expr("ast_to_tbl", `
 ast_to_tbl: AST ->
     cond @- [
       [isnodeident @ AST, getname @ AST],
