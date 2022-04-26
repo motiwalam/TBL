@@ -262,6 +262,15 @@ define_builtin("del", (params, env) => {
     return new Complex(1, 0);
 });
 
+define_builtin("sleep", async params => {
+    const [t] = get_n(params, 1);
+
+    assert_isreal_strict(t, `can only sleep for a real number of milliseconds`);
+    const n = t.real;
+
+    await new Promise(r => setTimeout(r, n));
+});
+
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
     const [c] = get_n(params, 1);
     verifier(c);
@@ -644,7 +653,7 @@ ast -> nodeexpr @ [
 `);
 
 await define_expr("ast_to_tbl", `
-ast_to_tbl: AST ->
+AST ->
     cond @- [
       [isnodeident @ AST, getname @ AST],
       [isnodeop @ AST, (
@@ -669,7 +678,7 @@ ast_to_tbl: AST ->
       )],
       [isnodestr @ AST, {\\{{text @ AST}\\}}]
     ]
-`)
+`);
 
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
