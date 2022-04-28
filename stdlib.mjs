@@ -698,6 +698,8 @@ AST ->
 `);
 
 await define_expr("choose_random", `c -> get'c . floor . mul'(len @. c) . random @ []`);
+await define_expr("at", `[l,i] -> i < 0 ? [l::(len @. l + i), l::i]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
