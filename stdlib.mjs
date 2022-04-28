@@ -1,4 +1,4 @@
-import { BuiltinFunction, List, Complex, duplicate, VString } from "./values.mjs";
+import { BuiltinFunction, List, Complex, duplicate, VString, toJS, fromJS } from "./values.mjs";
 import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
 import {
     assert_value, assert_func, assert_list,
@@ -284,7 +284,6 @@ define_builtin("trycatch", async (params, env) => {
     }
 });
 
-
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
     const [c] = get_n(params, 1);
     verifier(c);
@@ -413,6 +412,33 @@ mathfun(Math.log);
 mathfun(Math.log, "ln");
 mathfun(Math.log10);
 mathfun(Math.log2);
+
+const strfun = (f, n, ...asserts) => define_builtin(n ?? f.name, params => {
+    const [s, ...r] = params.values;
+
+    assert_vstring(s, `can not take ${n ?? f.name} of non-string`);
+    asserts.forEach(([a, m], i) => a(r[i], m));
+
+    return fromJS(f.bind(toJS(s))(...r.map(toJS)));
+});
+
+const assert_string = [assert_vstring, `argument must be a string`];
+const assert_num = [assert_isreal_strict, `argument must be a real number`];
+
+const strfunp = (n, fn, ...rest) => strfun(String.prototype[fn ?? n], n, ...rest);
+
+strfunp("lower", "toLowerCase");
+strfunp("upper", "toUpperCase");
+strfunp("replace", null, assert_string, assert_string);
+strfunp("replaceAll", null, assert_string, assert_string);
+strfunp("substr", null, assert_num, assert_num);
+strfunp("trimEnd");
+strfunp("trimStart");
+strfunp("trim");
+strfunp("padEnd", null, assert_num, assert_string);
+strfunp("padStart", null, assert_num, assert_string);
+strfunp("startsWith", null, assert_string);
+strfunp("endsWith", null, assert_string);
 
 define_builtin("random", () => new Complex(Math.random(), 0));
 define_builtin("abs", params => abs(...get_n(params, 1)));
