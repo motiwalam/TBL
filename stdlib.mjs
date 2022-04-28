@@ -271,6 +271,20 @@ define_builtin("sleep", async params => {
     await new Promise(r => setTimeout(r, n));
 });
 
+define_builtin("trycatch", async (params, env) => {
+    const [t, e] = get_n(params.get(0), 2);
+
+    assert_node(t, `first clause to trycatch needs to be passed as an AST, try calling this function as a macro`);
+    assert_node(e, `second clause to trycatch needs to be passed as an AST, try calling this function as a macro`);
+
+    try {
+        return await eval_ast(t, env);
+    } catch {
+        return await eval_ast(e, env);
+    }
+});
+
+
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
     const [c] = get_n(params, 1);
     verifier(c);
@@ -417,6 +431,7 @@ define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new
 
 await define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
+await define_expr("ast_apply", `{@:} <<< [1, [f, g] -> (eval_ast @ [f]) @ [g]]`);
 await define_expr("macro_apply", `{@-} <<< [1, [f, g] -> eval_ast @!! [(eval_ast @ [f]) @ [g]]]`);
 
 await define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
@@ -436,8 +451,8 @@ await define_expr("repeat", `
 )
 `);
 
-await define_expr("and", `{&&} << [7.5, [a, b] -> a ? [b ? [1, 0], 0]]`);
-await define_expr("or", `{||} << [7, [a, b] -> a ? [1, b ? [1, 0]]]`);
+await define_expr("and", `{&&} <<< [7.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
+await define_expr("or", `{||} <<< [7, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
 await define_expr("xor", `{<>} << [7, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
 await define_expr("all", `reduce'[and, _, 1]`);
 await define_expr("any", `reduce'[or, _, 0]`);
@@ -680,6 +695,7 @@ AST ->
     ]
 `);
 
+await define_expr("choose_random", `c -> get'c . floor . mul'(len @. c) . random @ []`);
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
