@@ -12,8 +12,8 @@ import {
 export async function eval_application(f, a, env, makenew = true) {
     if (f instanceof BuiltinFunction) return await f.apply(a, env);
 
-    assert((f.params.length == a.length) 
-            || (f.variadic && a.length >= f.params.length - 1), `Invalid number of arguments`);
+    assert((f.params.length == a.length)
+        || (f.variadic && a.length >= f.params.length - 1), `Invalid number of arguments`);
 
     const eval_env = makenew ? {
         ENV: {
@@ -34,7 +34,7 @@ export async function eval_application(f, a, env, makenew = true) {
     }
 
     eval_env.ENV[LANG.RECURSION] = (eval_env.ENV[LANG.RECURSION] ?? []).concat(f);
-    
+
     const result = await eval_ast(f.body, eval_env);
 
     // reset the environment
@@ -61,28 +61,28 @@ export async function eval_ast(ast, env) {
         if (ast.operator == LANG.BIND) {
             const target = ast.left;
             const value = ast.right;
-            
+
             let targets, values, rv;
-            if (target instanceof NodeIdentifier ) {
+            if (target instanceof NodeIdentifier) {
                 rv = await eval_ast(value, env);
                 targets = [target.name];
                 values = [rv];
             } else if (target instanceof NodeList) {
-                
+
                 assert(target.subasts.every(e => e instanceof NodeIdentifier),
-                      "Invalid assignment: target list can only contain identifiers");
-                
+                    "Invalid assignment: target list can only contain identifiers");
+
                 rv = await eval_ast(value, env);
                 if (rv instanceof List) {
                     assert(rv.length == target.subasts.length || rv.length == 1, `Expected ${target.subasts.length}; receieved ${rv.length}`);
 
                     if (rv.length == 1) {
-                        values = Array.from({length: target.subasts.length}, () => duplicate(rv.get(0)));
+                        values = Array.from({ length: target.subasts.length }, () => duplicate(rv.get(0)));
                     } else {
                         values = rv.values;
                     }
                 } else {
-                    values = Array.from({length: target.subasts.length}, () => duplicate(rv));
+                    values = Array.from({ length: target.subasts.length }, () => duplicate(rv));
                 }
 
                 targets = target.subasts.map(e => e.name);
@@ -93,7 +93,7 @@ export async function eval_ast(ast, env) {
                 const bindings = [...(env.ENV[name] ?? [])];
                 bindings.pop();
                 const v = values[i];
-                if (ivfun(v)){
+                if (ivfun(v)) {
                     v.closure.ENV[name] = [v];
                 }
                 bindings.push(v);
@@ -132,7 +132,7 @@ export async function eval_ast(ast, env) {
             assert_vstring(op, "operator in operator defintion must be a string");
             assert_func(func, `right operand to ${LANG.OPBIND} must be a function`);
 
-            assert(func instanceof BuiltinFunction || func.params.length == 2 || (func.variadic && [1, 2].includes(func.params.length) ), `function must take exactly two arguments`);
+            assert(func instanceof BuiltinFunction || func.params.length == 2 || (func.variadic && [1, 2].includes(func.params.length)), `function must take exactly two arguments`);
 
             assert_valid_opstring(op.value, "invalid operator string");
 
@@ -141,7 +141,7 @@ export async function eval_ast(ast, env) {
             if (i === Math.floor(i)) {
                 const cassoc = LANG.PRECEDENCE(env.USER_DEFINED_OP)[i][1]
                 !unsafe && assert(assoc === cassoc,
-                       `Currently, operators of precedence ${i} associate ${cassoc}, not ${assoc}. This binding would force all operators of precedence ${i} to associate ${assoc}. If you are sure about this, try binding again with a list of five elements`);
+                    `Currently, operators of precedence ${i} associate ${cassoc}, not ${assoc}. This binding would force all operators of precedence ${i} to associate ${assoc}. If you are sure about this, try binding again with a list of five elements`);
             }
 
             env.USER_DEFINED_OP[op.value] = {
@@ -156,11 +156,11 @@ export async function eval_ast(ast, env) {
 
         if (ast.operator in (env.USER_DEFINED_OP ?? {})) {
             const t = env.USER_DEFINED_OP[ast.operator].evalargs ? eval_ast : x => x;
-            
+
             const a = await t(ast.left, env);
             const b = await t(ast.right, env);
 
-            const {func} = env.USER_DEFINED_OP[ast.operator];
+            const { func } = env.USER_DEFINED_OP[ast.operator];
 
             return await eval_application(func, new List([a, b]), env);
         }
@@ -170,12 +170,12 @@ export async function eval_ast(ast, env) {
             assert(ast.left instanceof NodeList || ast.left instanceof NodeIdentifier, `Invalid function head.`);
             if (ast.left instanceof NodeList) {
                 assert(ast.left.subasts.every(e => e instanceof NodeIdentifier),
-                        `All params need to be identifiers`);
+                    `All params need to be identifiers`);
             }
-            
+
             const params = ast.left instanceof NodeList ? ast.left.subasts.map(e => e.name) : [ast.left.name];
             const body = ast.right;
-            const closure = {ENV: {}};
+            const closure = { ENV: {} };
             for (const [name, binding] of Object.entries(env.ENV)) {
                 closure.ENV[name] = [...binding];
             }
@@ -186,23 +186,23 @@ export async function eval_ast(ast, env) {
         if (ast.operator == LANG.APPLICATION || LANG.IS_SCOPED_APPLICATION(ast.operator)) {
             const f = await eval_ast(ast.left, env);
             assert_func(f, `Left argument to ${ast.operator} must be a function`);
-            
-            
+
+
             let a = await eval_ast(ast.right, env);
             if (!ilist(a)) a = new List([a]);
-            
+
             const n = ast.operator.slice(1).length - 1;
             for (let i = 0; i < n; i++) env = env.UPPER || env;
             const makenew = n < 0;
 
             return await eval_application(f, a, env, makenew);
-                
+
         }
 
         // conditional
         if (ast.operator == LANG.CONDITIONAL) {
             const c = await eval_ast(ast.left, env);
-            
+
             const bs = ast.right;
             assert(bs instanceof NodeList, `Branches of a conditional must be a list.`);
             assert(bs.subasts.length == 2, `Must have only 2 branches in a conditional.`);
@@ -253,7 +253,7 @@ export async function eval_ast(ast, env) {
 
             const vals = ast.right instanceof NodeList ? ast.right : new NodeList([ast.right]);
 
-            const closure = {...env, ENV: {}};
+            const closure = { ...env, ENV: {} };
             for (const [name, binding] of Object.entries(env.ENV)) {
                 closure.ENV[name] = [...binding];
             }
@@ -273,7 +273,15 @@ export async function eval_ast(ast, env) {
                 return new List(out).concat(params.slice(idx));
             }
 
-            const b = new BuiltinFunction(async params => await eval_application(f, await transform(params), closure));
+            const b = new BuiltinFunction(async (params, env) => await eval_application(f, await transform(params), {
+                ENV: {
+                    ...env.ENV, ...closure.ENV
+                },
+                USER_DEFINED_OP: {
+                    ...env.USER_DEFINED_OP
+                },
+                UPPER: env
+            }));
             b.name = `${f}'${vals}`;
 
             return b;
@@ -304,5 +312,5 @@ export async function eval_ast(ast, env) {
 }
 
 export async function eval_expr(expr, env) {
-    return await eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || {ENV: {}});
+    return await eval_ast(make_ast(expr, env.USER_DEFINED_OP ?? {}), env || { ENV: {} });
 }
