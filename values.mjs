@@ -1,7 +1,7 @@
 import { 
     icomp, ivfun, ibfun, ilist, ivstr,
     isreal_fuzz, isimag_fuzz, iszero_fuzz,
-    inast, incomp, inexpr, inident, instring, inlist, inop
+    inast, incomp, inexpr, inident, instring, inlist, inop, ifunc
 } from "./checks.mjs";
 
 import {
@@ -283,32 +283,42 @@ class VString {
 
 }
 
-function duplicate(v) {
-    if (ibfun(v)) return new BuiltinFunction(f.apply);
-
-    if (icomp(v)) return new Complex(v.real, v.imag);
-
-    if (ivfun(v)) return new VFunction(v.params, v.body, v.closure);
-
-    if (ilist(v)) return new List(v.values.map(duplicate))
-
-    if (ivstr(v)) return new VString(v.value);
-
-    if (inast(v)) return new NodeAst(duplicate(v.ast));
-
-    if (instring(v)) return new NodeString(v.text, v.replacements);
-
-    if (incomp(v)) return new NodeComplex(v.re, v.im);
-
-    if (inexpr(v)) return new NodeExprBody(v.subasts.map(duplicate));
-
-    if (inlist(v)) return new NodeList(v.subasts.map(duplicate));
-
-    if (inop(v)) return new NodeOperation(v.operator, duplicate(v.left), duplicate(v.right));
-
-    if (inident(v)) return new NodeIdentifier(v.name);
+function predmatch(v, ps) {
+    for (const [p, f] of ps) {
+        if (p(v)) return f(v)
+    }
 }
 
+const duplicate = v => predmatch(v, [
+    [ibfun, v => new BuiltinFunction(v.apply)],
+    [icomp, v => new Complex(v.real, v.imag)],
+    [ivfun, v => new VFunction(duplicate(v.params), duplicate(v.body), v.closure)],
+    [ilist, v => new List(v.values.map(duplicate))],
+    [ivstr, v => new VString(v.value)],
+    [inast, v => new NodeAst(duplicate(v.ast))],
+    [instring, v => new NodeString(v.text, v.replacements)],
+    [incomp, v => new NodeComplex(v.re, v.im)],
+    [inexpr, v => new NodeExprBody(v.subasts.map(duplicate))],
+    [inlist, v => new NodeList(v.subasts.map(duplicate))],
+    [inop, v => new NodeOperation(v.operator, duplicate(v.left), duplicate(v.right))],
+    [inident, v => new NodeIdentifier(v.name)]
+]);
+
+const toJS = v => predmatch(v, [
+    [icomp, v => v.real],
+    [ilist, v => v.values.map(toJS)],
+    [ivstr, v => v.value],
+    [() => true, () => {throw `Could not convert ${v} to JS`}]
+]);
+
+const fromJS = v => predmatch(v, [
+    [v => typeof v === 'string', v => new VString(v)],
+    [v => v instanceof Array, v => new List(v.map(fromJS))],
+    [v => typeof v === 'number', v => new Complex(v, 0)],
+    [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
+    [() => true, () => {throw `Could not convert ${v} from JS`}]
+]);
+
 export {
-    BuiltinFunction, VFunction, Complex, List, VString, duplicate
+    BuiltinFunction, VFunction, Complex, List, VString, duplicate, toJS, fromJS
 }
