@@ -697,6 +697,61 @@ AST ->
     ]
 `);
 
+await define_expr("qsort", `
+a -> (
+    _qsort: [a, l, h] -> (
+      l < h ? [
+        (
+            pi: part @ [a, l, h];
+            $ @ [a, l, pi - 1];
+            $ @ [a, pi + 1, h];  
+        ),
+      ];
+  
+    );
+  
+    part: [a, l, h] -> (
+      swap: [a, i, j] -> (
+        t: get @ [a, i];
+        set @ [a, i, get @ [a, j]];
+        set @ [a, j, t];
+      );
+      pivot: get @ [a, h];
+      i: l - 1;
+      [j: l, j < h, j: j + 1] # (
+        get @ [a, j] < pivot ? [
+          (
+            i: i + 1;
+            swap @ [a, i, j];
+          ),
+        ]
+      );
+      swap @ [a, i + 1, h];
+      i + 1;
+    );
+    
+    _qsort @ [a, 0, len @ [a] - 1];
+    a;
+  );  
+`);
+
+await define_expr("binary_search_f", `
+[A, T, C] -> (
+    ([L, H] -> (
+        m: ceil @ ((L + H) / 2);
+        cond @- [
+            [L = H, C @ [A::L, T] = 0 ? [L, ~1]],
+            [C @ [A::m, T] > 0, $ @ [L, m - 1]],
+            [1, $ @ [m, H]]
+        ]
+    )) @ [0, len @. A - 1]
+);
+`)
+
+await define_expr("binary_search", `binary_search_f'[_, _, [a, b] -> cond @- [[a = b, 0], [a < b, ~1], [a > b, 1]]]`);
+
+await define_expr("randint", `[a, b] -> add'a . floor . mul'(b - a) . random @ []`);
+
 await define_expr("choose_random", `c -> get'c . floor . mul'(len @. c) . random @ []`);
 await define_expr("at", `[l,i] -> i < 0 ? [l::(len @. l + i), l::i]`);
 
