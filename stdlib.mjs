@@ -451,8 +451,10 @@ await define_expr("repeat", `
 )
 `);
 
-await define_expr("and", `{&&} <<< [7.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
-await define_expr("or", `{||} <<< [7, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
+await define_expr("and_shortcircuit", `{&&} <<< [7.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
+await define_expr("and", `[a, b] -> a && b`);
+await define_expr("or_shortcircuit", `{||} <<< [7, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
+await define_expr("or", `[a, b] -> a || b`);
 await define_expr("xor", `{<>} << [7, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
 await define_expr("all", `reduce'[and, _, 1]`);
 await define_expr("any", `reduce'[or, _, 0]`);
