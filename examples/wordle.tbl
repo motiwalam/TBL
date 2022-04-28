@@ -12986,9 +12986,13 @@ fb_to_emoji: fb -> (
 
 wordle: w => (
   guess_fb: [];
-  soln: 0 = len @. w ? [
-      get'solns . floor . mul'(len @ [solns]) . random @ [],
-      w::0
+
+  solns: len @. w > 1 ? [w::1, solns];
+  gwords: len @. w > 2 ? [w::2, gwords];
+
+  soln: len @. w > 0 ? [
+      w::0,
+      choose_random @. solns
   ];
   
   args =>
@@ -13011,7 +13015,7 @@ wordle: w => (
           )],
 	      [c = {!bot}, {$wordlesolver {join'[_, { }] . map'(join'[_, {+}]) @. guess_fb}}],
           [len @ c != len @ soln, {invalid number of letters}],
-          [len @ soln = 5 && not . (w -> includes'solns @ w || includes'gwords @ w) @ c, {guess not in word list}],
+          [not . (w -> includes'solns @ w || includes'gwords @ w) @ c, {guess not in word list}],
           [1, (
             push'guess_fb @ [[c, get_fb'soln @ c]];
             join @ [
