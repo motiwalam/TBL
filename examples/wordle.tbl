@@ -12973,17 +12973,6 @@ get_fb: [soln, guess] -> (
   join'fb @ {};
 );
 
-fb_to_emoji: fb -> (
-  switch @- [
-    fb,
-    [{g}, {🟩}],
-    [{y}, {🟨}],
-    [{b}, {⬛}],
-    [fb, fb]
-  ]
-);
-
-
 wordle: w => (
   guess_fb: [];
 
@@ -13011,17 +13000,14 @@ wordle: w => (
                .map'(reduce'zip) 
                @ [guess_fb];
 
-            filter @ [c -> not . includes @ [l, c], ASCII_LOWER]
+            {{filter @ [c -> not . includes @ [l, c], ASCII_LOWER]}}
           )],
 	      [c = {!bot}, {$wordlesolver {join'[_, { }] . map'(join'[_, {+}]) @. guess_fb}}],
           [len @ c != len @ soln, {invalid number of letters}],
           [not . (w -> binary_search @ [solns, w] >= 0 || binary_search @ [gwords, w] >= 0) @ c, {guess not in word list}],
           [1, (
             push'guess_fb @ [[c, get_fb'soln @ c]];
-            join @ [
-              (fb -> [fb :: 0, join'[_, {}] . map'fb_to_emoji . split'[_, {}] @ fb::1]) @@ guess_fb,
-              {\n}
-            ]
+            guess_fb
           )]
         ]
       )
