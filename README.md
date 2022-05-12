@@ -208,7 +208,7 @@ The above website also contains examples to help acquaint yourself with the lang
 
 You can also run it locally:
 
-In the root of this repository, run `node repl.mjs`.
+In the root of this repository, run `node tbl.mjs`.
 
 This will start up a TBL repl, where you can type in TBL expressions and see what they evaluate to.
 
