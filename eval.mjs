@@ -267,13 +267,17 @@ export async function eval_ast(ast, env) {
                         const v = params.get(idx++);
                         assert_value(v, `Invalid argument: ${v}`);
                         out.push(v);
-                    } else out.push(await eval_ast(s, closure));
+                    } else out.push(await eval_ast(s, {
+                        ENV: {...env.ENV, ...closure.ENV},
+                        USER_DEFINED_OP: {...env.USER_DEFINED_OP},
+                        UPPER: env
+                    }));
                 }
 
                 return new List(out).concat(params.slice(idx));
             }
 
-            const b = new BuiltinFunction(async (params, env) => await eval_application(f, await transform(params), {
+            const b = new BuiltinFunction(async (params, env) => await eval_application(f, await transform(params, env), {
                 ENV: {
                     ...env.ENV, ...closure.ENV
                 },
