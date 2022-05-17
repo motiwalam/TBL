@@ -1,11 +1,13 @@
 # TBL
 A calculator language with lists and higher order functions written in pure javascript
 
-TBL is a programming language. The fundamental data types are complex numbers, lists, functions, and strings.
+TBL is a programming language. The fundamental data types are complex numbers, lists, functions, strings, and objects (a set of key-value pairs).
 
 Functions can take anything as an argument, including other functions. 
 
 Lists can contain anything, including functions and other lists.
+
+Objects can only have strings as keys, but those keys can point to anything.
 
 ## Literals
 The literal types are numbers (which are complex), lists, strings, and code.
@@ -76,6 +78,55 @@ The `+` operator concats two strings, and if one of the operands is not a string
 
 The `*` operator, when applied to a left operand string and a right operand integer, can be used to repeat a string.
 
+## Objects
+
+There is no 'builtin' syntax for objects. 
+
+An object is created with the `object` builtin.
+
+Keys are added with `set` and deleted with `delkey`.
+
+The presence of keys is checked for with `haskey`.
+
+Values are retrieved with `get`.
+
+The list of key-value pairs is retrieved with `items`.
+
+Furthermore, a syntax for defining objects is defined in user space.
+
+The operator `:>` takes a key on the left and a value on the right, and creates an object with one key.
+
+The operator `|` then takes two objects and merges them.
+
+Thus, the Javascript object:
+
+```js
+let x = "computed_property";
+{
+  name: "Mustafa",
+  "age": 18,
+  socials: {
+    twitter: "@blahblah",
+    insta: "@blahblah"
+  },
+  [x]: "cooool"
+}
+```
+
+can be defined equivalently in TBL as:
+
+```
+(
+  x: {computed property};
+  name :> {Mustafa} |
+  {age} :> 18 |
+  socials :> (
+    twitter :> {@blahblah} |
+    insta :> {@blahblah}
+  ) |
+  [x]: {cooool}
+)
+```
 ## Functions
 TBL supports functions and higher order functions.
 
