@@ -1,4 +1,4 @@
-import { BuiltinFunction, List, Complex, duplicate, VString, toJS, fromJS } from "./values.mjs";
+import { BuiltinFunction, List, Complex, duplicate, VString, toJS, fromJS, VObject } from "./values.mjs";
 import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
 import {
     assert_value, assert_func, assert_list,
@@ -22,6 +22,9 @@ import {
     assert_vfunc,
     assert_nstring,
     assert_ncomp,
+    ivobj,
+    assert_vobject,
+    is_indexable,
 } from "./checks.mjs";
 
 import { fix } from "./backcompat.mjs";
@@ -36,7 +39,7 @@ import assert from "assert";
 import { LANG } from "./language.mjs";
 import { NodeIdentifier } from "./nodes.mjs";
 
-const STDLIB = {ENV: {}};
+export const STDLIB = {ENV: {}};
 
 const get_n = (p, n) => Array.from({ length: n }, (_, i) => p.get(i));
 
@@ -68,21 +71,45 @@ function assert_valid_index(l, i) {
 define_builtin("get", params => {
     const [l, i] = get_n(params, 2);
 
-    assert_valid_index(l, i);
+    if (is_indexable(l)) {
+        assert_valid_index(l, i);
+        return l.get(i.real);
+    } else if (ivobj(l)) {
+        if (inident(i)) {
+            return l.get(i.name);
+        } else if (ivstr(i)) {
+            return l.get(i.value);
+        } else {
+            return l.get(i.toString())
+        }
+    }
 
-    return l.get(i.real);
+    throw `can not get on non list or object`;
+
 });
 
 define_builtin("set", params => {
     const [l, i, v] = get_n(params, 3);
-
-    assert_valid_index(l, i);
     
     assert_value(v, `Invalid value`);
+    if (is_indexable(l)) {
+        assert_valid_index(l, i);
+        
+    
+        l.set(i.real, v);
+    
+        return v;
+    } else if (ivobj(l)) {
+        const key = inident(i) 
+                    ? i.name
+                    : ivstr(i)
+                     ? i.value
+                     : i.toString();
 
-    l.set(i.real, v);
+        return l.set(key, v);
+    }
 
-    return v;
+    throw `can not set on non list or object`;
 });
 
 define_builtin("push", params => {
@@ -284,6 +311,15 @@ define_builtin("trycatch", async (params, env) => {
     }
 });
 
+define_builtin("object", () => new VObject({}));
+define_builtin("items", params => {
+    const [o] = get_n(params, 1);
+
+    assert_vobject(o, `can not get entries of non object`);
+    
+    return o.items();
+})
+
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
     const [c] = get_n(params, 1);
     verifier(c);
@@ -457,12 +493,41 @@ define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new
 
 await define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
-await define_expr("ast_apply", `{@:} <<< [1, [f, g] -> (eval_ast @ [f]) @ [g]]`);
-await define_expr("macro_apply", `{@-} <<< [1, [f, g] -> eval_ast @!! [(eval_ast @ [f]) @ [g]]]`);
+await define_expr("find", `[l, f] -> (
+    i: ~1;
+    [j: 0, j < len @ [l], j: j + 1] # (
+        i = ~1 ? [
+            f @ [get @ [l, j]] ? [
+                i: j,
+            ],
+        ]
+    );
+    i;
+)`);
 
-await define_expr("compose", "{.} << [1.5, [f, g] -> (i => f @ [g @ i])]");
-await define_expr("ucompose", "{..} << [1, [f, g] -> (i => f @ (g @ i))]");
-await define_expr("over", `{.|} << [1, [f, g] -> (i => f .. map @ [f -> f @ i, g])]`);
+await define_expr("includes", `
+[l, e] -> (
+    flag: 0;
+    [j: 0, j < len @ [l], j: j + 1] # (
+        flag = 0 ? [
+            r: e = get @ [l, j];
+            (islist @ [r] ? [0, r]) ? [
+                flag: 1,
+            ],
+        ]
+    );
+    flag;
+)`);
+
+await define_expr("get", `{::} << [0.5, get]`);
+await define_expr("op_priority", `o -> find @ [ptable @ [], i -> includes @ [i::0, o]]`);
+
+await define_expr("ast_apply", `{@:} <<< [op_priority @ {@}, [f, g] -> (eval_ast @ [f]) @ [g]]`);
+await define_expr("macro_apply", `{@-} <<< [op_priority @ {@}, [f, g] -> eval_ast @!! [(eval_ast @ [f]) @ [g]]]`);
+
+await define_expr("compose", "{.} << [op_priority @ {@} + 0.5, [f, g] -> (i => f @ [g @ i])]");
+await define_expr("ucompose", "{..} << [op_priority @ {.}, [f, g] -> (i => f @ (g @ i))]");
+await define_expr("over", `{.|} << [op_priority @ {.}, [f, g] -> (i => f .. map @ [f -> f @ i, g])]`);
 
 await define_expr("max", `[a, b] -> (a > b) ? [a, b]`);
 await define_expr("maxl", `reduce'max`);
@@ -477,11 +542,11 @@ await define_expr("repeat", `
 )
 `);
 
-await define_expr("and_shortcircuit", `{&&} <<< [7.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
+await define_expr("and_shortcircuit", `{&&} <<< [op_priority @ {=} + 0.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
 await define_expr("and", `[a, b] -> a && b`);
-await define_expr("or_shortcircuit", `{||} <<< [7, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
+await define_expr("or_shortcircuit", `{||} <<< [op_priority @ {&&}, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
 await define_expr("or", `[a, b] -> a || b`);
-await define_expr("xor", `{<>} << [7, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
+await define_expr("xor", `{<>} << [op_priority @ {&&}, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
 await define_expr("all", `reduce'[and, _, 1]`);
 await define_expr("any", `reduce'[or, _, 0]`);
 await define_expr("bool", `a -> a ? [1, 0]`);
@@ -546,13 +611,6 @@ await define_expr("arg", `z -> atan @ [im @ z / re @ z]`);
 await define_expr("rad", `mul'(PI/180)`);
 await define_expr("deg", `mul'(180/PI)`);
 
-await define_expr("includes", `
-[l, e] ->
-any @ [map @ [
-  i -> (r: e = i; islist @ [r] ? [0, r]),
-  l
-]];`);
-
 await define_expr("reverse", `l -> map @ [get'[l], range @ [len @ [l] - 1, 0, ~1]]`)
 
 
@@ -565,20 +623,19 @@ await define_expr("uid", "x => x");
 
 await define_expr("unwrap", `f -> f .. id`);
 await define_expr("commute", `f -> f .. reverse . uid`);
-await define_expr("fpower", `{**} << [2.5, [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]]`)
-await define_expr("afpower", `{*|} << [2, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
+await define_expr("fpower", `{**} << [op_priority @ {.} + 0.5, [f, n] -> reduce'[commute @ apply, repeat @ [f, n]]]`)
+await define_expr("afpower", `{*|} << [op_priority @ {**}, [f, n] -> accumulate'[commute @ apply, repeat @ [f, n]]]`)
 
-await define_expr("get", `{::} << [0.5, get]`);
-await define_expr("wrapped_apply", `{@.} << [4, [f, g] -> f @ [g]]`);
-await define_expr("map", `{@@} << [4, map]`);
-await define_expr("filter", `{@|} << [4, filter]`);
-await define_expr("reduce", `{@>} << [4, reduce]`);
-await define_expr("concat", `{++} << [7, concat]`);
-await define_expr("floordiv", `{//} << [6, floor . div]`);
+await define_expr("wrapped_apply", `{@.} << [op_priority @ {@}, [f, g] -> f @ [g]]`);
+await define_expr("map", `{@@} << [op_priority @ {@}, map]`);
+await define_expr("filter", `{@|} << [op_priority @ {@}, filter]`);
+await define_expr("reduce", `{@>} << [op_priority @ {@}, reduce]`);
+await define_expr("concat", `{++} << [op_priority @ {+}, concat]`);
+await define_expr("floordiv", `{//} << [op_priority @ {/}, floor . div]`);
 
-await define_expr("zip", `{<:>} << [7, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
-await define_expr("encode", `{<%>} << [7, encode]`);
-await define_expr("encode", `{<*>} << [7, decode]`);
+await define_expr("zip", `{<:>} << [op_priority @ {+}, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
+await define_expr("encode", `{<%>} << [op_priority @ {+}, encode]`);
+await define_expr("encode", `{<*>} << [op_priority @ {+}, decode]`);
 
 await define_expr("uniq", `l -> (
     r: [];
@@ -588,14 +645,6 @@ await define_expr("uniq", `l -> (
     ];
     r
 )`);
-
-await define_expr("find", `[l, f] -> (
-    i: ~1;
-    [j: 0, j < len @ [l], j: j + 1] # (
-        and'(i = ~1) . f . get'[l] @ j ? [i: j,]
-    );
-    i;
-);`)
 
 await define_expr("indexOf", `[l, e] -> find @ [l, eq'e]`);
 
@@ -781,6 +830,23 @@ await define_expr("randint", `[a, b] -> add'a . floor . mul'(b - a) . random @ [
 await define_expr("choose_random", `c -> get'c . floor . mul'(len @. c) . random @ []`);
 await define_expr("at", `[l,i] -> i < 0 ? [l::(len @. l + i), l::i]`);
 
+await define_expr("_object_set", `{:>} <<< [op_priority @ {:} + 1.5, [f, g] -> (
+    o: object @ [];
+    k: cond @- [
+        [isnodeident @. f, getname @ f],
+        [isnodelist @. f && 1 = len @. f, eval_ast @!! f::0],
+        [1, {{eval_ast @!! f}}]
+    ];
+
+    set @ [o, k, eval_ast @!! g];
+    o;
+)]`);
+
+await define_expr("merge_objects", `{|} << [op_priority @ {:>} + 1.5, [f, g] -> (
+    set'f .. id @@ (items @ [g]);
+    f;
+)]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
@@ -789,7 +855,3 @@ define_const("ASCII_LOWER", 'abcdefghijklmnopqrstuvwxyz');
 define_const("ASCII_UPPER", 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 define_const("ASCII_DIGITS", '0123456789');
 define_const("ponky", "bear");
-
-export {
-    STDLIB
-}
