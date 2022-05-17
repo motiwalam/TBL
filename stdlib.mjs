@@ -318,7 +318,30 @@ define_builtin("items", params => {
     assert_vobject(o, `can not get entries of non object`);
     
     return o.items();
+});
+define_builtin("haskey", params => {
+    const [o, k] = get_n(params, 2);
+
+    const key = inident(k)
+                ? k.name
+                : ivstr(k)
+                ? k.value
+                : k.toString();
+
+    return fbool(o.value.hasOwnProperty(key));
+
 })
+define_builtin("delkey", params => {
+    const [o, k] = get_n(params, 2);
+
+    const key = inident(k)
+                ? k.name
+                : ivstr(k)
+                 ? k.value
+                 : k.toString();
+    
+    return fbool(delete o.value[k]);
+});
 
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
     const [c] = get_n(params, 1);
