@@ -323,7 +323,7 @@ export const duplicate = v => predmatch(v, [
     [ivfun, v => new VFunction(duplicate(v.params), duplicate(v.body), v.closure)],
     [ilist, v => new List(v.values.map(duplicate))],
     [ivstr, v => new VString(v.value)],
-    [ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, duplicate(v)]))],
+    [ivobj, v => new VObject(Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, duplicate(v)])))],
     [inast, v => new NodeAst(duplicate(v.ast))],
     [instring, v => new NodeString(v.text, v.replacements)],
     [incomp, v => new NodeComplex(v.re, v.im)],
