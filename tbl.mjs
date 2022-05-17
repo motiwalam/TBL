@@ -10,7 +10,7 @@ import process from 'process';
 
 const JS_PREFIX = '!js ';
 
-const c = new Calculator();
+const c = new Calculator(false);
 
 c.defineBuiltin('load', async params => {
 	const s = params.get(0);
@@ -59,6 +59,7 @@ function parse_args(argv) {
 	argv = argv.slice(argv.findIndex(e => e.endsWith('tbl.mjs')) + 1);
 	const opts = {
 		cmd: undefined,
+		loadStdlib: true,
 		pos: [],
 	};
 	
@@ -68,6 +69,11 @@ function parse_args(argv) {
 			case '-e':
 			case '--execute':
 				opts.cmd = argv.shift();
+				break;
+			
+			case '-ns':
+			case '--no-stdlib':
+				opts.loadStdlib = false;
 				break;
 
 			default:
@@ -80,6 +86,12 @@ function parse_args(argv) {
 
 async function main() {
 	const opts = parse_args(process.argv);
+
+	// console.log(opts);
+
+	if (opts.loadStdlib) {
+		c.reset_stdlib();
+	}
 
 	if (opts.cmd !== undefined) {
 		console.log((await c.eval(opts.cmd)).toString());
