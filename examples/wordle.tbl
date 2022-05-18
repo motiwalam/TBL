@@ -12973,16 +12973,15 @@ get_fb: [soln, guess] -> (
   join'fb @ {};
 );
 
-wordle: w => (
+wordle: opts => (
   guess_fb: [];
 
-  solns: len @. w > 1 ? [w::1, solns];
-  gwords: len @. w > 2 ? [w::2, gwords];
+  opts: len @. opts > 0 ? [opts::0, object @ []];
 
-  soln: len @. w > 0 ? [
-      w::0,
-      choose_random @. solns
-  ];
+  solns: haskey @ [opts, {solnlist}] ? [opts::{solnlist}, solns];
+  gwords: haskey @ [opts, {guesslist}] ? [opts::{guesslist}, gwords];
+
+  soln: haskey @ [opts, {solution}] ? [opts::{solution}, choose_random @. solns];
   
   args =>
     0 = len @ [args] ? [
