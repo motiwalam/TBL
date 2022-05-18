@@ -1,9 +1,9 @@
 import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation, NodeString, NodeAst } from "./nodes.mjs";
 
-import { LANG } from "./language.mjs";
+import * as LANG from "./language.mjs";
 import assert from "assert"
 
-function splitIndices(text, indices, includeidx = false) {
+export function splitIndices(text, indices, includeidx = false) {
     let pairs = [[0, indices[0]], ...indices.map((v, i) => [v + 1, indices[i+1]])];
     if (includeidx) pairs = pairs.concat(indices.map(i => [i, i + 1])).sort(([a], [b]) => a - b)
     const out = pairs.map(([i1, i2]) => text.slice(i1, i2));
@@ -11,7 +11,7 @@ function splitIndices(text, indices, includeidx = false) {
     return out;
 }
 
-function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim = false) {
+export function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim = false) {
     const indices = [];
     
     let depths = 0;
@@ -25,7 +25,7 @@ function splitOnMultipleUncontainedDelims(text, ogs, cgs, delims, includedelim =
     return splitIndices(text, indices, includedelim);
 }
 
-function state_machine_parse(text, udo) {
+export function state_machine_parse(text, udo) {
     const out = [];
 
     let sstart = 0;
@@ -185,7 +185,7 @@ function state_machine_parse(text, udo) {
 
 }
 
-function parseNumber(t) {
+export function parseNumber(t) {
     let n;
     if (t.startsWith(LANG.NEGATIVE)) {
         n = -parseFloat(t.slice(1));
@@ -201,7 +201,7 @@ function parseNumber(t) {
 
 }
 
-function parseText(text, udo) {
+export function parseText(text, udo) {
     const results = [];
 
     let startidx = null;
@@ -256,7 +256,7 @@ function parseText(text, udo) {
 }
 
 
-function make_ast(input, udo) {
+export function make_ast(input, udo) {
     const body = state_machine_parse(input, udo);
 
     const asts = [];
@@ -341,8 +341,4 @@ function make_ast(input, udo) {
 
     return 1 == asts.length ? asts[0] : new NodeExprBody(asts);
 
-}
-
-export {
-    make_ast, state_machine_parse
 }

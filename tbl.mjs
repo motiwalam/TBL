@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import repl from 'repl';
 import { Calculator } from './calc.mjs';
 import { assert_vstring } from './checks.mjs';
-import { LANG } from './language.mjs';
+import * as LANG from './language.mjs';
 import { Complex, VString } from './values.mjs';
 import process from 'process';
 

@@ -2,7 +2,7 @@ import { pow, mul, div, add, sub, bool, lt, lte, gt, gte, eq, neq, mod } from ".
 import { make_ast } from "./ast.mjs";
 import { BuiltinFunction, VFunction, List, Complex, duplicate } from "./values.mjs";
 import { NodeOperation, NodeIdentifier, NodeList, NodeExprBody } from "./nodes.mjs";
-import { LANG } from "./language.mjs";
+import * as LANG from "./language.mjs";
 import assert from "assert";
 
 import {

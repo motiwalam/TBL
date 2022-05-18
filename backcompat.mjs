@@ -1,4 +1,4 @@
-import { LANG } from "./language.mjs";
+import * as LANG from "./language.mjs";
 // a function that takes expressions in the language as it stands on 18/02/22
 // and returns the expression in the most current syntax
 

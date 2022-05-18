@@ -1,7 +1,7 @@
 import { List, Complex, VFunction, BuiltinFunction, VString, VObject } from "./values.mjs";
 import { NodeExprBody, NodeList, NodeComplex, NodeString, NodeIdentifier, NodeOperation, NodeAst } from "./nodes.mjs";
-import { LANG } from "./language.mjs";
-import { ERRORS } from "./errors.mjs";
+import * as LANG from "./language.mjs";
+import * as ERRORS from "./errors.mjs";
 import assert from "assert";
 
 export const and = (...fs) => o => fs.every(f => f(o));

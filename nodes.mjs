@@ -1,7 +1,7 @@
 import { List, Complex, VString, duplicate } from "./values.mjs";
 import { eval_ast } from "./eval.mjs";
 
-class NodeExprBody {
+export class NodeExprBody {
     subasts;
     constructor(subasts) {
         this.subasts = subasts;
@@ -97,7 +97,7 @@ class NodeExprBody {
 
 }
 
-class NodeList {
+export class NodeList {
     subasts;
     constructor(subasts) {
         this.subasts = subasts;
@@ -196,7 +196,7 @@ class NodeList {
     }
 }
 
-class NodeComplex {
+export class NodeComplex {
     re;
     im;
     
@@ -214,7 +214,7 @@ class NodeComplex {
     }
 }
 
-class NodeString {
+export class NodeString {
     text;
     replacements;
 
@@ -252,7 +252,7 @@ class NodeString {
     }
 }
 
-class NodeIdentifier {
+export class NodeIdentifier {
     name;
 
     constructor(name) {
@@ -271,7 +271,7 @@ class NodeIdentifier {
     }
 }
 
-class NodeOperation {
+export class NodeOperation {
     operator;
     left;
     right;
@@ -289,7 +289,7 @@ class NodeOperation {
     }
 }
 
-class NodeAst {
+export class NodeAst {
     ast;
 
     constructor(ast) {
@@ -303,8 +303,4 @@ class NodeAst {
     toString() {
         return `AST: ${this.ast}`;
     }
-}
-
-export {
-    NodeExprBody, NodeList, NodeComplex, NodeIdentifier, NodeOperation, NodeString, NodeAst
 }

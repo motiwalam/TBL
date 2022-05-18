@@ -17,19 +17,19 @@ import {
     assert_integral,
 } from "./checks.mjs";
 import assert from "assert";
-import { ERRORS } from "./errors.mjs";
+import * as ERRORS from "./errors.mjs";
 
 
-const neg_complex = z => new Complex(-z.real, -z.imag);
-const con_complex = z => new Complex(z.real, -z.imag);
-const abs_complex = z => Math.sqrt(z.real * z.real + z.imag * z.imag);
-const rad_complex = z => Math.atan2(z.imag, z.real);
+export const neg_complex = z => new Complex(-z.real, -z.imag);
+export const con_complex = z => new Complex(z.real, -z.imag);
+export const abs_complex = z => Math.sqrt(z.real * z.real + z.imag * z.imag);
+export const rad_complex = z => Math.atan2(z.imag, z.real);
 
-const add_complex = (a, b) => new Complex(a.real + b.real, a.imag + b.imag);
-const sub_complex = (a, b) => add_complex(a, neg_complex(b));
+export const add_complex = (a, b) => new Complex(a.real + b.real, a.imag + b.imag);
+export const sub_complex = (a, b) => add_complex(a, neg_complex(b));
 
-const mul_complex = (a, b) => new Complex(a.real * b.real - a.imag * b.imag, a.real * b.imag + a.imag * b.real);
-const div_complex = (a, b) => {
+export const mul_complex = (a, b) => new Complex(a.real * b.real - a.imag * b.imag, a.real * b.imag + a.imag * b.real);
+export const div_complex = (a, b) => {
     const z = mul_complex(a, con_complex(b));
     const d = b.real * b.real - b.imag * b.imag;
 
@@ -37,23 +37,23 @@ const div_complex = (a, b) => {
 }
 
 
-const bool = v => (assert_value(v, `can not coerce non value to boolean`), !(icomp(v) && v.real == 0 && v.imag == 0))
-const fbool = b => b ? new Complex(1, 0) : new Complex(0, 0);
+export const bool = v => (assert_value(v, `can not coerce non value to boolean`), !(icomp(v) && v.real == 0 && v.imag == 0))
+export const fbool = b => b ? new Complex(1, 0) : new Complex(0, 0);
 
-const eq_complex = (a, b) => fbool(a.real == b.real && a.imag == b.imag);
-const neq_complex = (a, b) => fbool(a.real != b.real || a.imag != b.imag);
+export const eq_complex = (a, b) => fbool(a.real == b.real && a.imag == b.imag);
+export const neq_complex = (a, b) => fbool(a.real != b.real || a.imag != b.imag);
 
-const lt_complex = (a, b) => {
+export const lt_complex = (a, b) => {
     if ([a, b].every(isreal_strict)) return fbool(a.real < b.real);
     if ([a, b].every(isimag_strict)) return fbool(a.imag < b.imag);
     return fbool(abs_complex(a) < abs_complex(b));
 };
-const lte_complex = (a, b) => fbool([lt_complex(a, b), eq_complex(a, b)].some(bool));
+export const lte_complex = (a, b) => fbool([lt_complex(a, b), eq_complex(a, b)].some(bool));
 
-const gt_complex = (a, b) => fbool(!bool(lte_complex(a, b)));
-const gte_complex = (a, b) => fbool(!bool(lt_complex(a, b)));
+export const gt_complex = (a, b) => fbool(!bool(lte_complex(a, b)));
+export const gte_complex = (a, b) => fbool(!bool(lt_complex(a, b)));
 
-const pow_complex = (a, b) => {
+export const pow_complex = (a, b) => {
     if (iszero_strict(b)) return new Complex(1, 0);
     if (iszero_strict(a)) {
         if (b.imag != 0 || b.real < 0) throw `can not raise 0 to the power of negative or complex power`;
@@ -73,16 +73,16 @@ const pow_complex = (a, b) => {
     
 }
 
-const add_vstring = (a, b) => new VString(a.value + b.value);
-const add_strings = (a, b) => new VString(a + b);
+export const add_vstring = (a, b) => new VString(a.value + b.value);
+export const add_strings = (a, b) => new VString(a + b);
 
-function zip(...ls) {
+export function zip(...ls) {
     assert(new Set(ls.map(l => l.length)).size == 1, `Can not zip lists of unequal lengths`);
     const values = Array.from({length: ls[0]?.length}, (_, i) => ls.map(l => l.get(i)));
     return new List(values);
 }
 
-function pow(a, b) {
+export function pow(a, b) {
     let r = null;
     if (icc(a, b)) {
         if (isreal_strict(a) && isreal_strict(b) && !(a.real <= 0 && Math.abs(b.real) < 1) && !(a.real == 0 && b.real < 0))
@@ -100,7 +100,7 @@ function pow(a, b) {
     
 }
 
-function mul(a, b) {
+export function mul(a, b) {
     let r = null;
     icc(a, b) && (r = mul_complex(a, b));
     icl(a, b) && (r = b.map(e => mul(a, e)));
@@ -118,7 +118,7 @@ function mul(a, b) {
     throw ERRORS.INVALID_ARG_MUL(a, b);
 }
 
-function div(a, b) {
+export function div(a, b) {
     let r = null;
     icc(a, b) && (r = div_complex(a, b));
     icl(a, b) && (r = b.map(e => div(a, e)));
@@ -131,7 +131,7 @@ function div(a, b) {
     throw ERRORS.INVALID_ARG_DIV(a, b);
 }
 
-function add(a, b) {
+export function add(a, b) {
     let r = null;
     icc(a, b) && (r = add_complex(a, b));
     icl(a, b) && (r = b.map(e => add(a, e)));
@@ -146,7 +146,7 @@ function add(a, b) {
     throw ERRORS.INVALID_ARG_ADD(a, b);
 }
 
-function sub(a, b) {
+export function sub(a, b) {
     let r = null;
     icc(a, b) && (r = sub_complex(a, b));
     icl(a, b) && (r = b.map(e => sub(a, e)));
@@ -158,7 +158,7 @@ function sub(a, b) {
     throw ERRORS.INVALID_ARG_SUB(a, b);
 }
 
-function mod(a, b) {
+export function mod(a, b) {
     let r = null;
     icc(a, b) && isreal_fuzz(a) && isreal_fuzz(b) && (r = new Complex(a.real % b.real, 0));
     icl(a, b) && (r = b.map(e => mod(a, e)));
@@ -169,7 +169,7 @@ function mod(a, b) {
     throw ERRORS.INVALID_ARG_MOD(a, b);
 }
 
-function eq(a, b) {
+export function eq(a, b) {
     let r = null;
     icc(a, b) && (r = eq_complex(a, b));
     icl(a, b) && (r = b.map(e => eq(a, e)));
@@ -184,7 +184,7 @@ function eq(a, b) {
     else return fbool(false);
 }
 
-function neq(a, b) {
+export function neq(a, b) {
     let r = null;
     icc(a, b) && (r = neq_complex(a, b));
     icl(a, b) && (r = b.map(e => neq(a, e)));
@@ -199,7 +199,7 @@ function neq(a, b) {
     else return fbool(true);
 }
 
-function lt(a, b) {
+export function lt(a, b) {
     let r = null;
     icc(a, b) && (r = lt_complex(a, b));
     icl(a, b) && (r = b.map(e => lt(a, e)));
@@ -212,7 +212,7 @@ function lt(a, b) {
     throw ERRORS.INVALID_ARG_LT(a, b);
 }
 
-function gt(a, b) {
+export function gt(a, b) {
     let r = null;
     icc(a, b) && (r = gt_complex(a, b));
     icl(a, b) && (r = b.map(e => gt(a, e)));
@@ -226,7 +226,7 @@ function gt(a, b) {
     throw ERRORS.INVALID_ARG_GT(a, b);
 }
 
-function lte(a, b) {
+export function lte(a, b) {
     let r = null;
     icc(a, b) && (r = lte_complex(a, b));
     icl(a, b) && (r = b.map(e => lte(a, e)));
@@ -239,7 +239,7 @@ function lte(a, b) {
     throw ERRORS.INVALID_ARG_LTE(a, b);
 }
 
-function gte(a, b) {
+export function gte(a, b) {
     let r = null;
     icc(a, b) && (r = gte_complex(a, b));
     icl(a, b) && (r = b.map(e => gte(a, e)));
@@ -253,15 +253,7 @@ function gte(a, b) {
 }
 
 
-function abs(c) {
+export function abs(c) {
     assert_complex(c, `Can not take absolute value of non complex value`);
     return new Complex(abs_complex(c), 0);
-}
-
-
-export {
-    zip,
-    bool, fbool,
-    pow, mul, div, add, sub, 
-    eq, neq, lt, lte, gt, gte, mod, abs
 }

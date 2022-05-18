@@ -34,9 +34,9 @@ import {
     abs,
 } from "./ops.mjs";
 
-import { ERRORS } from "./errors.mjs";
+import * as ERRORS from "./errors.mjs";
 import assert from "assert";
-import { LANG } from "./language.mjs";
+import * as LANG from "./language.mjs";
 import { NodeIdentifier } from "./nodes.mjs";
 
 export const STDLIB = {ENV: {}};
