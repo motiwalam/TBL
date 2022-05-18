@@ -51,9 +51,10 @@ define_builtin("get", params => {
                     ? i.value
                     : i.toString();
 
-        if (l.value.hasOwnProperty(key)) {
-            return l.get(key);
-        } else throw `key "${key}" not found`;
+        const r = l.get(key);
+
+        if (r === undefined || r === null) throw `could not find key "${key}" in object`;
+        return r;
     }
 
     throw `can not get on non list or object`;
