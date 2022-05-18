@@ -6,7 +6,6 @@ import * as LANG from "./language.mjs";
 
 import { NodeIdentifier } from "./nodes.mjs";
 import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
-import { fix } from "./backcompat.mjs";
 
 import assert from "assert";
 
@@ -20,7 +19,7 @@ const define_builtin = (n, f) => {
     STDLIB.ENV[n] = [bf];
 }
 
-const define_expr = async (n, expr) => (STDLIB.ENV[n] = [await eval_expr(fix(expr), STDLIB)]);
+const define_expr = async (n, expr) => (STDLIB.ENV[n] = [await eval_expr(expr, STDLIB)]);
 
 const define_const = (n, c) => {
     if (typeof c === 'string') STDLIB.ENV[n] = [new VALUES.VString(c)];
