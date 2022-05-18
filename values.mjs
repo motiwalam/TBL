@@ -389,7 +389,7 @@ export const fromJS = (v, wm = new WeakMap()) => cond(
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
     [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
     [v => typeof v === 'object', v => {
-        if (wm.has(v)) return wm.get(v);
+        if (wm.has(v)) return new VObject(wm.get(v));
 
         const r = {};
         wm.set(v, r);
