@@ -295,7 +295,7 @@ export class VObject {
     }
 
     toString() {
-        return `{${Object.entries(this.value).map(([k, v]) => `${k.toString()}: ${v.toString()}`).join(', ')}}`;
+        return `#object [${Object.keys(this.value).length}]`;
     }
 }
 
@@ -389,20 +389,20 @@ export const fromJS = (v, wm = new WeakMap()) => cond(
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
     [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
     [v => typeof v === 'object', v => {
-        if (wm.has(v)) return new VObject(wm.get(v));
+        if (wm.has(v)) return wm.get(v);
 
-        const r = {};
+        const r = new VObject({});
         wm.set(v, r);
         
-        Object.entries(v).forEach(([k, o]) => { r[k] = fromJS(o, wm) });
+        Object.entries(v).forEach(([k, o]) => { r.value[k] = fromJS(o, wm) });
 
         const ims = getInstanceMethods(v);
 
-        ims.keys.forEach(k => { r[k] = fromJS(v[k].bind(v), wm) });
-        ims.getters.forEach(k => { r[`get_${k}`] = fromJS(getGetter(v, k)?.bind(v), wm) });
-        ims.setters.forEach(k => { r[`set_${k}`] = fromJS(getSetter(v, k)?.bind(v), wm) });
+        ims.keys.forEach(k => { r.value[k] = fromJS(v[k].bind(v), wm) });
+        ims.getters.forEach(k => { r.value[`get_${k}`] = fromJS(getGetter(v, k)?.bind(v), wm) });
+        ims.setters.forEach(k => { r.value[`set_${k}`] = fromJS(getSetter(v, k)?.bind(v), wm) });
         
-        return new VObject(r);
+        return r;
     }],
     [v => typeof v === 'function', v => new BuiltinFunction(
         async params => fromJS(await v(...toJS(params)), wm)
