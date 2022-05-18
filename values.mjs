@@ -1,6 +1,6 @@
 import * as CHECKS from "./checks.mjs";
 import * as NODES from "./nodes.mjs";
-import { eval_application} from "./eval.mjs";
+import { eval_application } from "./eval.mjs";
 
 export class BuiltinFunction {
     apply;
@@ -51,10 +51,10 @@ export class Complex {
         CHECKS.isimag_fuzz(this) && (s = `${this.imag}i`);
         CHECKS.isreal_fuzz(this) && (s = `${this.real}`);
         CHECKS.iszero_fuzz(this) && (s = `0`);
-        
+
         return s;
     }
-    
+
 }
 
 export class List {
@@ -75,7 +75,7 @@ export class List {
     filter(f) {
         return new List(this.values.filter(f));
     }
-    
+
     async async_filter(f) {
         const out = [];
         for (const e of this.values) {
@@ -106,7 +106,7 @@ export class List {
     }
 
     every(f) {
-	    return this.values.every(f);
+        return this.values.every(f);
     }
 
     some(f) {
@@ -120,7 +120,7 @@ export class List {
             acc = this.values[0];
             start = 1;
         }
-        
+
         const results = [acc];
         while (start < this.length) {
             acc = f(acc, this.get(start++));
@@ -137,7 +137,7 @@ export class List {
             acc = this.values[0];
             start = 1;
         }
-        
+
         const results = [acc];
         while (start < this.length) {
             acc = await f(acc, this.get(start++));
@@ -168,7 +168,7 @@ export class List {
     set(i, v) {
         this.values[i] = v;
     }
-    
+
     toString() {
         return `[${this.values.map(e => e.toString()).join(', ')}]`;
     }
@@ -205,7 +205,7 @@ export class VString {
     }
 
     set(idx, ch) {
-        this.value = Object.entries({...this.value}).map(([i,c]) => i == idx ? ch.toString() : c).join('')
+        this.value = Object.entries({ ...this.value }).map(([i, c]) => i == idx ? ch.toString() : c).join('')
     }
 
     push(v) {
@@ -266,7 +266,7 @@ export class VString {
     }
 
     async async_accum(f, i) {
-        return this.split(new VString('')).async_accum,(f, i);
+        return this.split(new VString('')).async_accum, (f, i);
     }
 
 }
@@ -299,8 +299,58 @@ export class VObject {
     }
 }
 
+const getBlank = (obj, prop, desc) => Object.getOwnPropertyDescriptor(obj, prop)?.[desc] ||
+                                      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), prop)?.[desc];
+
+const getGetter = (obj, prop) => getBlank(obj, prop, "get");
+const getSetter = (obj, prop) => getBlank(obj, prop, "set");
+
+// https://gist.github.com/jasonayre/5d9ebd64299bf69c8637a9e03e33a3fb
+const getInstanceMethods = (obj) => {
+    
+    const isBlank = (obj, prop, desc) => !!(getBlank(obj, prop, desc));
+
+    const isGetter = (obj, prop) => isBlank(obj, prop, "get");
+    const isSetter = (obj, prop) => isBlank(obj, prop, "set");
+
+    const isOrig = (keys, i, prop) => typeof topObject[prop] === 'function'
+                                  && prop !== 'constructor'
+                                  && (i === 0 || prop !== keys[i - 1])
+                                  && !keys.includes(prop)
+
+    const result = {
+        keys: [],
+        getters: [],
+        setters: []
+    };
+
+    const topObject = obj;
+
+    do {
+        const l = Object.getOwnPropertyNames(obj).sort()
+            // .filter(onlyOriginalMethods)
+
+        
+        l.forEach((key, idx, arr) => {
+            cond(
+                [isGetter.bind(null, obj), key => { result.getters.push(key) }],
+                [isSetter.bind(null, obj), key => { result.setters.push(key) }],
+                [isOrig.bind(null, arr, idx), key => { result.keys.push(key) }]
+            )(key);
+        });
+
+        // walk-up the prototype chain
+        obj = Object.getPrototypeOf(obj)
+    } while (
+        // not the the Object prototype methods (hasOwnProperty, etc...)
+        obj && Object.getPrototypeOf(obj)
+    )
+
+    return result
+}
+
 export function cond(...ps) {
-    return function(v) {
+    return function (v) {
         for (const [p, f] of ps) {
             if (p(v)) return f(v)
         }
@@ -329,18 +379,33 @@ export const toJS = cond(
     [CHECKS.ivstr, v => v.value],
     [CHECKS.ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
     [CHECKS.ivfun, v => async (...args) => toJS(await eval_application(v, fromJS(args), v.closure))],
-    [() => true, v => {throw `Could not convert ${v} to JS`}]
+    [() => true, v => { throw `Could not convert ${v} to JS` }]
 );
 
-export const fromJS = cond(
+export const fromJS = (v, wm = new WeakMap()) => cond(
     [v => typeof v === 'string', v => new VString(v)],
-    [v => v instanceof Array, v => new List(v.map(fromJS))],
+    [v => v instanceof Array, v => new List(v.map(e => fromJS(e, wm)))],
     [v => typeof v === 'number', v => new Complex(v, 0)],
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
     [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
-    [v => typeof v === 'object', v => new VObject(Object.fromEntries(Object.entries(v).map(([k, v]) => [k, fromJS(v)])))],
+    [v => typeof v === 'object', v => {
+        if (wm.has(v)) return wm.get(v);
+
+        const r = {};
+        wm.set(v, r);
+        
+        Object.entries(v).forEach(([k, o]) => { r[k] = fromJS(o, wm) });
+
+        const ims = getInstanceMethods(v);
+
+        ims.keys.forEach(k => { r[k] = fromJS(v[k].bind(v), wm) });
+        ims.getters.forEach(k => { r[`get_${k}`] = fromJS(getGetter(v, k)?.bind(v), wm) });
+        ims.setters.forEach(k => { r[`set_${k}`] = fromJS(getSetter(v, k)?.bind(v), wm) });
+        
+        return new VObject(r);
+    }],
     [v => typeof v === 'function', v => new BuiltinFunction(
-        async params => fromJS(await v(...toJS(params)))
+        async params => fromJS(await v(...toJS(params)), wm)
     )],
-    [() => true, v => {throw `Could not convert ${v} from JS`}]
-);
+    [() => true, v => { throw `Could not convert ${v} from JS` }]
+)(v, wm);
