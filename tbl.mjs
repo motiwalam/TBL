@@ -10,7 +10,7 @@ import process from 'process';
 
 const JS_PREFIX = '!js ';
 
-const c = new Calculator(false);
+const c = new Calculator();
 
 c.defineBuiltin('load', async params => {
 	const s = params.get(0);
@@ -90,7 +90,7 @@ async function main() {
 	// console.log(opts);
 
 	if (opts.loadStdlib) {
-		c.reset_stdlib();
+		c.merge(await Calculator.with_stdlib());
 	}
 
 	if (opts.cmd !== undefined) {
