@@ -1,4 +1,4 @@
-import { NodeExprBody, NodeComplex, NodeIdentifier, NodeList, NodeOperation, NodeString, NodeAst } from "./nodes.mjs";
+import * as NODES from "./nodes.mjs";
 
 import * as LANG from "./language.mjs";
 import assert from "assert"
@@ -194,9 +194,9 @@ export function parseNumber(t) {
     }
     
     if (t.endsWith(LANG.COMPLEX)) {
-        return new NodeComplex(0, n);
+        return new NODES.NodeComplex(0, n);
     } else {
-        return new NodeComplex(n, 0);
+        return new NODES.NodeComplex(n, 0);
     }
 
 }
@@ -281,11 +281,11 @@ export function make_ast(input, udo) {
                 if (li < 0) throw `Unmatched ${LANG.LIST_OPEN}`;
     
                 if (e.slice(1, li).length == 0) {
-                    values.push(new NodeList([]))
+                    values.push(new NODES.NodeList([]))
                 } else {
                     const subexprs = splitOnMultipleUncontainedDelims(e.slice(1, li), LANG.OPEN_GROUPS, LANG.CLOSE_GROUPS, [LANG.LIST_SEPARATOR]);
     
-                    values.push(new NodeList(subexprs.map(t => make_ast(t, udo))))
+                    values.push(new NODES.NodeList(subexprs.map(t => make_ast(t, udo))))
     
                 }
             }
@@ -296,11 +296,11 @@ export function make_ast(input, udo) {
                 const text = e.slice(1, -1);
                 const replacements = parseText(text, udo);
 
-                values.push(new NodeString(text, replacements));
+                values.push(new NODES.NodeString(text, replacements));
             }
 
             else if (e.startsWith(LANG.QUOTE + LANG.STRING_OPEN)) {
-                values.push(new NodeAst(make_ast(e.slice(2, -1), udo)));
+                values.push(new NODES.NodeAst(make_ast(e.slice(2, -1), udo)));
             }
             
             else if (LANG.NUMBER_START.includes(e[0])) {
@@ -312,7 +312,7 @@ export function make_ast(input, udo) {
             }
     
             else {
-                values.push(new NodeIdentifier(e));
+                values.push(new NODES.NodeIdentifier(e));
             }
     
         }
@@ -329,7 +329,7 @@ export function make_ast(input, udo) {
             while (opgroup.some(vf)) {
                 const idx = LANG.ASSOC_FUNC(assoc)(values, ef);
                 const [l, o, r] = values.splice(idx - 1, 3);
-                const opr = new NodeOperation(o, l, r);
+                const opr = new NODES.NodeOperation(o, l, r);
                 values = values.slice(0, idx - 1).concat(opr).concat(values.slice(idx - 1))
             }
         }
@@ -339,6 +339,6 @@ export function make_ast(input, udo) {
         asts.push(values[0]);
     }
 
-    return 1 == asts.length ? asts[0] : new NodeExprBody(asts);
+    return 1 == asts.length ? asts[0] : new NODES.NodeExprBody(asts);
 
 }

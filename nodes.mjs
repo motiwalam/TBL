@@ -1,4 +1,5 @@
-import { List, Complex, VString, duplicate } from "./values.mjs";
+import * as VALUES from "./values.mjs";
+
 import { eval_ast } from "./eval.mjs";
 
 export class NodeExprBody {
@@ -104,7 +105,7 @@ export class NodeList {
     }
 
     async eval(env) {
-        return new List(await Promise.all(this.subasts.map(t => eval_ast(t, env))))
+        return new VALUES.List(await Promise.all(this.subasts.map(t => eval_ast(t, env))))
     }
 
     toString() {
@@ -206,7 +207,7 @@ export class NodeComplex {
     }
 
     eval() {
-        return new Complex(this.re, this.im);
+        return new VALUES.Complex(this.re, this.im);
     }
 
     toString() {
@@ -244,7 +245,7 @@ export class NodeString {
 
         string += this.text.slice(base);
 
-        return new VString(string);
+        return new VALUES.VString(string);
     }
 
     toString() {
@@ -297,7 +298,7 @@ export class NodeAst {
     }
 
     eval(env) {
-        return duplicate(this.ast);
+        return VALUES.duplicate(this.ast);
     }
 
     toString() {

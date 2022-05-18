@@ -1,18 +1,5 @@
-import { 
-    icomp, ivfun, ibfun, ilist, ivstr, ivobj,
-    isreal_fuzz, isimag_fuzz, iszero_fuzz,
-    inast, incomp, inexpr, inident, instring, inlist, inop, ifunc
-} from "./checks.mjs";
-
-import {
-    NodeAst,
-    NodeComplex,
-    NodeExprBody,
-    NodeIdentifier,
-    NodeString,
-    NodeList,
-    NodeOperation,
-} from "./nodes.mjs";
+import * as CHECKS from "./checks.mjs";
+import * as NODES from "./nodes.mjs";
 
 export class BuiltinFunction {
     apply;
@@ -60,9 +47,9 @@ export class Complex {
 
     toString() {
         let s = `${this.real} + ${this.imag}i`;
-        isimag_fuzz(this) && (s = `${this.imag}i`);
-        isreal_fuzz(this) && (s = `${this.real}`);
-        iszero_fuzz(this) && (s = `0`);
+        CHECKS.isimag_fuzz(this) && (s = `${this.imag}i`);
+        CHECKS.isreal_fuzz(this) && (s = `${this.real}`);
+        CHECKS.iszero_fuzz(this) && (s = `0`);
         
         return s;
     }
@@ -320,26 +307,26 @@ export function cond(...ps) {
 }
 
 export const duplicate = cond(
-    [ibfun, v => new BuiltinFunction(v.apply)],
-    [icomp, v => new Complex(v.real, v.imag)],
-    [ivfun, v => new VFunction(duplicate(v.params), duplicate(v.body), v.closure)],
-    [ilist, v => new List(v.values.map(duplicate))],
-    [ivstr, v => new VString(v.value)],
-    [ivobj, v => new VObject(Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, duplicate(v)])))],
-    [inast, v => new NodeAst(duplicate(v.ast))],
-    [instring, v => new NodeString(v.text, v.replacements)],
-    [incomp, v => new NodeComplex(v.re, v.im)],
-    [inexpr, v => new NodeExprBody(v.subasts.map(duplicate))],
-    [inlist, v => new NodeList(v.subasts.map(duplicate))],
-    [inop, v => new NodeOperation(v.operator, duplicate(v.left), duplicate(v.right))],
-    [inident, v => new NodeIdentifier(v.name)]
+    [CHECKS.ibfun, v => new BuiltinFunction(v.apply)],
+    [CHECKS.icomp, v => new Complex(v.real, v.imag)],
+    [CHECKS.ivfun, v => new VFunction(duplicate(v.params), duplicate(v.body), v.closure)],
+    [CHECKS.ilist, v => new List(v.values.map(duplicate))],
+    [CHECKS.ivstr, v => new VString(v.value)],
+    [CHECKS.ivobj, v => new VObject(Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, duplicate(v)])))],
+    [CHECKS.inast, v => new NODES.NodeAst(duplicate(v.ast))],
+    [CHECKS.instring, v => new NODES.NodeString(v.text, v.replacements)],
+    [CHECKS.incomp, v => new NODES.NodeComplex(v.re, v.im)],
+    [CHECKS.inexpr, v => new NODES.NodeExprBody(v.subasts.map(duplicate))],
+    [CHECKS.inlist, v => new NODES.NodeList(v.subasts.map(duplicate))],
+    [CHECKS.inop, v => new NODES.NodeOperation(v.operator, duplicate(v.left), duplicate(v.right))],
+    [CHECKS.inident, v => new NODES.NodeIdentifier(v.name)]
 );
 
 export const toJS = cond(
-    [icomp, v => v.real],
-    [ilist, v => v.values.map(toJS)],
-    [ivstr, v => v.value],
-    [ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
+    [CHECKS.icomp, v => v.real],
+    [CHECKS.ilist, v => v.values.map(toJS)],
+    [CHECKS.ivstr, v => v.value],
+    [CHECKS.ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
     [() => true, v => {throw `Could not convert ${v} to JS`}]
 );
 

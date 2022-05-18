@@ -1,50 +1,21 @@
-import { BuiltinFunction, List, Complex, duplicate, VString, toJS, fromJS, VObject } from "./values.mjs";
-import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
-import {
-    assert_value, assert_func, assert_list,
-    assert_isreal_strict,
-    assert_complex,
-    ivstr, assert_lors, assert_vstring,
-    ivalue,
-    ilist, icomp, ifunc,
-    inast,
-    incomp,
-    inexpr,
-    inident,
-    inlist,
-    inop,
-    instring,
-    inoper,
-    assert_node,
-    assert_op,
-    assert_indexable,
-    assert_ident,
-    assert_vfunc,
-    assert_nstring,
-    assert_ncomp,
-    ivobj,
-    assert_vobject,
-    is_indexable,
-} from "./checks.mjs";
+import * as VALUES from "./values.mjs";
+import * as CHECKS from "./checks.mjs";
+import * as OPS from "./ops.mjs";
+import * as ERRORS from "./errors.mjs";
+import * as LANG from "./language.mjs";
 
+import { NodeIdentifier } from "./nodes.mjs";
+import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
 import { fix } from "./backcompat.mjs";
 
-import {
-    bool, fbool,
-    abs,
-} from "./ops.mjs";
-
-import * as ERRORS from "./errors.mjs";
 import assert from "assert";
-import * as LANG from "./language.mjs";
-import { NodeIdentifier } from "./nodes.mjs";
 
 export const STDLIB = {ENV: {}};
 
 const get_n = (p, n) => Array.from({ length: n }, (_, i) => p.get(i));
 
 const define_builtin = (n, f) => {
-    const bf = new BuiltinFunction(f);
+    const bf = new VALUES.BuiltinFunction(f);
     if (n !== undefined) bf.name = n;
     STDLIB.ENV[n] = [bf];
 }
@@ -52,16 +23,16 @@ const define_builtin = (n, f) => {
 const define_expr = async (n, expr) => (STDLIB.ENV[n] = [await eval_expr(fix(expr), STDLIB)]);
 
 const define_const = (n, c) => {
-    if (typeof c === 'string') STDLIB.ENV[n] = [new VString(c)];
-    else if (typeof c === 'number') STDLIB.ENV[n] = [new Complex(c, 0)];
-    else if (c instanceof Array) STDLIB.ENV[n] = [new List(c)];
-    else if (ivalue(c)) STDLIB.ENV[n] = [c];
+    if (typeof c === 'string') STDLIB.ENV[n] = [new VALUES.VString(c)];
+    else if (typeof c === 'number') STDLIB.ENV[n] = [new VALUES.Complex(c, 0)];
+    else if (c instanceof Array) STDLIB.ENV[n] = [new VALUES.List(c)];
+    else if (CHECKS.ivalue(c)) STDLIB.ENV[n] = [c];
     else throw `could not coerce ${c} to a value`;
 }
 
 function assert_valid_index(l, i) {
-    assert_indexable(l, `Can not index non-lists`);
-    assert_isreal_strict(i, `Can not index by ${i}`);
+    CHECKS.assert_indexable(l, `Can not index non-lists`);
+    CHECKS.assert_isreal_strict(i, `Can not index by ${i}`);
 
     const idx = i.real;
     assert(idx >= 0 && idx < l.length, `Index out of range`);
@@ -71,13 +42,13 @@ function assert_valid_index(l, i) {
 define_builtin("get", params => {
     const [l, i] = get_n(params, 2);
 
-    if (is_indexable(l)) {
+    if (CHECKS.is_indexable(l)) {
         assert_valid_index(l, i);
         return l.get(i.real);
-    } else if (ivobj(l)) {
-        if (inident(i)) {
+    } else if (CHECKS.ivobj(l)) {
+        if (CHECKS.inident(i)) {
             return l.get(i.name);
-        } else if (ivstr(i)) {
+        } else if (CHECKS.ivstr(i)) {
             return l.get(i.value);
         } else {
             return l.get(i.toString())
@@ -91,18 +62,18 @@ define_builtin("get", params => {
 define_builtin("set", params => {
     const [l, i, v] = get_n(params, 3);
     
-    assert_value(v, `Invalid value`);
-    if (is_indexable(l)) {
+    CHECKS.assert_value(v, `Invalid value`);
+    if (CHECKS.is_indexable(l)) {
         assert_valid_index(l, i);
         
     
         l.set(i.real, v);
     
         return v;
-    } else if (ivobj(l)) {
-        const key = inident(i) 
+    } else if (CHECKS.ivobj(l)) {
+        const key = CHECKS.inident(i) 
                     ? i.name
-                    : ivstr(i)
+                    : CHECKS.ivstr(i)
                      ? i.value
                      : i.toString();
 
@@ -115,8 +86,8 @@ define_builtin("set", params => {
 define_builtin("push", params => {
     const [l, v] = get_n(params, 2);
 
-    assert_indexable(l, `Can not push on non lists`);
-    assert_value(v, `Invalid value`);
+    CHECKS.assert_indexable(l, `Can not push on non lists`);
+    CHECKS.assert_value(v, `Invalid value`);
 
     l.push(v);
 
@@ -126,15 +97,15 @@ define_builtin("push", params => {
 define_builtin("len", params => {
     const [l] = get_n(params, 1);
 
-    assert_indexable(l, `Can not get length of non list`);
+    CHECKS.assert_indexable(l, `Can not get length of non list`);
 
-    return new Complex(l.length, 0);
+    return new VALUES.Complex(l.length, 0);
 });
 
 define_builtin("pop", params => {
     const [l] = get_n(params, 1);
 
-    assert_indexable(l, `Can not pop non lists`);
+    CHECKS.assert_indexable(l, `Can not pop non lists`);
     assert(l.length > 0, `Can not pop empty list`)
 
     return l.pop();
@@ -143,48 +114,48 @@ define_builtin("pop", params => {
 define_builtin("map", async (params, env) => {
     const [f, l] = get_n(params, 2);
 
-    assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_indexable(l, ERRORS.SEC_ARG_LIST);
+    CHECKS.assert_func(f, ERRORS.FIRST_ARG_FUNC);
+    CHECKS.assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
-    return await l.async_map(e => eval_application(f, new List([e]), env));
+    return await l.async_map(e => eval_application(f, new VALUES.List([e]), env));
 });
 
 define_builtin("filter", async (params, env) => {
     const [f, l] = get_n(params, 2);
     
-    assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_indexable(l, ERRORS.SEC_ARG_LIST);
+    CHECKS.assert_func(f, ERRORS.FIRST_ARG_FUNC);
+    CHECKS.assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
-    return await l.async_filter(async e => bool(await eval_application(f, new List([e]), env)));
+    return await l.async_filter(async e => OPS.bool(await eval_application(f, new VALUES.List([e]), env)));
 });
 
 define_builtin("reduce", async (params, env) => {
     const [f, l, i] = get_n(params, 3);
 
-    assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_indexable(l, ERRORS.SEC_ARG_LIST);
+    CHECKS.assert_func(f, ERRORS.FIRST_ARG_FUNC);
+    CHECKS.assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
-    if (i != undefined) assert_value(i, 'initial argument must be a value');
+    if (i != undefined) CHECKS.assert_value(i, 'initial argument must be a value');
 
-    return await l.async_reduce((a, b) => eval_application(f, new List([a, b]), env), i);
+    return await l.async_reduce((a, b) => eval_application(f, new VALUES.List([a, b]), env), i);
 });
 
 define_builtin("accumulate", async (params, env) => {
     const [f, l, i] = get_n(params, 3);
 
-    assert_func(f, ERRORS.FIRST_ARG_FUNC);
-    assert_indexable(l, ERRORS.SEC_ARG_LIST);
+    CHECKS.assert_func(f, ERRORS.FIRST_ARG_FUNC);
+    CHECKS.assert_indexable(l, ERRORS.SEC_ARG_LIST);
 
-    if (i != undefined) assert_value(i, 'initial argument must be a value');
+    if (i != undefined) CHECKS.assert_value(i, 'initial argument must be a value');
 
-    return await l.async_accum((a, b) => eval_application(f, new List([a, b]), env), i);
+    return await l.async_accum((a, b) => eval_application(f, new VALUES.List([a, b]), env), i);
 });
 
 define_builtin("split", params => {
     const [s, d] = get_n(params, 2);
 
-    assert_vstring(s, `Can only split strings`);
-    assert_vstring(d, `Can only split on string delimiter`);
+    CHECKS.assert_vstring(s, `Can only split strings`);
+    CHECKS.assert_vstring(d, `Can only split on string delimiter`);
 
     return s.split(d);
 });
@@ -192,8 +163,8 @@ define_builtin("split", params => {
 define_builtin("join", params => {
     const [l, s] = get_n(params, 2);
 
-    assert_list(l, `Can only join a list`);
-    assert_vstring(s, `Can only join with a string`);
+    CHECKS.assert_list(l, `Can only join a list`);
+    CHECKS.assert_vstring(s, `Can only join with a string`);
 
     return l.join(s);
 });
@@ -201,9 +172,9 @@ define_builtin("join", params => {
 define_builtin("slice", params => {
     const [l, s, e] = get_n(params, 3);
 
-    assert_indexable(l, `Can only slice a list or a string`);
-    assert_isreal_strict(s, `Start index must be a real number`);
-    e && assert_isreal_strict(e, `End index must be a real number`);
+    CHECKS.assert_indexable(l, `Can only slice a list or a string`);
+    CHECKS.assert_isreal_strict(s, `Start index must be a real number`);
+    e && CHECKS.assert_isreal_strict(e, `End index must be a real number`);
 
     return l.slice(s.real, e?.real);
 });
@@ -211,9 +182,9 @@ define_builtin("slice", params => {
 define_builtin("splice", params => {
     const [l, s, e] = get_n(params, 3);
 
-    assert_indexable(l, `Can only splice lists`);
-    assert_isreal_strict(s, `Start index must be a real number`);
-    assert_isreal_strict(e, `Amount to splice must be a real number`);
+    CHECKS.assert_indexable(l, `Can only splice lists`);
+    CHECKS.assert_isreal_strict(s, `Start index must be a real number`);
+    CHECKS.assert_isreal_strict(e, `Amount to splice must be a real number`);
 
     return l.splice(s.real, e.real);
 });
@@ -221,50 +192,50 @@ define_builtin("splice", params => {
 define_builtin("dup", params => {
     const [v] = get_n(params, 1);
 
-    assert_value(v, `Can not duplicate non-value`);
+    CHECKS.assert_value(v, `Can not duplicate non-value`);
 
-    return duplicate(v);
+    return VALUES.duplicate(v);
 });
 
 define_builtin("concat", params => {
     const [l1, l2] = get_n(params, 2);
     
-    assert_indexable(l1, `can only concat lists`);
-    assert_indexable(l2, `can only concat lists`);
+    CHECKS.assert_indexable(l1, `can only concat lists`);
+    CHECKS.assert_indexable(l2, `can only concat lists`);
 
     return l1.concat(l2);
 });
 
 define_builtin("range", params => {
     const [start, stop] = get_n(params, 2);
-    const step = params.get(2) ?? new Complex(1, 0);
+    const step = params.get(2) ?? new VALUES.Complex(1, 0);
 
-    assert(start instanceof Complex && start.imag == 0, `complex ranges are not yet supported..`);
-    assert(stop instanceof Complex && stop.imag == 0, `complex ranges are not yet supported..`);
-    assert(step instanceof Complex && step.imag == 0, `invalid step parameter`);
+    assert(start instanceof VALUES.Complex && start.imag == 0, `complex ranges are not yet supported..`);
+    assert(stop instanceof VALUES.Complex && stop.imag == 0, `complex ranges are not yet supported..`);
+    assert(step instanceof VALUES.Complex && step.imag == 0, `invalid step parameter`);
 
     const st = start.real;
     const sp = stop.real;
     const se = step.real;
     const values = Array.from({ length: (sp - st) / se + 1 }, (_, i) => st + (i * se));
 
-    return new List(values.map(n => new Complex(n, 0)));
+    return new VALUES.List(values.map(n => new VALUES.Complex(n, 0)));
 });
 
 define_builtin("im", params => {
     const [c] = get_n(params, 1);
 
-    assert_complex(c, `Can not get imaginary component of non complex value`);
+    CHECKS.assert_complex(c, `Can not get imaginary component of non complex value`);
 
-    return new Complex(c.imag, 0);
+    return new VALUES.Complex(c.imag, 0);
 });
 
 define_builtin("re", params => {
     const [c] = get_n(params, 1);
 
-    assert_complex(c, `Can not get real component of non complex value`);
+    CHECKS.assert_complex(c, `Can not get real component of non complex value`);
 
-    return new Complex(c.real, 0);
+    return new VALUES.Complex(c.real, 0);
 });
 
 define_builtin("gensym", (_, env) => {
@@ -282,17 +253,17 @@ define_builtin("gensym", (_, env) => {
 define_builtin("del", (params, env) => {
     for (let i = 0; i < params.length; i++) {
         const n = params.get(i);
-        assert_ident(n, "can only delete identifiers");
+        CHECKS.assert_ident(n, "can only delete identifiers");
         delete env.ENV[n.name];
     }
 
-    return new Complex(1, 0);
+    return new VALUES.Complex(1, 0);
 });
 
 define_builtin("sleep", async params => {
     const [t] = get_n(params, 1);
 
-    assert_isreal_strict(t, `can only sleep for a real number of milliseconds`);
+    CHECKS.assert_isreal_strict(t, `can only sleep for a real number of milliseconds`);
     const n = t.real;
 
     await new Promise(r => setTimeout(r, n));
@@ -301,8 +272,8 @@ define_builtin("sleep", async params => {
 define_builtin("trycatch", async (params, env) => {
     const [t, e] = get_n(params.get(0), 2);
 
-    assert_node(t, `first clause to trycatch needs to be passed as an AST, try calling this function as a macro`);
-    assert_node(e, `second clause to trycatch needs to be passed as an AST, try calling this function as a macro`);
+    CHECKS.assert_node(t, `first clause to trycatch needs to be passed as an AST, try calling this function as a macro`);
+    CHECKS.assert_node(e, `second clause to trycatch needs to be passed as an AST, try calling this function as a macro`);
 
     try {
         return await eval_ast(t, env);
@@ -311,36 +282,36 @@ define_builtin("trycatch", async (params, env) => {
     }
 });
 
-define_builtin("object", () => new VObject({}));
+define_builtin("object", () => new VALUES.VObject({}));
 define_builtin("items", params => {
     const [o] = get_n(params, 1);
 
-    assert_vobject(o, `can not get entries of non object`);
+    CHECKS.assert_vobject(o, `can not get entries of non object`);
     
     return o.items();
 });
 define_builtin("haskey", params => {
     const [o, k] = get_n(params, 2);
 
-    const key = inident(k)
+    const key = CHECKS.inident(k)
                 ? k.name
-                : ivstr(k)
+                : CHECKS.ivstr(k)
                 ? k.value
                 : k.toString();
 
-    return fbool(o.value.hasOwnProperty(key));
+    return OPS.fbool(o.value.hasOwnProperty(key));
 
 })
 define_builtin("delkey", params => {
     const [o, k] = get_n(params, 2);
 
-    const key = inident(k)
+    const key = CHECKS.inident(k)
                 ? k.name
-                : ivstr(k)
+                : CHECKS.ivstr(k)
                  ? k.value
                  : k.toString();
     
-    return fbool(delete o.value[k]);
+    return OPS.fbool(delete o.value[k]);
 });
 
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
@@ -358,53 +329,53 @@ const setter = (n, cverifier = x => x, vverifier = x => x, transformer = x => x)
     return c;
 });
 
-const opverifier = (o, n) => c => assert_op(c, `can not ${o} ${n} of non-operator`);
+const opverifier = (o, n) => c => CHECKS.assert_op(c, `can not ${o} ${n} of non-operator`);
 const opgetter = (n, ...rest) => getter(n, opverifier('get', n), ...rest);
 opgetter("left");
 opgetter("right");
-opgetter("op", v => new VString(v));
+opgetter("op", v => new VALUES.VString(v));
 
 const opsetter = (n, ...rest) => setter(n, opverifier('set', n), ...rest);
-opsetter("left", x => assert_node(x, `can not set left of operator to non-node`));
-opsetter("right", x => assert_node(x, `can not set right of operator to non-node`));
-opsetter("op", x => assert_vstring(x, `new op must be a string`), x => x.value);
+opsetter("left", x => CHECKS.assert_node(x, `can not set left of operator to non-node`));
+opsetter("right", x => CHECKS.assert_node(x, `can not set right of operator to non-node`));
+opsetter("op", x => CHECKS.assert_vstring(x, `new op must be a string`), x => x.value);
 
-const identverifier = (o, n) => c => assert_ident(c, `can not ${o} ${n} of non-identifier`);
-getter("name", x => identverifier('get', 'name'), v => new VString(v));
-setter("name", identverifier('set', 'name'), x => assert_vstring(x, `new name must be a string`), v => v.value);
+const identverifier = (o, n) => c => CHECKS.assert_ident(c, `can not ${o} ${n} of non-identifier`);
+getter("name", x => identverifier('get', 'name'), v => new VALUES.VString(v));
+setter("name", identverifier('set', 'name'), x => CHECKS.assert_vstring(x, `new name must be a string`), v => v.value);
 
-const funcverifier = (o, n) => c => (assert_func(c, `can not ${o} ${n} of non-function`), assert_vfunc(c, `can not ${o} ${n} of builtins`));
+const funcverifier = (o, n) => c => (CHECKS.assert_func(c, `can not ${o} ${n} of non-function`), CHECKS.assert_vfunc(c, `can not ${o} ${n} of builtins`));
 const funcgetter = (n, ...rest) => getter(n, funcverifier('get', n), ...rest);
 funcgetter("body");
-funcgetter("params", v => new List(v.map(e => new VString(e))));
+funcgetter("params", v => new VALUES.List(v.map(e => new VALUES.VString(e))));
 
 const funcsetter = (n, ...rest) => setter(n, funcverifier('set', n), ...rest);
-funcsetter("body", x => assert_node(x, `can not set body of function to non node`));
+funcsetter("body", x => CHECKS.assert_node(x, `can not set body of function to non node`));
 
-const nstringverifier = (o, n) => c => assert_nstring(c, `can not ${o} ${n} of non-nodestring`);
+const nstringverifier = (o, n) => c => CHECKS.assert_nstring(c, `can not ${o} ${n} of non-nodestring`);
 const nstringgetter = (n, ...rest) => getter(n, nstringverifier('get', n), ...rest);
-nstringgetter("text", v => new VString(v));
+nstringgetter("text", v => new VALUES.VString(v));
 
 const nstringsetter = (n, ...rest) => setter(n, nstringverifier('set', n), ...rest);
-nstringsetter('text', v => assert_vstring(v, `can not set text to nonstring`), v => v.value);
+nstringsetter('text', v => CHECKS.assert_vstring(v, `can not set text to nonstring`), v => v.value);
 
 getter(
     "subasts",
-    x => assert(inlist(x) || inexpr(x), `can not get subasts of non-list or non-expression body`),
-    l => new List(l),
+    x => assert(CHECKS.inlist(x) || CHECKS.inexpr(x), `can not get subasts of non-list or non-expression body`),
+    l => new VALUES.List(l),
 );
 
-getter("ast", x => assert(inast(x), `can not get ast of non-ast`));
+getter("ast", x => assert(CHECKS.inast(x), `can not get ast of non-ast`));
 
-const ncompverifier = (o, n) => c => assert_ncomp(c, `can not ${o} ${n} of non-complex-node`);
-const ncompgetter = n => getter(n, ncompverifier('get', n), v => new Complex(v, 0));
+const ncompverifier = (o, n) => c => CHECKS.assert_ncomp(c, `can not ${o} ${n} of non-complex-node`);
+const ncompgetter = n => getter(n, ncompverifier('get', n), v => new VALUES.Complex(v, 0));
 ncompgetter('re');
 ncompgetter('im');
 
 const ncompsetter = n => setter(
     n, ncompverifier('set', n),
     v => (
-        assert(icomp(v) || incomp(v), `can not set ${n} to non-complex number`),
+        assert(CHECKS.icomp(v) || CHECKS.incomp(v), `can not set ${n} to non-complex number`),
         assert(v.im === 0, `can not set ${n} to complex number`)
     ),
     v => v.re
@@ -415,41 +386,41 @@ ncompsetter('im');
 define_builtin("eval", async (params, env) => {
     const [c] = get_n(params, 1);
 
-    assert_value(c, "can not evaluate non value");
-    if (ivstr(c)) return await eval_expr(c.toString(), env);
+    CHECKS.assert_value(c, "can not evaluate non value");
+    if (CHECKS.ivstr(c)) return await eval_expr(c.toString(), env);
     else return c;
 });
 
 define_builtin("eval_ast", async (params, env) => {
     const [c] = get_n(params, 1);
 
-    assert_node(c, `argument not an ast`);
+    CHECKS.assert_node(c, `argument not an ast`);
     
     return await eval_ast(c, env);
 });
 
 const predfun = (n, f) => define_builtin(n, params => {
     const [c] = get_n(params, 1);
-    return fbool(f(c));
+    return OPS.fbool(f(c));
 });
 
-predfun("islist", ilist);
-predfun("isnum", icomp);
-predfun("isfun", ifunc);
-predfun("isstr", ivstr);
-predfun("isnodeast", inast);
-predfun("isnodestr", instring);
-predfun("isnodelist", inlist);
-predfun("isnodenum", incomp);
-predfun("isnodeexpr", inexpr);
-predfun("isnodeident", inident);
-predfun("isnodeop", inop);
+predfun("islist", CHECKS.ilist);
+predfun("isnum", CHECKS.icomp);
+predfun("isfun", CHECKS.ifunc);
+predfun("isstr", CHECKS.ivstr);
+predfun("isnodeast", CHECKS.inast);
+predfun("isnodestr", CHECKS.instring);
+predfun("isnodelist", CHECKS.inlist);
+predfun("isnodenum", CHECKS.incomp);
+predfun("isnodeexpr", CHECKS.inexpr);
+predfun("isnodeident", CHECKS.inident);
+predfun("isnodeop", CHECKS.inop);
 
 
 const mathfun = (f, n) => define_builtin(n ?? f.name, params => {
     const [c] = get_n(params, 1);
-    assert_isreal_strict(c, `Can only take the ${n ?? f.name} of real numbers`);
-    return new Complex(f(c.real), 0);
+    CHECKS.assert_isreal_strict(c, `Can only take the ${n ?? f.name} of real numbers`);
+    return new VALUES.Complex(f(c.real), 0);
 });
 
 
@@ -475,14 +446,14 @@ mathfun(Math.log2);
 const strfun = (f, n, ...asserts) => define_builtin(n ?? f.name, params => {
     const [s, ...r] = params.values;
 
-    assert_vstring(s, `can not take ${n ?? f.name} of non-string`);
+    CHECKS.assert_vstring(s, `can not take ${n ?? f.name} of non-string`);
     asserts.forEach(([a, m], i) => a(r[i], m));
 
-    return fromJS(f.bind(toJS(s))(...r.map(toJS)));
+    return VALUES.fromJS(f.bind(VALUES.toJS(s))(...r.map(VALUES.toJS)));
 });
 
-const assert_string = [assert_vstring, `argument must be a string`];
-const assert_num = [assert_isreal_strict, `argument must be a real number`];
+const assert_string = [CHECKS.assert_vstring, `argument must be a string`];
+const assert_num = [CHECKS.assert_isreal_strict, `argument must be a real number`];
 
 const strfunp = (n, fn, ...rest) => strfun(String.prototype[fn ?? n], n, ...rest);
 
@@ -499,20 +470,20 @@ strfunp("padStart", null, assert_num, assert_string);
 strfunp("startsWith", null, assert_string);
 strfunp("endsWith", null, assert_string);
 
-define_builtin("random", () => new Complex(Math.random(), 0));
-define_builtin("abs", params => abs(...get_n(params, 1)));
+define_builtin("random", () => new VALUES.Complex(Math.random(), 0));
+define_builtin("abs", params => OPS.abs(...get_n(params, 1)));
 
 define_builtin("ptable", (params, env) => {
     const pt = LANG.PRECEDENCE(env.USER_DEFINED_OP);
-    return new List(
-        pt.map(([op, a]) => new List([
-            new List(op.map(e => new VString(e))),
-            new VString(a)
+    return new VALUES.List(
+        pt.map(([op, a]) => new VALUES.List([
+            new VALUES.List(op.map(e => new VALUES.VString(e))),
+            new VALUES.VString(a)
         ]))
     )
 });
 
-define_builtin("defined", (_, env) => new List(Object.keys(env.ENV).map(n => new VString(n))));
+define_builtin("defined", (_, env) => new VALUES.List(Object.keys(env.ENV).map(n => new VALUES.VString(n))));
 
 await define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 

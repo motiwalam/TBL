@@ -1,18 +1,19 @@
-import { List, Complex, VFunction, BuiltinFunction, VString, VObject } from "./values.mjs";
-import { NodeExprBody, NodeList, NodeComplex, NodeString, NodeIdentifier, NodeOperation, NodeAst } from "./nodes.mjs";
+import * as VALUES from "./values.mjs";
+import * as NODES from "./nodes.mjs";
 import * as LANG from "./language.mjs";
 import * as ERRORS from "./errors.mjs";
+
 import assert from "assert";
 
 export const and = (...fs) => o => fs.every(f => f(o));
 export const or = (...fs) => o => fs.some(f => f(o));
 
-export const ilist = o => o instanceof List;
-export const icomp = o => o instanceof Complex;
-export const ivfun = o => o instanceof VFunction;
-export const ibfun = o => o instanceof BuiltinFunction;
-export const ivstr = o => o instanceof VString;
-export const ivobj = o => o instanceof VObject;
+export const ilist = o => o instanceof VALUES.List;
+export const icomp = o => o instanceof VALUES.Complex;
+export const ivfun = o => o instanceof VALUES.VFunction;
+export const ibfun = o => o instanceof VALUES.BuiltinFunction;
+export const ivstr = o => o instanceof VALUES.VString;
+export const ivobj = o => o instanceof VALUES.VObject;
 
 export const idata = or(ilist, icomp, ivfun, ibfun, ivstr, ivobj);
 export const assert_data = (o, m) => assert(idata(o), m);
@@ -66,13 +67,13 @@ export const ivalid_opstring = c =>
     )
 ;
 
-export const inexpr = c => c instanceof NodeExprBody;
-export const inlist = c => c instanceof NodeList;
-export const incomp = c => c instanceof NodeComplex;
-export const instring = c => c instanceof NodeString;
-export const inident = c => c instanceof NodeIdentifier;
-export const inast = c => c instanceof NodeAst;
-export const inop = c => c instanceof NodeOperation;
+export const inexpr = c => c instanceof NODES.NodeExprBody;
+export const inlist = c => c instanceof NODES.NodeList;
+export const incomp = c => c instanceof NODES.NodeComplex;
+export const instring = c => c instanceof NODES.NodeString;
+export const inident = c => c instanceof NODES.NodeIdentifier;
+export const inast = c => c instanceof NODES.NodeAst;
+export const inop = c => c instanceof NODES.NodeOperation;
 export const inoper = o => inop(o) && o.operator == o;
 export const inopers = Object.fromEntries(LANG.OPERATORS({}).map(o => [o, inoper(o)]));
 
