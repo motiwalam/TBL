@@ -1,5 +1,6 @@
 import * as CHECKS from "./checks.mjs";
 import * as NODES from "./nodes.mjs";
+import { eval_application} from "./eval.mjs";
 
 export class BuiltinFunction {
     apply;
@@ -327,6 +328,7 @@ export const toJS = cond(
     [CHECKS.ilist, v => v.values.map(toJS)],
     [CHECKS.ivstr, v => v.value],
     [CHECKS.ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
+    [CHECKS.ivfun, v => async (...args) => toJS(await eval_application(v, fromJS(args), v.closure))],
     [() => true, v => {throw `Could not convert ${v} to JS`}]
 );
 
@@ -337,5 +339,8 @@ export const fromJS = cond(
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
     [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
     [v => typeof v === 'object', v => new VObject(Object.fromEntries(Object.entries(v).map(([k, v]) => [k, fromJS(v)])))],
+    [v => typeof v === 'function', v => new BuiltinFunction(
+        async params => fromJS(await v(...toJS(params)))
+    )],
     [() => true, v => {throw `Could not convert ${v} from JS`}]
 );
