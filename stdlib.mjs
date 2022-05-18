@@ -45,13 +45,15 @@ define_builtin("get", params => {
         assert_valid_index(l, i);
         return l.get(i.real);
     } else if (CHECKS.ivobj(l)) {
-        if (CHECKS.inident(i)) {
-            return l.get(i.name);
-        } else if (CHECKS.ivstr(i)) {
-            return l.get(i.value);
-        } else {
-            return l.get(i.toString())
-        }
+        const key = CHECKS.inident(i) 
+                    ? i.name
+                    : CHECKS.ivstr(i)
+                    ? i.value
+                    : i.toString();
+
+        if (l.value.hasOwnProperty(key)) {
+            return l.get(key);
+        } else throw `key "${key}" not found`;
     }
 
     throw `can not get on non list or object`;
