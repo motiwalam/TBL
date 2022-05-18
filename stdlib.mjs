@@ -539,7 +539,7 @@ await define_expr("and_shortcircuit", `{&&} <<< [op_priority @ {=} + 0.5, [a, b]
 await define_expr("and", `[a, b] -> a && b`);
 await define_expr("or_shortcircuit", `{||} <<< [op_priority @ {&&}, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
 await define_expr("or", `[a, b] -> a || b`);
-await define_expr("xor", `{<>} << [op_priority @ {&&}, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`)
+await define_expr("xor", `{<>} << [op_priority @ {&&}, [a, b] -> (a && not @ [b]) || (b && not @ [a])]`);
 await define_expr("all", `reduce'[and, _, 1]`);
 await define_expr("any", `reduce'[or, _, 0]`);
 await define_expr("bool", `a -> a ? [1, 0]`);
@@ -606,9 +606,16 @@ await define_expr("deg", `mul'(180/PI)`);
 
 await define_expr("reverse", `l -> map @ [get'[l], range @ [len @ [l] - 1, 0, ~1]]`)
 
-
-await define_expr("every", `[l, f] -> all @ [map @ [f, l]]`);
-await define_expr("some", `[l, f] -> any @ [map @ [f, l]]`);
+await define_expr("every", `[l, f] -> (
+    r: 1;
+    forin @- [v, l, r: r && f @ v];
+    r
+)`);
+await define_expr("some", `[l, f] -> (
+    r: 0;
+    forin @- [v, l, r: r || f @ v];
+    r
+)`);
 
 await define_expr("neg", `mul'~1`);
 await define_expr("id", "x -> x");
