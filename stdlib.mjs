@@ -284,6 +284,16 @@ define_builtin("trycatch", async (params, env) => {
 });
 
 define_builtin("object", () => new VALUES.VObject({}));
+define_builtin("keys", params => {
+    const [o] = get_n(params, 1);
+    CHECKS.assert_vobject(o, `can not get keys of non object`);
+    return new VALUES.List(Object.keys(o.value).map(v => new VALUES.VString(v)));
+});
+define_builtin("values", params => {
+    const [o] = get_n(params, 1);
+    CHECKS.assert_vobject(o, `can not get values of non object`);
+    return new VALUES.List(Object.values(o.value));
+});
 define_builtin("items", params => {
     const [o] = get_n(params, 1);
 
