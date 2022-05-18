@@ -316,7 +316,7 @@ const getInstanceMethods = (obj) => {
     const isOrig = (keys, i, prop) => typeof topObject[prop] === 'function'
                                   && prop !== 'constructor'
                                   && (i === 0 || prop !== keys[i - 1])
-                                  && !keys.includes(prop)
+                                  && !result.keys.includes(prop)
 
     const result = {
         keys: [],
