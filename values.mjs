@@ -299,8 +299,11 @@ export class VObject {
     }
 }
 
-const getBlank = (obj, prop, desc) => Object.getOwnPropertyDescriptor(obj, prop)?.[desc] ||
-                                      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), prop)?.[desc];
+const getBlank = (obj, prop, desc) => {
+    const pr = Object.getPrototypeOf(obj);
+    return Object.getOwnPropertyDescriptor(obj, prop)?.[desc] ||
+           (pr && Object.getOwnPropertyDescriptor(pr, prop)?.[desc])
+}
 
 const getGetter = (obj, prop) => getBlank(obj, prop, "get");
 const getSetter = (obj, prop) => getBlank(obj, prop, "set");
