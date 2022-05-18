@@ -311,13 +311,15 @@ export class VObject {
     }
 }
 
-export function predmatch(v, ps) {
-    for (const [p, f] of ps) {
-        if (p(v)) return f(v)
+export function cond(...ps) {
+    return function(v) {
+        for (const [p, f] of ps) {
+            if (p(v)) return f(v)
+        }
     }
 }
 
-export const duplicate = v => predmatch(v, [
+export const duplicate = cond(
     [ibfun, v => new BuiltinFunction(v.apply)],
     [icomp, v => new Complex(v.real, v.imag)],
     [ivfun, v => new VFunction(duplicate(v.params), duplicate(v.body), v.closure)],
@@ -331,20 +333,21 @@ export const duplicate = v => predmatch(v, [
     [inlist, v => new NodeList(v.subasts.map(duplicate))],
     [inop, v => new NodeOperation(v.operator, duplicate(v.left), duplicate(v.right))],
     [inident, v => new NodeIdentifier(v.name)]
-]);
+);
 
-export const toJS = v => predmatch(v, [
+export const toJS = cond(
     [icomp, v => v.real],
     [ilist, v => v.values.map(toJS)],
     [ivstr, v => v.value],
     [ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
-    [() => true, () => {throw `Could not convert ${v} to JS`}]
-]);
+    [() => true, v => {throw `Could not convert ${v} to JS`}]
+);
 
-export const fromJS = v => predmatch(v, [
+export const fromJS = cond(
     [v => typeof v === 'string', v => new VString(v)],
     [v => v instanceof Array, v => new List(v.map(fromJS))],
     [v => typeof v === 'number', v => new Complex(v, 0)],
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
-    [() => true, () => {throw `Could not convert ${v} from JS`}]
-]);
+    [v => typeof v === 'object', v => new VObject(Object.fromEntries(Object.entries(v).map(([k, v]) => [k, fromJS(v)])))],
+    [() => true, v => {throw `Could not convert ${v} from JS`}]
+);
