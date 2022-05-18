@@ -335,6 +335,7 @@ export const fromJS = cond(
     [v => v instanceof Array, v => new List(v.map(fromJS))],
     [v => typeof v === 'number', v => new Complex(v, 0)],
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
+    [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
     [v => typeof v === 'object', v => new VObject(Object.fromEntries(Object.entries(v).map(([k, v]) => [k, fromJS(v)])))],
     [() => true, v => {throw `Could not convert ${v} from JS`}]
 );
