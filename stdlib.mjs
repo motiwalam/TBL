@@ -282,12 +282,12 @@ define_builtin("object", () => new VALUES.VObject({}));
 define_builtin("keys", params => {
     const [o] = get_n(params, 1);
     CHECKS.assert_vobject(o, `can not get keys of non object`);
-    return new VALUES.List(Object.keys(o.value).map(v => new VALUES.VString(v)));
+    return o.keys();
 });
 define_builtin("values", params => {
     const [o] = get_n(params, 1);
     CHECKS.assert_vobject(o, `can not get values of non object`);
-    return new VALUES.List(Object.values(o.value));
+    return o.values();
 });
 define_builtin("items", params => {
     const [o] = get_n(params, 1);
@@ -299,17 +299,21 @@ define_builtin("items", params => {
 define_builtin("haskey", params => {
     const [o, k] = get_n(params, 2);
 
+    CHECKS.assert_vobject(o, `can not check for key in non object`);
+
     const key = CHECKS.inident(k)
                 ? k.name
                 : CHECKS.ivstr(k)
                 ? k.value
                 : k.toString();
 
-    return OPS.fbool(o.value.hasOwnProperty(key));
+    return o.has(key);
 
 })
 define_builtin("delkey", params => {
     const [o, k] = get_n(params, 2);
+
+    CHECKS.assert_vobject(o, `can not delete key in non object`);
 
     const key = CHECKS.inident(k)
                 ? k.name
@@ -317,7 +321,7 @@ define_builtin("delkey", params => {
                  ? k.value
                  : k.toString();
     
-    return OPS.fbool(delete o.value[k]);
+    return o.del(key);
 });
 
 const getter = (n, verifier = x => x, transformer = x => x) => define_builtin(`get${n}`, params => {
