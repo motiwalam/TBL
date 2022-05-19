@@ -382,18 +382,40 @@ export const duplicate = cond(
     [CHECKS.inident, v => new NODES.NodeIdentifier(v.name)]
 );
 
-export const toJS = cond(
+export const toJS = (v, wm) => cond(
     [CHECKS.icomp, v => v.real],
-    [CHECKS.ilist, v => v.values.map(toJS)],
+    [CHECKS.ilist, v => {
+        if (wm.has(v)) return wm.get(v);
+
+        const o = [];
+        wm.set(v, o);
+
+        v.values.forEach(e => { o.push(toJS(e, wm)) });
+
+        return o;
+    }],
     [CHECKS.ivstr, v => v.value],
     [CHECKS.ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
-    [CHECKS.ivfun, v => async (...args) => toJS(await eval_application(v, fromJS(args), v.closure))],
+    [CHECKS.ivfun, v => async (...args) => toJS(await eval_application(v, fromJS(args), v.closure), wm)],
+    [CHECKS.ibfun, cond(
+        [f => f.apply[Symbol.toStringTag] === 'AsyncFunction', f => async (...args) => toJS(await f.apply(fromJS(args), {}), wm)],
+        [() => true, f => (...args) => toJS(f.apply(fromJS(args), {}), wm)],
+    )],
     [() => true, v => { throw `Could not convert ${v} to JS` }]
-);
+)(v);
 
 export const fromJS = (v, wm = new WeakMap()) => cond(
     [v => typeof v === 'string', v => new VString(v)],
-    [v => v instanceof Array, v => new List(v.map(e => fromJS(e, wm)))],
+    [v => v instanceof Array, v => {
+        if (wm.has(v)) return wm.get(v);
+
+        const o = new List([]);
+        wm.set(v, o);
+
+        v.forEach(e => { o.push(fromJS(e, wm)) });
+
+        return o;
+    }],
     [v => typeof v === 'number', v => new Complex(v, 0)],
     [v => typeof v === 'boolean', v => v ? new Complex(1, 0) : new Complex(0, 0)],
     [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
@@ -413,8 +435,9 @@ export const fromJS = (v, wm = new WeakMap()) => cond(
         
         return r;
     }],
-    [v => typeof v === 'function', v => new BuiltinFunction(
-        async params => fromJS(await v(...toJS(params)), wm)
+    [v => typeof v === 'function', cond(
+        [f => f[Symbol.toStringTag] === 'AsyncFunction', f => new BuiltinFunction(async params => fromJS(await f(...toJS(params)), wm))],
+        [() => true, f => new BuiltinFunction(params => fromJS(f(...toJS(params)), wm))]
     )],
     [() => true, v => { throw `Could not convert ${v} from JS` }]
-)(v, wm);
+)(v);
