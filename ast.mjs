@@ -226,7 +226,7 @@ export function parseText(text, udo) {
             continue;
         }
 
-        if (c == LANG.ESCAPE) {
+        if (c == LANG.ESCAPE && depth == 0) {
             esflag = true;
             continue;
         }
