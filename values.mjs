@@ -169,8 +169,11 @@ export class List {
         this.values[i] = v;
     }
 
-    toString() {
-        return `[${this.values.map(e => e.toString()).join(', ')}]`;
+    toString(wm = new WeakMap()) {
+        if (wm.has(this)) return '[...]';
+        wm.set(this);
+
+        return `[${this.values.map(e => e.toString(wm)).join(', ')}]`;
     }
 
     join(s) {
@@ -294,8 +297,11 @@ export class VObject {
         )
     }
 
-    toString() {
-        return `#object [${Object.keys(this.value).length}]`;
+    toString(wm = new WeakMap()) {
+        if (wm.has(this)) return `{...}`;
+        wm.set(this);
+
+        return `{ ${Object.entries(this.value).map(([k, v]) => `"${k.toString(wm)}": ${v.toString(wm)}`).join(', ') } }`;
     }
 }
 

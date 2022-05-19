@@ -8,8 +8,11 @@ export class NodeExprBody {
         this.subasts = subasts;
     }
 
-    toString() {
-        return `{ ${this.subasts.map(e => e.toString()).join('; ')} }`
+    toString(wm = new WeakMap()) {
+        if (wm.has(this)) return `{; ... ;}`;
+        wm.set(this);
+
+        return `{; ${this.subasts.map(e => e.toString(wm)).join('; ')} ;}`
     }
 
     get length() { return this.subasts.length }
@@ -108,8 +111,11 @@ export class NodeList {
         return new VALUES.List(await Promise.all(this.subasts.map(t => eval_ast(t, env))))
     }
 
-    toString() {
-        return `[ ${this.subasts.map(e => e.toString()).join(', ')} ]`
+    toString(wm = new WeakMap()) {
+        if (wm.has(this)) return `[\` ... \`]`;
+        wm.set(this);
+
+        return `[\` ${this.subasts.map(e => e.toString(wm)).join(', ')} \`]`
     }
     
     get length() { return this.subasts.length }
