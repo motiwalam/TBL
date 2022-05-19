@@ -414,7 +414,7 @@ export const toJS = (v, wm = new WeakMap()) => cond(
         const r = {};
         wm.set(v, r);
 
-        Object.entries(v.value).forEach(([k, v]) => { r[k] = v });
+        Object.entries(v.value).forEach(([k, v]) => { r[k] = toJS(v, wm) });
         return r;
     }],
     [CHECKS.ivfun, v => async (...args) => toJS(await eval_application(v, fromJS(args), v.closure), wm)],
@@ -443,6 +443,7 @@ export const fromJS = (v, wm = new WeakMap()) => cond(
     [v => typeof v === 'object', v => {
         if (wm.has(v)) return wm.get(v);
         const r = VObject.proxy(v);
+        wm.set(v, r);
         return r;
     }],
     [v => typeof v === 'function', f => new BuiltinFunction(async params => fromJS(await f(...toJS(params)), wm))],
