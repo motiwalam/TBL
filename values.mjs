@@ -274,79 +274,91 @@ export class VString {
 
 }
 
+const OutgoingTransform = Symbol("OutgoingTransform");
+const IncomingTransform = Symbol("IncomingTransform");
+const isProxy = Symbol("isProxy");
+
 export class VObject {
     value;
 
     constructor(obj) {
         this.value = obj;
+        this[isProxy] = false;
     }
 
+    [OutgoingTransform](v) { return v; }
+    [IncomingTransform](v) { return v; }
+
     get(key) {
-        return this.value[key];
+        return this[OutgoingTransform](this.value[key]);
     }
 
     set(key, value) {
-        this.value[key] = value;
+        this.value[key] = this[IncomingTransform](value);
         return value;
     }
 
+    keys() {
+        return new List(enumerateAllKeys(this.value).map(k => new VString(k)))
+    }
+
+    values() {
+        return this.keys().map(k => this.get(k.value));
+    }
+
     items() {
-        return new List(
-            Object.entries(this.value)
-                .map(([k, v]) => new List([new VString(k.toString()), v]))
-        )
+        const keys = this.keys();
+        const vals = this.values();
+
+        const out = new List([]);
+        for (let i = 0; i < keys.length; i++) {
+            out.push(new List([keys.get(i), vals.get(i)]));
+        }
+
+        return out;
+    }
+
+    has(key) {
+        return fromJS(this.value[key] !== undefined);
+    }
+
+    del(key) {
+        return fromJS(delete this.value[key]);
     }
 
     toString(wm = new WeakMap()) {
-        if (wm.has(this)) return `{...}`;
-        wm.set(this);
+        if (this[isProxy]) {
+            if (wm.has(this.value)) return `{...}`;
+            wm.set(this.value)
+        } else {
+            if (wm.has(this)) return `{...}`;
+            wm.set(this);
+        }
+        
+        return `{ ${Object.keys(this.value).map(k => `"${k}": ${this.get(k)?.toString(wm)}`).join(', ')} }`    
+    }
 
-        return `{ ${Object.entries(this.value).map(([k, v]) => `"${k.toString(wm)}": ${v.toString(wm)}`).join(', ') } }`;
+    static proxy(obj) {
+        const o = new VObject(obj);
+        o[OutgoingTransform] = v => fromJS(typeof v === 'function' ? v.bind(obj) : v);
+        o[IncomingTransform] = toJS;
+        o[isProxy] = true;
+
+        return o;
     }
 }
 
-const getBlank = (obj, prop, desc) => {
-    const pr = Object.getPrototypeOf(obj);
-    return Object.getOwnPropertyDescriptor(obj, prop)?.[desc] ||
-           (pr && Object.getOwnPropertyDescriptor(pr, prop)?.[desc])
-}
-
-const getGetter = (obj, prop) => getBlank(obj, prop, "get");
-const getSetter = (obj, prop) => getBlank(obj, prop, "set");
-
 // https://gist.github.com/jasonayre/5d9ebd64299bf69c8637a9e03e33a3fb
-const getInstanceMethods = (obj) => {
-    
-    const isBlank = (obj, prop, desc) => !!(getBlank(obj, prop, desc));
-
-    const isGetter = (obj, prop) => isBlank(obj, prop, "get");
-    const isSetter = (obj, prop) => isBlank(obj, prop, "set");
-
-    const isOrig = (keys, i, prop) => typeof topObject[prop] === 'function'
-                                  && prop !== 'constructor'
+export const enumerateAllKeys = (obj) => {
+    const isOrig = (keys, i, prop) => prop !== 'constructor'
                                   && (i === 0 || prop !== keys[i - 1])
-                                  && !result.keys.includes(prop)
+                                  && !out.includes(prop)
 
-    const result = {
-        keys: [],
-        getters: [],
-        setters: []
-    };
-
-    const topObject = obj;
+    const out = [];
 
     do {
-        const l = Object.getOwnPropertyNames(obj).sort()
-            // .filter(onlyOriginalMethods)
-
-        
-        l.forEach((key, idx, arr) => {
-            cond(
-                [isGetter.bind(null, obj), key => { result.getters.push(key) }],
-                [isSetter.bind(null, obj), key => { result.setters.push(key) }],
-                [isOrig.bind(null, arr, idx), key => { result.keys.push(key) }]
-            )(key);
-        });
+        const l = Object.getOwnPropertyNames(obj).sort().filter(isOrig);
+        l.forEach(k => out.push(k));
 
         // walk-up the prototype chain
         obj = Object.getPrototypeOf(obj)
@@ -355,7 +367,7 @@ const getInstanceMethods = (obj) => {
         obj && Object.getPrototypeOf(obj)
     )
 
-    return result
+    return out;
 }
 
 export function cond(...ps) {
@@ -382,7 +394,7 @@ export const duplicate = cond(
     [CHECKS.inident, v => new NODES.NodeIdentifier(v.name)]
 );
 
-export const toJS = (v, wm) => cond(
+export const toJS = (v, wm = new WeakMap()) => cond(
     [CHECKS.icomp, v => v.real],
     [CHECKS.ilist, v => {
         if (wm.has(v)) return wm.get(v);
@@ -395,7 +407,16 @@ export const toJS = (v, wm) => cond(
         return o;
     }],
     [CHECKS.ivstr, v => v.value],
-    [CHECKS.ivobj, v => Object.fromEntries(Object.entries(v.value).map(([k, v]) => [k, toJS(v)]))],
+    [CHECKS.ivobj, v => {
+        if (v[isProxy]) return v.value;
+        if (wm.has(v)) return wm.get(v);
+        
+        const r = {};
+        wm.set(v, r);
+
+        Object.entries(v.value).forEach(([k, v]) => { r[k] = v });
+        return r;
+    }],
     [CHECKS.ivfun, v => async (...args) => toJS(await eval_application(v, fromJS(args), v.closure), wm)],
     [CHECKS.ibfun, cond(
         [f => f.apply[Symbol.toStringTag] === 'AsyncFunction', f => async (...args) => toJS(await f.apply(fromJS(args), {}), wm)],
@@ -421,18 +442,7 @@ export const fromJS = (v, wm = new WeakMap()) => cond(
     [v => v === null || v === undefined, () => new Complex(0, 0)], // nullish
     [v => typeof v === 'object', v => {
         if (wm.has(v)) return wm.get(v);
-
-        const r = new VObject({});
-        wm.set(v, r);
-        
-        Object.entries(v).forEach(([k, o]) => { r.value[k] = fromJS(o, wm) });
-
-        const ims = getInstanceMethods(v);
-
-        ims.keys.forEach(k => { r.value[k] = fromJS(v[k].bind(v), wm) });
-        ims.getters.forEach(k => { r.value[`get_${k}`] = fromJS(getGetter(v, k)?.bind(v), wm) });
-        ims.setters.forEach(k => { r.value[`set_${k}`] = fromJS(getSetter(v, k)?.bind(v), wm) });
-        
+        const r = VObject.proxy(v);
         return r;
     }],
     [v => typeof v === 'function', cond(
