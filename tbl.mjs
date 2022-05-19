@@ -5,7 +5,7 @@ import repl from 'repl';
 import { Calculator } from './calc.mjs';
 import { assert_vstring } from './checks.mjs';
 import * as LANG from './language.mjs';
-import { Complex, VString } from './values.mjs';
+import { Complex, VString, fromJS } from './values.mjs';
 import process from 'process';
 
 const JS_PREFIX = '!js ';
@@ -27,6 +27,13 @@ c.defineBuiltin('load', async params => {
 c.defineBuiltin('clog', params => {
 	console.log(...params.values.map(e => e.toString()));
 	return new Complex(0, 0);
+});
+
+c.defineBuiltin("js", async params => {
+	const script = params.get(0);
+	assert_vstring(script, 'script must be a string');
+	const result = await eval(script.value) ?? "undefined";
+	return fromJS(result);
 });
 
 function start_repl() {
