@@ -445,9 +445,6 @@ export const fromJS = (v, wm = new WeakMap()) => cond(
         const r = VObject.proxy(v);
         return r;
     }],
-    [v => typeof v === 'function', cond(
-        [f => f[Symbol.toStringTag] === 'AsyncFunction', f => new BuiltinFunction(async params => fromJS(await f(...toJS(params)), wm))],
-        [() => true, f => new BuiltinFunction(params => fromJS(f(...toJS(params)), wm))]
-    )],
+    [v => typeof v === 'function', f => new BuiltinFunction(async params => fromJS(await f(...toJS(params)), wm))],
     [() => true, v => { throw `Could not convert ${v} from JS` }]
 )(v);
