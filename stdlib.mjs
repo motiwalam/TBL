@@ -21,13 +21,7 @@ const define_builtin = (n, f) => {
 
 const define_expr = async (n, expr) => (STDLIB.ENV[n] = [await eval_expr(expr, STDLIB)]);
 
-const define_const = (n, c) => {
-    if (typeof c === 'string') STDLIB.ENV[n] = [new VALUES.VString(c)];
-    else if (typeof c === 'number') STDLIB.ENV[n] = [new VALUES.Complex(c, 0)];
-    else if (c instanceof Array) STDLIB.ENV[n] = [new VALUES.List(c)];
-    else if (CHECKS.ivalue(c)) STDLIB.ENV[n] = [c];
-    else throw `could not coerce ${c} to a value`;
-}
+const define_const = (n, c) => { STDLIB.ENV[n] = [VALUES.fromJS(c)] }
 
 function assert_valid_index(l, i) {
     CHECKS.assert_indexable(l, `Can not index non-lists`);
