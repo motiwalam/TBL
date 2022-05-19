@@ -1,5 +1,5 @@
 import { eval_expr } from "./eval.mjs";
-import { BuiltinFunction } from "./values.mjs";
+import { BuiltinFunction, fromJS } from "./values.mjs";
 
 export class Calculator {
     constructor(env = { ENV: {}, USER_DEFINED_OP: {} }) {
@@ -32,6 +32,12 @@ export class Calculator {
             }
         };
     }
+
+    define(name, value) {
+        this.env.ENV[name] = [value];
+    }
+
+    defineFromJS(name, value) { this.define(name, fromJS(value)) }
 
     defineBuiltin(name, func) {
         const b = new BuiltinFunction(func);
