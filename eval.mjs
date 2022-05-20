@@ -121,7 +121,7 @@ export async function eval_ast(ast, env) {
                 unsafe = right.length === 5;
                 assert(idx instanceof VALUES.Complex, `precedence index must be a number`);
                 CHECKS.assert_isreal_strict(idx, `precedence index must be a real number`);
-                assert(idx.real > 0, `precedence index can not be negative`);
+                assert(idx.real >= 0, `precedence index can not be negative`);
 
                 i = idx.real;
             } else {
