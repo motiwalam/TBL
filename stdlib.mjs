@@ -470,6 +470,7 @@ const strfunp = (n, fn, ...rest) => strfun(String.prototype[fn ?? n], n, ...rest
 
 strfunp("lower", "toLowerCase");
 strfunp("upper", "toUpperCase");
+strfunp("strincludes", "includes", assert_string);
 strfunp("replace", null, assert_string, assert_string);
 strfunp("replaceAll", null, assert_string, assert_string);
 strfunp("substr", null, assert_num, assert_num);
