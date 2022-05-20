@@ -418,6 +418,7 @@ predfun("islist", CHECKS.ilist);
 predfun("isnum", CHECKS.icomp);
 predfun("isfun", CHECKS.ifunc);
 predfun("isstr", CHECKS.ivstr);
+predfun("isobj", CHECKS.ivobj);
 predfun("isnodeast", CHECKS.inast);
 predfun("isnodestr", CHECKS.instring);
 predfun("isnodelist", CHECKS.inlist);
