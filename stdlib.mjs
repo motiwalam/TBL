@@ -860,6 +860,18 @@ await define_expr("merge_objects", `{|} << [op_priority @ {:>} + 1.5, [f, g] -> 
     f;
 )]`);
 
+await define_expr("extended_get", `{.::} << [op_priority @ {::}, [o, l] -> (
+    not . or .| [islist, isnodelist] @. l ? [
+        o::l,
+
+        forin @- [k, l, (
+            o: o::k
+        )];
+
+        o
+    ]
+)]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
