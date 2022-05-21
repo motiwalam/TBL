@@ -872,6 +872,15 @@ await define_expr("extended_get", `{.::} << [op_priority @ {::}, [o, l] -> (
     ]
 )]`);
 
+await define_expr("ast_get", `{!} <<< [op_priority @ {::}, [o, k] -> (
+    m: eval_ast @!! o;
+    isnodeident @ k ? [
+        key: getname @ k,
+        key: eval_ast @!! k
+    ];
+    m::key
+)]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
