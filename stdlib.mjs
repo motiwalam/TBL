@@ -548,7 +548,7 @@ await define_expr("repeat", `
 )
 `);
 
-await define_expr("and_shortcircuit", `{&&} <<< [op_priority @ {=} + 0.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
+await define_expr("and_shortcircuit", `{&&} <<< [op_priority @ {=} + 1.5, [a, b] -> eval_ast @!! a ? [eval_ast @!! b ? [1, 0], 0]]`);
 await define_expr("and", `[a, b] -> a && b`);
 await define_expr("or_shortcircuit", `{||} <<< [op_priority @ {&&}, [a, b] -> eval_ast @!! a ? [1, eval_ast @!! b ? [1, 0]]]`);
 await define_expr("or", `[a, b] -> a || b`);
