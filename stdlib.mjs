@@ -279,6 +279,12 @@ define_builtin("trycatch", async (params, env) => {
     }
 });
 
+define_builtin("throw", async params => {
+    const [m] = get_n(params, 1);
+
+    throw m.toString();
+});
+
 define_builtin("object", () => new VALUES.VObject({}));
 define_builtin("keys", params => {
     const [o] = get_n(params, 1);
@@ -512,6 +518,7 @@ define_builtin("nodeast", params => {
     return new NodeAst(ast);
 })
 
+await define_expr("assert", `[c, m] -> c ? [1, throw @ m]`)
 await define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
 await define_expr("find", `[l, f] -> (
