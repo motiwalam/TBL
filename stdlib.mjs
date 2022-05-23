@@ -883,6 +883,68 @@ await define_expr("ast_get", `{!} <<< [op_priority @ {::}, [o, k] -> (
 
 await define_expr("isop", `[op, ast] -> isnodeop @. ast && getop @. ast = op`);
 
+await define_expr("destructure_object", `{:<} <<< [op_priority @ {:}, [left, right] -> (
+
+    helper: [left, right, assign_to_obj] -> (
+        out: nodeexpr @ [];
+
+        cond @- [
+            [isnodelist @. left, (
+                out: out ++ $'[_, right, 0] @@ left;
+            )],
+
+            [isnodeident @. left, (
+                push @ [
+                    out,
+                    nodeop @ [
+                        left,
+                        {:},
+                        assign_to_obj ? [
+                            right,
+                            nodeop @ [
+                                \`{get},
+                                {@},
+                                nodelist @ [
+                                    right,
+                                    nodestring . getname @. left
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            )],
+
+            [isop'{:>} @. left, (
+                ato: not . isop'{:>} . getright @. left;
+
+                out: out ++ $ @ [
+                    getright @. left,
+                    nodeop @ [
+                        \`{get},
+                        {@},
+                        nodelist @ [
+                            right,
+
+                            k: getleft @. left;
+                            isnodeident @. k ? [
+                                nodestring . getname @. k,
+                                k
+                            ]
+                        ]
+                    ],
+                    ato
+                ]
+            )]
+        ];
+
+        out
+
+    );  
+
+    eval_ast @!! (helper @ [left, right, 0]);
+
+)]`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
