@@ -881,6 +881,8 @@ await define_expr("ast_get", `{!} <<< [op_priority @ {::}, [o, k] -> (
     m::key
 )]`);
 
+await define_expr("isop", `[op, ast] -> isnodeop @. ast && getop @. ast = op`);
+
 define_const("PI", Math.PI);
 define_const("π", Math.PI);
 define_const("E", Math.E);
