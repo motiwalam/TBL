@@ -4,7 +4,7 @@ import * as OPS from "./ops.mjs";
 import * as ERRORS from "./errors.mjs";
 import * as LANG from "./language.mjs";
 
-import { NodeIdentifier } from "./nodes.mjs";
+import { NodeIdentifier, NodeAst } from "./nodes.mjs";
 import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
 
 import assert from "assert";
@@ -497,6 +497,14 @@ define_builtin("ptable", (params, env) => {
 
 define_builtin("defined", (_, env) => new VALUES.List(Object.keys(env.ENV).map(n => new VALUES.VString(n))));
 
+define_builtin("nodeast", params => {
+    const ast = params.get(0);
+
+    CHECKS.assert_node(ast, `value must be an ast`);
+
+    return new NodeAst(ast);
+})
+
 await define_expr("env", `[] -> [defined @ [], ptable @ []]`)
 
 await define_expr("find", `[l, f] -> (
@@ -744,7 +752,11 @@ ast -> (
             nodeop @ [v, {:}, nodeop @ [c, {::}, i]],
             ast::2
           ]
-        ]
+        ],
+    
+      nodeop @ [\`{del}, {@}, nodeast @ i],
+      nodeop @ [\`{del}, {@}, nodeast @ c],
+      nodeop @ [\`{del}, {@}, nodeast @ v]
     ]
   );
 `)
@@ -884,6 +896,7 @@ await define_expr("ast_get", `{!} <<< [op_priority @ {::}, [o, k] -> (
 await define_expr("isop", `[op, ast] -> isnodeop @. ast && getop @. ast = op`);
 
 await define_expr("destructure_object", `{:<} <<< [op_priority @ {:}, [left, right] -> (
+    object: gensym @ [];
 
     helper: [left, right, assign_to_obj] -> (
         out: nodeexpr @ [];
@@ -940,8 +953,18 @@ await define_expr("destructure_object", `{:<} <<< [op_priority @ {:}, [left, rig
         out
 
     );  
+    
+    ast: nodeexpr @ [
+        nodeop @ [object, {:}, right],
+        helper @ [left, object, 0],
+        nodeop @ [
+            \`{del},
+            {@},
+            nodeast @ object
+        ]
+    ];
 
-    eval_ast @!! (helper @ [left, right, 0]);
+    eval_ast @!! ast;
 
 )]`);
 
