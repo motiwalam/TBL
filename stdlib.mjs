@@ -5,6 +5,7 @@ import * as ERRORS from "./errors.mjs";
 import * as LANG from "./language.mjs";
 
 import { NodeIdentifier, NodeAst } from "./nodes.mjs";
+import { make_ast } from "./ast.mjs";
 import { eval_application, eval_expr, eval_ast } from "./eval.mjs";
 
 import assert from "assert";
@@ -408,6 +409,12 @@ define_builtin("eval_ast", async (params, env) => {
     
     return await eval_ast(c, env);
 });
+
+define_builtin("parse_to_ast", (params, env) => {
+    const [c] = get_n(params, 1);
+    CHECKS.assert_vstring(c, `argument to parse_to_ast must be a string`);
+    return make_ast(c.value, env.USER_DEFINED_OP);
+})
 
 const predfun = (n, f) => define_builtin(n, params => {
     const [c] = get_n(params, 1);
