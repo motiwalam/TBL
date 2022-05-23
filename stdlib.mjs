@@ -781,7 +781,7 @@ AST ->
           [1, {{re @ n}+{im @ n}i}]
         ]
       )],
-      [isnodestr @ AST, {\\{{text @ AST}\\}}]
+      [isnodestr @ AST, {\\{{gettext @ AST}\\}}]
     ]
 `);
 
