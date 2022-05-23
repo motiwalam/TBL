@@ -770,8 +770,8 @@ AST ->
         
         {{sl} {getop @ AST} {sr}}
       )],
-      [isnodelist @ AST, {[{join'[_, {,}] . map'ast_to_tbl . getsubasts @ AST}]}],
-      [isnodeexpr @ AST, {({join'[_, {;}] . map'ast_to_tbl . getsubasts @ AST})}],
+      [isnodelist @ AST, {[{join'[_, {, }] . map'ast_to_tbl . getsubasts @ AST}]}],
+      [isnodeexpr @ AST, {({join'[_, {; }] . map'ast_to_tbl . getsubasts @ AST})}],
         [isnodeast @ AST, {\`\\{{ast_to_tbl . getast @ AST}\\}}],
         [isnodenum @ AST, (
         n: eval_ast @ AST;
