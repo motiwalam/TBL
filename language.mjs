@@ -36,7 +36,7 @@ export const IS_SCOPED_APPLICATION = e => typeof e === 'string'
                                       .every(e => e === SCOPED_APPLICATION[1])
 
 
-export const WHILE = '!';
+export const WHILE = '!!';
 export const FOR = '#';
 
 export const EXPONENTIATION = '^';

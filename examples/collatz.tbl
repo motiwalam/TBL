@@ -2,7 +2,7 @@ applywhile: [f, c] -> (
   i -> (
     [l, r]: [i, [i]];
     
-    c @ l ! push @ [r, l: f @ l];
+    c @ l !! push @ [r, l: f @ l];
     
     r;
   )

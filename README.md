@@ -159,7 +159,7 @@ The conditional operator, `?`, takes an expression on its left and a list of two
 ## Looping
 
 ### While loop
-The while loop operator , `!`, takes an expression on its left, and an expression on its right, and executes the right hand side expression as long as the left hand side expression evaluates true.
+The while loop operator , `!!`, takes an expression on its left, and an expression on its right, and executes the right hand side expression as long as the left hand side expression evaluates true.
 
 ### For loop
 

@@ -1,7 +1,7 @@
 factorize: n $ (
     factors: [];
     a: 2;
-    n > 1 ! (
+    n > 1 !! (
         (0 = n % a) ? [
             (
                 push @ [factors, a];
