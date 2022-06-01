@@ -669,6 +669,7 @@ await define_expr("concat", `{++} << [op_priority @ {+}, concat]`);
 await define_expr("floordiv", `{//} << [op_priority @ {/}, floor . div]`);
 
 await define_expr("zip", `{<:>} << [op_priority @ {+}, args => map @ [i -> get'[_, i] @@ args, range @ [0, minl @ [len @@ args] - 1]]]`);
+await define_expr("zipover", `{:|} << [op_priority @ {.}, [f, fs] -> args => f .. map'(apply .. id) . zip @ [fs, args]]`);
 await define_expr("encode", `{<%>} << [op_priority @ {+}, encode]`);
 await define_expr("encode", `{<*>} << [op_priority @ {+}, decode]`);
 
