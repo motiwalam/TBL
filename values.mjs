@@ -422,7 +422,7 @@ export const toJS = (v, wm = new WeakMap()) => cond(
         [f => f.apply[Symbol.toStringTag] === 'AsyncFunction', f => async (...args) => toJS(await f.apply(fromJS(args), {}), wm)],
         [() => true, f => (...args) => toJS(f.apply(fromJS(args), {}), wm)],
     )],
-    [() => true, v => { throw `Could not convert ${v} to JS` }]
+    [() => true, v => v] // since the incoming value is by definition a javascript object, if we dont recognize it, then just return it itself
 )(v);
 
 export const fromJS = (v, wm = new WeakMap()) => cond(
