@@ -174,7 +174,7 @@ export async function eval_ast(ast, env) {
 
             const params = ast.left instanceof NODES.NodeList ? ast.left.subasts.map(e => e.name) : [ast.left.name];
             const body = ast.right;
-            const closure = { ENV: {} };
+            const closure = { ...env, ENV: {} };
             for (const [name, binding] of Object.entries(env.ENV)) {
                 closure.ENV[name] = [...binding];
             }
