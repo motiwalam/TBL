@@ -228,7 +228,7 @@
   </div>
 
   <script type="module">
-    import { Calculator, EXAMPLES } from './calc.bundle.js';
+    import { Calculator, assert_vstring, fromJS, EXAMPLES } from './calc.bundle.js';
 
     const output = document.getElementById('output');
     const exprEl = document.getElementById('expr');
@@ -403,6 +403,12 @@
 
     try {
       calc = await Calculator.with_stdlib();
+      calc.defineBuiltin("js", async params => {
+          const script = params.get(0);
+          assert_vstring(script, 'script must be a string');
+          const result = await eval(script.value) ?? "undefined";
+          return fromJS(result);
+      });
       output.innerHTML = '';
       appendAbout();
       exprEl.disabled = false;
