@@ -28,6 +28,8 @@
 
     h1 span { color: #7ec8e3; }
 
+    /* ── output ── */
+
     #output {
       flex: 1;
       overflow-y: auto;
@@ -56,6 +58,45 @@
     .input-line  { color: #c8c8ff; white-space: pre-wrap; word-break: break-all; }
     .result-line { color: #7ec8e3; white-space: pre-wrap; word-break: break-all; }
     .error-line  { color: #f87171; white-space: pre-wrap; word-break: break-all; }
+
+    .welcome { color: #555; font-size: 12px; padding: 4px 0; }
+
+    /* ── help output ── */
+
+    .help-block { display: flex; flex-direction: column; gap: 6px; }
+
+    .help-title {
+      color: #666;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 2px;
+    }
+
+    .help-row {
+      display: grid;
+      grid-template-columns: max-content max-content 1fr;
+      gap: 0 10px;
+      align-items: baseline;
+    }
+
+    .help-cmd  { color: #7ec8e3; }
+    .help-sep  { color: #444; }
+    .help-desc { color: #888; }
+
+    /* ── about link ── */
+
+    .repl-link { color: #7ec8e3; text-decoration: underline; text-underline-offset: 2px; }
+    .repl-link:hover { color: #a0d8ef; }
+
+    /* ── input area ── */
+
+    #input-area {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
     #status {
       font-size: 12px;
@@ -94,10 +135,9 @@
       caret-color: #7ec8e3;
       resize: none;
       line-height: 1.5;
+      height: calc(1.5em * 1);
       max-height: calc(1.5em * 8);
       overflow-y: auto;
-      /* match single-line height by default */
-      height: calc(1.5em * 1);
     }
 
     #expr:disabled { opacity: 0.4; }
@@ -113,16 +153,47 @@
       cursor: pointer;
       flex-shrink: 0;
       transition: background 0.15s;
+      margin-top: 1px;
     }
 
     #run-btn:hover:not(:disabled) { background: #9dd8ee; }
     #run-btn:disabled { opacity: 0.3; cursor: default; }
 
-    .welcome {
-      color: #555;
-      font-size: 12px;
-      padding: 4px 0;
+    /* ── autocomplete ── */
+
+    #autocomplete {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 6px;
+      overflow-y: auto;
+      max-height: 220px;
+      z-index: 10;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.5);
     }
+
+    .suggestion {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 7px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #222;
+    }
+
+    .suggestion:last-child { border-bottom: none; }
+
+    .suggestion:hover,
+    .suggestion.active { background: #252525; }
+
+    .sugg-label { color: #7ec8e3; flex-shrink: 0; }
+    .sugg-desc  { color: #555; font-size: 12px; }
+
+    .suggestion.active .sugg-label { color: #b0dcee; }
+    .suggestion.active .sugg-desc  { color: #777; }
   </style>
 </head>
 <body>
@@ -132,39 +203,126 @@
     <div class="welcome">Initializing calculator with stdlib…</div>
   </div>
 
-  <div id="status"></div>
-
-  <div id="input-row">
-    <span id="prompt">&gt;</span>
-    <textarea id="expr" rows="1" placeholder="type an expression…" autocomplete="off" spellcheck="false" disabled></textarea>
-    <button id="run-btn" disabled>Run</button>
+  <div id="input-area">
+    <div id="autocomplete" hidden></div>
+    <div id="status"></div>
+    <div id="input-row">
+      <span id="prompt">&gt;</span>
+      <textarea id="expr" rows="1" placeholder="expression or :command…" autocomplete="off" spellcheck="false" disabled></textarea>
+      <button id="run-btn" disabled>Run</button>
+    </div>
   </div>
 
   <script type="module">
-    import { Calculator } from './calc.bundle.js';
+    import { Calculator, EXAMPLES } from './calc.bundle.js';
 
-    const output  = document.getElementById('output');
-    const exprEl  = document.getElementById('expr');
-    const runBtn  = document.getElementById('run-btn');
-    const status  = document.getElementById('status');
+    const output = document.getElementById('output');
+    const exprEl = document.getElementById('expr');
+    const runBtn = document.getElementById('run-btn');
+    const status = document.getElementById('status');
+    const acEl   = document.getElementById('autocomplete');
 
-    let calc = null;
+    let calc    = null;
     let history = [];
     let histIdx = -1;
+    let acIdx   = -1;
+    let currentCompletions = [];
 
-    // ── helpers ─────────────────────────────────────────────────────────────
+    // ── command definitions ───────────────────────────────────────────────────
+
+    const COMMANDS = [
+      { name: 'help',  usage: ':help',        desc: 'display all available commands' },
+      { name: 'about', usage: ':about',        desc: 'about TBL' },
+      { name: 'load',  usage: ':load <file>',  desc: 'load an example into the editor' },
+    ];
+
+    // ── completions ───────────────────────────────────────────────────────────
+
+    function getCompletions(value) {
+      if (!value.startsWith(':')) return [];
+      const rest     = value.slice(1);
+      const spaceIdx = rest.indexOf(' ');
+
+      if (spaceIdx === -1) {
+        // Completing command name
+        return COMMANDS
+          .filter(c => c.name.startsWith(rest))
+          .map(c => ({ complete: ':' + c.name, label: ':' + c.name, desc: c.desc }));
+      }
+
+      const cmd = rest.slice(0, spaceIdx);
+      const arg = rest.slice(spaceIdx + 1);
+
+      if (cmd === 'load') {
+        return EXAMPLES
+          .filter(f => f.startsWith(arg))
+          .map(f => ({ complete: ':load ' + f, label: f, desc: '' }));
+      }
+
+      return [];
+    }
+
+    function renderCompletions(completions) {
+      currentCompletions = completions;
+
+      if (completions.length === 0) {
+        acEl.hidden = true;
+        acIdx = -1;
+        return;
+      }
+
+      acEl.innerHTML = completions.map((c, i) => `
+        <div class="suggestion${i === acIdx ? ' active' : ''}" data-idx="${i}">
+          <span class="sugg-label">${escHtml(c.label)}</span>
+          ${c.desc ? `<span class="sugg-desc">${escHtml(c.desc)}</span>` : ''}
+        </div>
+      `).join('');
+
+      acEl.hidden = false;
+
+      acEl.querySelectorAll('.suggestion').forEach(el => {
+        el.addEventListener('mousedown', e => {
+          e.preventDefault(); // keep textarea focused
+          applyCompletion(completions[parseInt(el.dataset.idx)]);
+        });
+      });
+    }
+
+    function applyCompletion(completion) {
+      setExprValue(completion.complete);
+      acIdx = -1;
+      renderCompletions(getCompletions(completion.complete));
+      exprEl.focus();
+    }
+
+    // ── output helpers ────────────────────────────────────────────────────────
 
     function appendEntry(inputText, resultText, isError = false) {
       const entry = document.createElement('div');
       entry.className = 'entry';
-
       entry.innerHTML = `
         <span class="gutter">in</span>
         <span class="input-line">${escHtml(inputText)}</span>
         <span class="gutter">out</span>
         <span class="${isError ? 'error-line' : 'result-line'}">${escHtml(resultText)}</span>
       `;
+      output.appendChild(entry);
+      output.scrollTop = output.scrollHeight;
+    }
 
+    // Like appendEntry but the output cell accepts raw HTML (for links etc.)
+    function appendRaw(inputText, htmlContent, isError = false) {
+      const entry = document.createElement('div');
+      entry.className = 'entry';
+
+      const inG = document.createElement('span'); inG.className = 'gutter'; inG.textContent = 'in';
+      const inL = document.createElement('span'); inL.className = 'input-line'; inL.textContent = inputText;
+      const outG = document.createElement('span'); outG.className = 'gutter'; outG.textContent = 'out';
+      const outL = document.createElement('span');
+      outL.className = isError ? 'error-line' : 'result-line';
+      outL.innerHTML = htmlContent;
+
+      entry.append(inG, inL, outG, outL);
       output.appendChild(entry);
       output.scrollTop = output.scrollHeight;
     }
@@ -181,28 +339,123 @@
       status.style.color = isError ? '#f87171' : '#555';
     }
 
-    // ── init ─────────────────────────────────────────────────────────────────
+    // ── textarea resize ───────────────────────────────────────────────────────
+
+    const LINE_HEIGHT_EM = 1.5;
+    const MAX_LINES      = 8;
+    const fontSize       = parseFloat(getComputedStyle(document.body).fontSize);
+
+    function resizeExpr() {
+      exprEl.style.height = '0';
+      const maxH = LINE_HEIGHT_EM * MAX_LINES * fontSize;
+      exprEl.style.height = Math.min(exprEl.scrollHeight, maxH) + 'px';
+    }
+
+    function setExprValue(val) {
+      exprEl.value = val;
+      resizeExpr();
+    }
+
+    exprEl.addEventListener('input', () => {
+      resizeExpr();
+      acIdx = -1;
+      renderCompletions(getCompletions(exprEl.value));
+    });
+
+    // Hide autocomplete when focus leaves the textarea (allow click to fire first)
+    exprEl.addEventListener('blur', () => {
+      setTimeout(() => { acEl.hidden = true; acIdx = -1; }, 150);
+    });
+
+    // ── init ──────────────────────────────────────────────────────────────────
 
     try {
       calc = await Calculator.with_stdlib();
-
-      // clear "Initializing…" message
       output.innerHTML = '';
-      appendEntry('{Hello, world!}', 'Hello, world!', false);
-
+      appendAbout();
       exprEl.disabled = false;
       runBtn.disabled = false;
       exprEl.focus();
-      setStatus('stdlib loaded — enter an expression and press Enter or Run');
+      setStatus('Enter evaluates · Shift+Enter newline · : for commands · Tab to autocomplete');
     } catch (err) {
       setStatus(`Failed to initialize: ${err.message}`, true);
     }
 
-    // ── eval ─────────────────────────────────────────────────────────────────
+    // ── command handlers ──────────────────────────────────────────────────────
+
+    function appendHelp() {
+      const rows = COMMANDS.map(c =>
+        `<div class="help-row">
+           <span class="help-cmd">${escHtml(c.usage)}</span>
+           <span class="help-sep">—</span>
+           <span class="help-desc">${escHtml(c.desc)}</span>
+         </div>`
+      ).join('');
+      appendRaw(':help',
+        `<div class="help-block"><div class="help-title">Available commands</div>${rows}</div>`
+      );
+    }
+
+    function appendAbout() {
+      appendRaw(':about',
+        `This is an interactive playground for TBL (The Best Language). ` +
+        `Read more about it <a class="repl-link" href="https://github.com/motiwalam/TBL" ` +
+        `target="_blank" rel="noopener">here</a>. Use ':help' for more information.`
+      );
+    }
+
+    async function handleLoad(filename) {
+      if (!filename) {
+        appendEntry(':load', 'Usage: :load <filename>  (type :load then Space + Tab to browse examples)');
+        return;
+      }
+      try {
+        const resp = await fetch('examples/' + filename);
+        if (!resp.ok) throw new Error(`Could not load examples/${filename} (${resp.status})`);
+        setExprValue(await resp.text());
+        setStatus(`Loaded examples/${filename} — edit or press Enter to run`);
+      } catch (err) {
+        appendEntry(':load ' + filename, err.message, true);
+        setExprValue('');
+      }
+    }
+
+    async function handleCommand(cmdStr) {
+      const rest     = cmdStr.slice(1).trim();
+      const spaceIdx = rest.indexOf(' ');
+      const cmd      = spaceIdx === -1 ? rest : rest.slice(0, spaceIdx);
+      const args     = spaceIdx === -1 ? '' : rest.slice(spaceIdx + 1).trim();
+
+      acEl.hidden = true;
+      acIdx = -1;
+
+      switch (cmd) {
+        case 'help':  setExprValue(''); appendHelp();            break;
+        case 'about': setExprValue(''); appendAbout();           break;
+        case 'load':  await handleLoad(args);                    break;
+        default:
+          setExprValue('');
+          appendEntry(cmdStr, `Unknown command ":${cmd}". Type :help for available commands.`, true);
+      }
+
+      exprEl.focus();
+    }
+
+    // ── eval ──────────────────────────────────────────────────────────────────
 
     async function evaluate() {
       const expr = exprEl.value.trim();
       if (!expr || !calc) return;
+
+      acEl.hidden = true;
+      acIdx = -1;
+
+      if (expr.startsWith(':')) {
+        history.unshift(expr);
+        histIdx = -1;
+        await handleCommand(expr);
+        return;
+      }
 
       history.unshift(expr);
       histIdx = -1;
@@ -226,54 +479,69 @@
       }
     }
 
-    // ── auto-resize textarea ─────────────────────────────────────────────────
-
-    const LINE_HEIGHT_EM = 1.5;
-    const MAX_LINES = 8;
-    const fontSize = parseFloat(getComputedStyle(document.body).fontSize);
-
-    function resizeExpr() {
-      // Shrink first so scrollHeight reflects actual content height
-      exprEl.style.height = '0';
-      const maxH = LINE_HEIGHT_EM * MAX_LINES * fontSize;
-      exprEl.style.height = Math.min(exprEl.scrollHeight, maxH) + 'px';
-    }
-
-    exprEl.addEventListener('input', resizeExpr);
-
-    function setExprValue(val) {
-      exprEl.value = val;
-      resizeExpr();
-    }
-
     // ── keyboard ──────────────────────────────────────────────────────────────
 
     exprEl.addEventListener('keydown', e => {
+      // ── autocomplete navigation ──
+      if (!acEl.hidden) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          acIdx = Math.min(acIdx + 1, currentCompletions.length - 1);
+          renderCompletions(currentCompletions);
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          acIdx = Math.max(acIdx - 1, 0);
+          renderCompletions(currentCompletions);
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          acEl.hidden = true;
+          acIdx = -1;
+          return;
+        }
+      }
+
+      // ── tab: complete ──
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (!acEl.hidden && currentCompletions.length > 0) {
+          applyCompletion(currentCompletions[acIdx >= 0 ? acIdx : 0]);
+        }
+        return;
+      }
+
+      // ── enter: evaluate ──
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         evaluate();
-      } else if (e.key === 'ArrowUp' && !e.shiftKey) {
-        // Only hijack history nav when caret is on the first line
-        const beforeCaret = exprEl.value.slice(0, exprEl.selectionStart);
-        if (!beforeCaret.includes('\n')) {
-          e.preventDefault();
-          if (history.length && histIdx < history.length - 1) {
-            histIdx++;
-            setExprValue(history[histIdx]);
-            requestAnimationFrame(() => exprEl.setSelectionRange(exprEl.value.length, exprEl.value.length));
+        return;
+      }
+
+      // ── history navigation (autocomplete must be hidden, caret on edge line) ──
+      if (acEl.hidden) {
+        if (e.key === 'ArrowUp') {
+          const beforeCaret = exprEl.value.slice(0, exprEl.selectionStart);
+          if (!beforeCaret.includes('\n')) {
+            e.preventDefault();
+            if (history.length && histIdx < history.length - 1) {
+              histIdx++;
+              setExprValue(history[histIdx]);
+              requestAnimationFrame(() =>
+                exprEl.setSelectionRange(exprEl.value.length, exprEl.value.length)
+              );
+              renderCompletions(getCompletions(exprEl.value));
+            }
           }
-        }
-      } else if (e.key === 'ArrowDown' && !e.shiftKey) {
-        // Only hijack history nav when caret is on the last line
-        const afterCaret = exprEl.value.slice(exprEl.selectionStart);
-        if (!afterCaret.includes('\n')) {
-          e.preventDefault();
-          if (histIdx > 0) {
-            histIdx--;
-            setExprValue(history[histIdx]);
-          } else {
-            histIdx = -1;
-            setExprValue('');
+        } else if (e.key === 'ArrowDown') {
+          const afterCaret = exprEl.value.slice(exprEl.selectionStart);
+          if (!afterCaret.includes('\n')) {
+            e.preventDefault();
+            histIdx > 0 ? (histIdx--, setExprValue(history[histIdx]))
+                        : (histIdx = -1, setExprValue(''));
+            renderCompletions(getCompletions(exprEl.value));
           }
         }
       }
