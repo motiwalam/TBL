@@ -55,9 +55,23 @@
       padding-top: 1px;
     }
 
-    .input-line  { color: #c8c8ff; white-space: pre-wrap; word-break: break-all; }
-    .result-line { color: #7ec8e3; white-space: pre-wrap; word-break: break-all; }
-    .error-line  { color: #f87171; white-space: pre-wrap; word-break: break-all; }
+    .input-line  { color: #c8c8ff; white-space: pre-wrap; word-break: break-all; max-height: calc(1.5em * 15);  overflow-y: auto; }
+    .result-line { color: #7ec8e3; white-space: pre-wrap; word-break: break-all; max-height: calc(1.5em * 15); overflow-y: auto; }
+    .error-line  { color: #f87171; white-space: pre-wrap; word-break: break-all; max-height: calc(1.5em * 15); overflow-y: auto; }
+
+    /* Fade shown at the bottom of a clipped cell; removed once scrolled to end */
+    .input-line.overflows::after,
+    .result-line.overflows::after,
+    .error-line.overflows::after {
+      content: '';
+      display: block;
+      height: 2.5em;
+      position: sticky;
+      bottom: 0;
+      margin-top: -2.5em;
+      background: linear-gradient(to bottom, transparent, #111);
+      pointer-events: none;
+    }
 
     .welcome { color: #555; font-size: 12px; padding: 4px 0; }
 
@@ -297,6 +311,20 @@
 
     // ── output helpers ────────────────────────────────────────────────────────
 
+    // Track overflow on a cell and toggle .overflows so the fade shows/hides.
+    // The fade disappears once the user has scrolled to the bottom.
+    function observeOverflow(el) {
+      if (!el) return;
+      requestAnimationFrame(() => {
+        if (el.scrollHeight <= el.clientHeight + 1) return;
+        el.classList.add('overflows');
+        el.addEventListener('scroll', () => {
+          const atBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 2;
+          el.classList.toggle('overflows', !atBottom);
+        }, { passive: true });
+      });
+    }
+
     function appendEntry(inputText, resultText, isError = false) {
       const entry = document.createElement('div');
       entry.className = 'entry';
@@ -307,6 +335,8 @@
         <span class="${isError ? 'error-line' : 'result-line'}">${escHtml(resultText)}</span>
       `;
       output.appendChild(entry);
+      observeOverflow(entry.querySelector('.input-line'));
+      observeOverflow(entry.querySelector('.result-line, .error-line'));
       output.scrollTop = output.scrollHeight;
     }
 
@@ -324,6 +354,8 @@
 
       entry.append(inG, inL, outG, outL);
       output.appendChild(entry);
+      observeOverflow(inL);
+      observeOverflow(outL);
       output.scrollTop = output.scrollHeight;
     }
 
