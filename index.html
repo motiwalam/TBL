@@ -413,6 +413,9 @@
         const resp = await fetch('examples/' + filename);
         if (!resp.ok) throw new Error(`Could not load examples/${filename} (${resp.status})`);
         setExprValue(await resp.text());
+        const end = exprEl.value.length;
+        exprEl.setSelectionRange(end, end);
+        exprEl.scrollTop = exprEl.scrollHeight;
         setStatus(`Loaded examples/${filename} — edit or press Enter to run`);
       } catch (err) {
         appendEntry(':load ' + filename, err.message, true);
