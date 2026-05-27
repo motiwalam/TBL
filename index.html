@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tbl REPL</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 16px;
+      color: #888;
+      font-weight: normal;
+      letter-spacing: 0.1em;
+    }
+
+    h1 span { color: #7ec8e3; }
+
+    #output {
+      flex: 1;
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 12px;
+      line-height: 1.5;
+    }
+
+    .gutter {
+      color: #444;
+      user-select: none;
+      padding-top: 1px;
+    }
+
+    .input-line  { color: #c8c8ff; white-space: pre-wrap; word-break: break-all; }
+    .result-line { color: #7ec8e3; white-space: pre-wrap; word-break: break-all; }
+    .error-line  { color: #f87171; white-space: pre-wrap; word-break: break-all; }
+
+    #status {
+      font-size: 12px;
+      color: #555;
+      min-height: 16px;
+    }
+
+    #input-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      padding: 8px 12px;
+      transition: border-color 0.15s;
+    }
+
+    #input-row:focus-within { border-color: #7ec8e3; }
+
+    #prompt {
+      color: #7ec8e3;
+      user-select: none;
+      flex-shrink: 0;
+      padding-top: 2px;
+      line-height: 1.5;
+    }
+
+    #expr {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #c8c8ff;
+      font: inherit;
+      caret-color: #7ec8e3;
+      resize: none;
+      line-height: 1.5;
+      max-height: calc(1.5em * 8);
+      overflow-y: auto;
+      /* match single-line height by default */
+      height: calc(1.5em * 1);
+    }
+
+    #expr:disabled { opacity: 0.4; }
+
+    #run-btn {
+      background: #7ec8e3;
+      color: #111;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    #run-btn:hover:not(:disabled) { background: #9dd8ee; }
+    #run-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .welcome {
+      color: #555;
+      font-size: 12px;
+      padding: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>tbl <span>REPL</span></h1>
+
+  <div id="output">
+    <div class="welcome">Initializing calculator with stdlib…</div>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="input-row">
+    <span id="prompt">&gt;</span>
+    <textarea id="expr" rows="1" placeholder="type an expression…" autocomplete="off" spellcheck="false" disabled></textarea>
+    <button id="run-btn" disabled>Run</button>
+  </div>
+
+  <script type="module">
+    import { Calculator } from './calc.bundle.js';
+
+    const output  = document.getElementById('output');
+    const exprEl  = document.getElementById('expr');
+    const runBtn  = document.getElementById('run-btn');
+    const status  = document.getElementById('status');
+
+    let calc = null;
+    let history = [];
+    let histIdx = -1;
+
+    // ── helpers ─────────────────────────────────────────────────────────────
+
+    function appendEntry(inputText, resultText, isError = false) {
+      const entry = document.createElement('div');
+      entry.className = 'entry';
+
+      entry.innerHTML = `
+        <span class="gutter">in</span>
+        <span class="input-line">${escHtml(inputText)}</span>
+        <span class="gutter">out</span>
+        <span class="${isError ? 'error-line' : 'result-line'}">${escHtml(resultText)}</span>
+      `;
+
+      output.appendChild(entry);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function setStatus(msg, isError = false) {
+      status.textContent = msg;
+      status.style.color = isError ? '#f87171' : '#555';
+    }
+
+    // ── init ─────────────────────────────────────────────────────────────────
+
+    try {
+      calc = await Calculator.with_stdlib();
+
+      // clear "Initializing…" message
+      output.innerHTML = '';
+      appendEntry('{Hello, world!}', 'Hello, world!', false);
+
+      exprEl.disabled = false;
+      runBtn.disabled = false;
+      exprEl.focus();
+      setStatus('stdlib loaded — enter an expression and press Enter or Run');
+    } catch (err) {
+      setStatus(`Failed to initialize: ${err.message}`, true);
+    }
+
+    // ── eval ─────────────────────────────────────────────────────────────────
+
+    async function evaluate() {
+      const expr = exprEl.value.trim();
+      if (!expr || !calc) return;
+
+      history.unshift(expr);
+      histIdx = -1;
+      setExprValue('');
+
+      runBtn.disabled = true;
+      exprEl.disabled = true;
+      setStatus('evaluating…');
+
+      try {
+        const result = await calc.eval(expr);
+        appendEntry(expr, result?.toString() ?? 'undefined');
+        setStatus('');
+      } catch (err) {
+        appendEntry(expr, err.message ?? String(err), true);
+        setStatus('error — see output above', true);
+      } finally {
+        runBtn.disabled = false;
+        exprEl.disabled = false;
+        exprEl.focus();
+      }
+    }
+
+    // ── auto-resize textarea ─────────────────────────────────────────────────
+
+    const LINE_HEIGHT_EM = 1.5;
+    const MAX_LINES = 8;
+    const fontSize = parseFloat(getComputedStyle(document.body).fontSize);
+
+    function resizeExpr() {
+      // Shrink first so scrollHeight reflects actual content height
+      exprEl.style.height = '0';
+      const maxH = LINE_HEIGHT_EM * MAX_LINES * fontSize;
+      exprEl.style.height = Math.min(exprEl.scrollHeight, maxH) + 'px';
+    }
+
+    exprEl.addEventListener('input', resizeExpr);
+
+    function setExprValue(val) {
+      exprEl.value = val;
+      resizeExpr();
+    }
+
+    // ── keyboard ──────────────────────────────────────────────────────────────
+
+    exprEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        evaluate();
+      } else if (e.key === 'ArrowUp' && !e.shiftKey) {
+        // Only hijack history nav when caret is on the first line
+        const beforeCaret = exprEl.value.slice(0, exprEl.selectionStart);
+        if (!beforeCaret.includes('\n')) {
+          e.preventDefault();
+          if (history.length && histIdx < history.length - 1) {
+            histIdx++;
+            setExprValue(history[histIdx]);
+            requestAnimationFrame(() => exprEl.setSelectionRange(exprEl.value.length, exprEl.value.length));
+          }
+        }
+      } else if (e.key === 'ArrowDown' && !e.shiftKey) {
+        // Only hijack history nav when caret is on the last line
+        const afterCaret = exprEl.value.slice(exprEl.selectionStart);
+        if (!afterCaret.includes('\n')) {
+          e.preventDefault();
+          if (histIdx > 0) {
+            histIdx--;
+            setExprValue(history[histIdx]);
+          } else {
+            histIdx = -1;
+            setExprValue('');
+          }
+        }
+      }
+    });
+
+    runBtn.addEventListener('click', evaluate);
+  </script>
+</body>
+</html>
