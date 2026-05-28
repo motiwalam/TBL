@@ -1,0 +1,158 @@
+canvas_id: {c{floor @ (random @ [] * (10^6))}};
+
+init: _ => (
+c: canvas_id;
+-- bridge to javascript
+w: js @ {window};
+canvas: w :: {document} :: {getElementById} @ c;
+ctx: canvas :: {getContext} @ {2d};
+
+GRAVITY: 0.4;
+JUMP: ~7;
+PIPE_SPEED: 2;
+PIPE_GAP: 180;
+PIPE_INTERVAL: 2.5; -- num seconds between pipes
+
+-- each name gets a new object
+-- we're using objects as pointers
+[bird, pipes, score, frame, alive, lasttime, pipetimer]: object @ [];
+
+reset: _ => (
+    set @ [bird, {v}, (
+        {x} :> 80 |
+        {y} :> 240 |
+        {vy} :> 0 |
+        {r} :> 14
+    )];
+    set @ [pipes, {v}, []];
+    set @ [score, {v}, 0];
+    set @ [frame, {v}, 0];
+    set @ [alive, {v}, 1];
+    set @ [lasttime, {v}, ~1];
+    set @ [pipetimer, {v}, 0];
+);
+reset @ [];
+
+-- input
+flap: _ => (
+    alive::{v} ? [
+        set @ [bird::{v}, {vy}, JUMP],
+        reset @ []
+    ];
+);
+canvas::{addEventListener} @ [{click}, flap];
+
+-- pipe factory
+make_pipe: _ => (
+    top: 60 + random @ [] * (canvas::{height} - PIPE_GAP - 120);
+
+    (
+        {x} :> canvas::{width} |
+        {top} :> top |
+        {bottom} :> top + PIPE_GAP
+    );
+);
+
+-- game loop
+update: [dt, _] => (
+    set @ [frame, {v}, frame::{v} + 1];
+
+    scale: dt * 60;
+
+    -- bird physics
+    set @ [bird::{v}, {vy}, bird::{v}::{vy} + GRAVITY * scale];
+    set @ [bird::{v}, {y}, bird::{v}::{y} + bird::{v}::{vy} * scale];
+
+    -- spawn pipes
+    set @ [pipetimer, {v}, pipetimer::{v} + dt];
+    if @- [pipetimer::{v} >= PIPE_INTERVAL,
+        push @ [pipes::{v}, make_pipe @ []];
+        set @ [pipetimer, {v}, pipetimer::{v} - PIPE_INTERVAL];
+    ];
+
+    -- move and score pipes
+    forin @- [p, pipes::{v},
+        set @ [p, {x}, p::{x} - PIPE_SPEED * scale];
+        if @- [p::{x} + 40 = bird::{v}::{x},
+            set @ [score, {v}, score::{v} + 1]
+        ];
+    ];
+
+    -- remove off-screen pipes
+    set @ [pipes, {v}, filter @ [p -> p::{x} + 40 > 0, pipes::{v}]];
+
+    -- collision with ceiling or floor
+    if @- [bird::{v}::{y} - bird::{v}::{r} < 0 || bird::{v}::{y} + bird::{v}::{r} > canvas::{height},
+        set @ [alive, {v}, 0];
+    ];
+
+    forin @- [p, pipes::{v},
+        inX: bird::{v}::{x} + bird::{v}::{r} > p::{x} && bird::{v}::{x} - bird::{v}::{r} < p::{x} + 40;
+        inY: bird::{v}::{y} + bird::{v}::{r} > p::{bottom} || bird::{v}::{y} - bird::{v}::{r} < p::{top};
+        if @- [inX && inY,
+            set @ [alive, {v}, 0];
+        ]
+    ];
+);
+
+draw: _ => (
+    ctx::{clearRect} @ [0, 0, canvas::{width}, canvas::{height}];
+
+    -- pipes
+    set @ [ctx, {fillStyle}, {#4a7c3f}];
+    forin @- [p, pipes::{v},
+        ctx::{fillRect} @ [p::{x}, 0, 40, p::{top}];
+        ctx::{fillRect} @ [p::{x}, p::{bottom}, 40, canvas::{height} - p::{bottom}];
+    ];
+
+    -- bird
+    set @ [ctx, {fillStyle}, {#f5c842}];
+    ctx::{beginPath} @ [];
+    ctx::{arc} @ [
+        bird::{v}::{x},
+        bird::{v}::{y},
+        bird::{v}::{r},
+        0, PI * 2
+    ];
+    ctx::{fill} @ [];
+
+    -- score
+    set @ [ctx, {fillStyle}, {#fff}];
+    set @ [ctx, {font}, {bold 24px sans-serif}];
+    ctx::{fillText} @ [score::{v}, canvas::{width}/2 - 8, 40];
+
+    -- dead screen
+    if @- [not @ alive::{v},
+        set @ [ctx, {fillStyle}, {rgba(0,0,0,0.4)}];
+        ctx::{fillRect} @ [0, 0, canvas::{width}, canvas::{height}];
+        
+        set @ [ctx, {fillStyle}, {#fff}];
+        set @ [ctx, {font}, {bold 28px sans-serif}];
+        ctx::{fillText} @ [{Game Over}, 90, 220];
+
+        set @ [ctx, {font}, {18px sans-serif}];
+        ctx::{fillText} @ [{Click to restart}, 62, 255];
+    ];
+);
+
+loop: [timestamp, _] => (
+    dt: lasttime::{v} = ~1 ? [
+        0,
+        (timestamp - lasttime::{v}) / 1000
+    ];
+    set @ [lasttime, {v}, timestamp];
+    alive::{v} ? [update @ [dt],];
+
+    draw @ [];
+    w::{requestAnimationFrame} @ $;
+);
+w::{requestAnimationFrame} @ loop;
+);
+
+(js@{window})::{setTimeout} @ [init, 1000];
+
+{__ALLOW_HTML__::
+<canvas id="{canvas_id}"
+        style="background: #70c5ce"; display: block" 
+        width="320" height="480">
+};

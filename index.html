@@ -230,6 +230,8 @@
   <script type="module">
     import { Calculator, assert_vstring, fromJS, EXAMPLES } from './calc.bundle.js';
 
+    const ALLOW_HTML = '__ALLOW_HTML__::';
+
     const output = document.getElementById('output');
     const exprEl = document.getElementById('expr');
     const runBtn = document.getElementById('run-btn');
@@ -326,13 +328,16 @@
     }
 
     function appendEntry(inputText, resultText, isError = false) {
+      const allowHTML = resultText.startsWith(ALLOW_HTML);
+      const outputText = allowHTML ? resultText.slice(ALLOW_HTML.length).trim() 
+                                           : escHtml(resultText);
       const entry = document.createElement('div');
       entry.className = 'entry';
       entry.innerHTML = `
         <span class="gutter">in</span>
         <span class="input-line">${escHtml(inputText)}</span>
         <span class="gutter">out</span>
-        <span class="${isError ? 'error-line' : 'result-line'}">${escHtml(resultText)}</span>
+        <span class="${isError ? 'error-line' : 'result-line'}" ${allowHTML ? 'style="max-height: none"' : ''}>${outputText}</span>
       `;
       output.appendChild(entry);
       observeOverflow(entry.querySelector('.input-line'));
@@ -438,7 +443,8 @@
       appendRaw(':about',
         `This is an interactive playground for TBL (The Best Language). ` +
         `Read more about it <a class="repl-link" href="https://github.com/motiwalam/TBL" ` +
-        `target="_blank" rel="noopener">here</a>. Use ':help' for more information.`
+        `target="_blank" rel="noopener">here</a>. Use ':help' for more information.` +
+        `\n\nTry ':load flappy_bird.tbl' or ':load wordle.tbl' for fun examples!`
       );
     }
 
