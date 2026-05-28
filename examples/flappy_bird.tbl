@@ -49,7 +49,8 @@ make_pipe: _ => (
     (
         {x} :> canvas::{width} |
         {top} :> top |
-        {bottom} :> top + PIPE_GAP
+        {bottom} :> top + PIPE_GAP |
+        {passed} :> 0
     );
 );
 
@@ -73,8 +74,9 @@ update: [dt, _] => (
     -- move and score pipes
     forin @- [p, pipes::{v},
         set @ [p, {x}, p::{x} - PIPE_SPEED * scale];
-        if @- [p::{x} + 40 = bird::{v}::{x},
-            set @ [score, {v}, score::{v} + 1]
+        if @- [(not @ p::{passed}) && p::{x} + 40 <= bird::{v}::{x},
+            set @ [score, {v}, score::{v} + 1];
+            set @ [p, {passed}, 1];
         ];
     ];
 
